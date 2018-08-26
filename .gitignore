@@ -1,0 +1,14 @@
+.idea
+composer.lock
+*.log
+application/config.php merge=ours
+application/database.php merge=ours
+.idea
+runtime/
+#.gitignore
+public/index.php
+public/admin.php
+public/user.php
+application/config.php
+application/database.php
+
