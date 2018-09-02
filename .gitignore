@@ -9,6 +9,7 @@ runtime/
 public/index.php
 public/admin.php
 public/user.php
+public/driver.php
 application/config.php
 application/database.php
 
