@@ -25,12 +25,6 @@ function makeLoginToken($sub = '' , $prefix = '')
 define('CURR_TIME', time());
 define('CURR_DATE', date('Y-m-d'));
 define('HOUR', 3600);
-//可排期时间 9:00 -21:00
-//排期或者预约最小时间段[9:00 - 9:30]
-define('MIN_TIMENODE', 18);
-//排期可用最大时间段[20:30 - 21:00]
-define("MAX_TIMENODE", 41);
-define("UNABLE_MIX_TIMENODE", 38);
 /**
  * 统一返回信息
  * @param $code
