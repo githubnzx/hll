@@ -17,64 +17,40 @@ use think\Db;
 use think\Log;
 use think\Model;
 
-class UsersModel extends BaseModel
+class IntegralModel extends BaseModel
 {
-    protected $tableUser = 'users';
-    protected $wechatTable = 'wechat';
+    protected $integralGoodsTable = 'integral_goods';
+    protected $userIntegralRecord = 'user_integral_record';
+    protected $userIntegralGoods  = 'user_integral';
+    protected $integralOrderTable = 'integral_order';
 
     const STATUS_DEL = 0;
-    const USER_TYPE_USER  = 1;
+    const CERT_TYPE  = 4;
 
-    public function userFind($where, $fields = '*'){
-        return Db::table($this->tableUser)->field($fields)->where($where)->find();
+    public function integralList($where = [], $fields = '*'){
+        $where["is_del"] = IntegralModel::STATUS_DEL;
+        return Db::table($this->integralGoodsTable)->field($fields)->where($where)->select();
     }
 
-    public function userBindAll($where, $fields = '*'){
-        return Db::table($this->tableUser)->field($fields)->where($where)->select();
+    public function integralFind($where = [], $fields = '*'){
+        $where["is_del"] = IntegralModel::STATUS_DEL;
+        return Db::table($this->integralGoodsTable)->field($fields)->where($where)->find();
     }
 
-    public function userEdit($where, $param){
-        if(!isset($param["update_time"])){
-            $param["update_time"] = CURR_TIME;
-        }
-        return Db::table($this->tableUser)->where($where)->update($param);
-    }
-
-    public function userAdd($data){
-        return Db::table($this->tableUser)->insertGetId($data);
-    }
-
-    public function wechatFind($where, $field = "*"){
-        $where["is_del"] = UsersModel::USER_TYPE_USER;
-        return Db::table($this->wechatTable)->field($field)->where($where)->find();
-    }
-
-    public function wxInsert($data){
-        $data['type'] = UsersModel::USER_TYPE_USER;
+    public function integralOrderAdd($data){
         $data['create_time'] = CURR_TIME;
         $data['update_time'] = CURR_TIME;
-        return Db::table($this->wechatTable)->insertGetId($data);
+        return Db::table($this->integralOrderTable)->insert($data);
     }
 
-    public function wechatUpdate($where, $param){
-        $param['update_time'] = CURR_TIME;
-        return Db::table($this->wechatTable)->where($where)->update($param);
+    public function userIntegralFind($where, $field = "*"){
+        $where["is_del"] = IntegralModel::STATUS_DEL;
+        return Db::table($this->userIntegralGoods)->field($field)->where($where)->find();
     }
 
-    public function userWechatFind($wechat_id, $data){
-        Db::startTrans();
-        try {
-            $user_id = $this->userAdd($data);
-            $this->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user_id]);
-            Db::commit();
-            return $user_id;
-        } catch (\Exception $e) {
-            Db::rollback();
-            return false;
-        }
+    public function userIntegralRecordList($where, $field = "*"){
+        return Db::table($this->userIntegralRecord)->field($field)->where($where)->select() ?: [];
     }
-
-
 
 
 

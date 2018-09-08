@@ -17,63 +17,25 @@ use think\Db;
 use think\Log;
 use think\Model;
 
-class UsersModel extends BaseModel
+class TruckModel extends BaseModel
 {
-    protected $tableUser = 'users';
-    protected $wechatTable = 'wechat';
+    protected $tableUser = 'truck';
+    protected $certTable = 'cert';
 
     const STATUS_DEL = 0;
-    const USER_TYPE_USER  = 1;
+    const CERT_TYPE  = 1;
 
-    public function userFind($where, $fields = '*'){
-        return Db::table($this->tableUser)->field($fields)->where($where)->find();
-    }
-
-    public function userBindAll($where, $fields = '*'){
+    public function truckList($where = [], $fields = '*'){
         return Db::table($this->tableUser)->field($fields)->where($where)->select();
     }
 
-    public function userEdit($where, $param){
-        if(!isset($param["update_time"])){
-            $param["update_time"] = CURR_TIME;
+    public function certList($where, $fields = "*"){
+        $result = Db::table($this->certTable)->field($fields)->where($where)->select() ?: [];
+        foreach ($result as $key => $value){
+            if($value["img"]) $result[$key]["img"] = handleImgPath($value["img"]);
         }
-        return Db::table($this->tableUser)->where($where)->update($param);
+        return $result;
     }
-
-    public function userAdd($data){
-        return Db::table($this->tableUser)->insertGetId($data);
-    }
-
-    public function wechatFind($where, $field = "*"){
-        $where["is_del"] = UsersModel::USER_TYPE_USER;
-        return Db::table($this->wechatTable)->field($field)->where($where)->find();
-    }
-
-    public function wxInsert($data){
-        $data['type'] = UsersModel::USER_TYPE_USER;
-        $data['create_time'] = CURR_TIME;
-        $data['update_time'] = CURR_TIME;
-        return Db::table($this->wechatTable)->insertGetId($data);
-    }
-
-    public function wechatUpdate($where, $param){
-        $param['update_time'] = CURR_TIME;
-        return Db::table($this->wechatTable)->where($where)->update($param);
-    }
-
-    public function userWechatFind($wechat_id, $data){
-        Db::startTrans();
-        try {
-            $user_id = $this->userAdd($data);
-            $this->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user_id]);
-            Db::commit();
-            return $user_id;
-        } catch (\Exception $e) {
-            Db::rollback();
-            return false;
-        }
-    }
-
 
 
 

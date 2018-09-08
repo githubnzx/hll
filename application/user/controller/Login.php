@@ -1,8 +1,11 @@
 <?php
 namespace app\user\controller;
 
+use app\admin\model\UserModel;
 use app\user\logic\UserLogic;
 use app\user\model\UsersModel;
+use app\user\Logic\WechatLogic;
+use app\common\logic\MsgLogic;
 
 use think\Cache;
 use think\Db;
@@ -19,28 +22,27 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
+        if(!UserLogic::getInstance()->check_password($password)) return error_out("", UserLogic::PWD_FOORMAT);
         $userInfo = UsersModel::getInstance()->userFind(["phone"=>$phone], "id, password, status");
         if(!$userInfo) return error_out("", UserLogic::USER_PWD_MSG);
         if($userInfo["status"]) return error_out("", UserLogic::USER_STATUS);
-        if($userInfo["password"] === md5($password)) return error_out('', UserLogic::USER_PWD_MSG);
+        if($userInfo["password"] === md5(config("user_login_prefix").$password)) return error_out('', UserLogic::USER_PWD_MSG);
         $user_token = UserLogic::getInstance()->getToken($userInfo["id"]);
         return success_out([
-            'user_token' => $user_token,
+            'token' => $user_token,
             'phone' => $phone,
-        ], '登录成功');
+        ], UserLogic::LOGIN_SUCCESS);
     }
 
     // 发送短信
     public function sendCode()
     {
-        $phone = $this->request->post('phone/s', "13601155207");
+        $phone = $this->request->post('phone/s', "");
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-
-        $code = 333333;
-        Cache::store('user1')->set('mobile_code:' . $phone, $code, 30);
-        var_dump(Cache::store('user1')->get('mobile_code:' . $phone));
+        $code = 111111;
+        Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
         return success_out('', '发送成功');
         /*
         $code = rand(100000 , 999999);
@@ -57,168 +59,70 @@ class Login extends Base
             return error_out('', '服务器异常');
         }*/
     }
+    // 忘记 密码
+    public function forgetPwd(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $phone = $this->request->post('phone/s', "");
+        $code  = $this->request->post('code/d', 0);
+        $newPwd= $this->request->post('newPwd/s', "");
+        $confirmPwd = $this->request->post('confirmPwd/s', "");
+        if(!$phone || !$code || !$newPwd || !$confirmPwd) return error_out("", MsgLogic::PARAM_MSG);
+        if (!UserLogic::getInstance()->check_mobile($phone)) {
+            return error_out('', UserLogic::USER_SMS_SEND);
+        }
+        $userPhone = UsersModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: "";
+        if($userPhone !== $phone) return error_out("", UserLogic::USER_PHONE_MSG);
+        // 验证码
+        $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
+        if(!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
+        if ($oldCode != $code) return error_out('', UserLogic::CODE_MSG);
+        // 密码
+        if (!UserLogic::getInstance()->check_password($newPwd) || !UserLogic::getInstance()->check_password($confirmPwd) ) {
+            return error_out('', UserLogic::PWD_FOORMAT);
+        }
+        if($newPwd !== $confirmPwd) return error_out("", UserLogic::PASSWORD_MSG);
+        $result = UsersModel::getInstance()->userEdit(["id"=>$user_id], ["passwrod"=>md5(config("user_login_prefix").$newPwd)]);
+        if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::EDIT_SUCCESS);
+    }
+
     // 注册
     public function register(){
-
-    }
-/*
-    public function index_old()
-    {
-        $phone = $this->request->post('phone');
-        $code = $this->request->post('code');
+        $phone = $this->request->post('phone/s', "");
+        $code  = $this->request->post('code/d', 0);
+        $newPwd= $this->request->post('newPwd/s', "");
+        $confirmPwd = $this->request->post('confirmPwd/s', "");
+        if(!$phone || !$code || !$newPwd || !$confirmPwd) return error_out("", MsgLogic::PARAM_MSG);
         if (!UserLogic::getInstance()->check_mobile($phone)) {
-            return error_out('', '请输入正确的手机号');
+            return error_out('', UserLogic::USER_SMS_SEND);
         }
-        //验证码写好放开
+        $user_id = UsersModel::getInstance()->userFind(["phone"=>$phone])["id"] ?: "";
+        if($user_id) return error_out("", UserLogic::HAS_REGISTER);
+        // 验证码
         $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
-        if (!$oldCode) {
-            return error_out('', '验证码已过期，请重新获取验证码');
+        if(!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
+        if ($oldCode != $code) return error_out('', UserLogic::CODE_MSG);
+        // 密码
+        if (!UserLogic::getInstance()->check_password($newPwd) || !UserLogic::getInstance()->check_password($confirmPwd) ) {
+            return error_out('', UserLogic::PWD_FOORMAT);
         }
-        if ($oldCode != $code) {
-            return error_out('', '验证码错误，请重新输入');
-        }
-        UserLogic::getInstance()->delTokenPhone($phone);
-        $user = Db::name('user')->where(['phone' => $phone])->field('id, name,icon,is_del')->find();
-
-        if ($user) {
-            if ($user['is_del'] != 0) {
-                return error_out('', '用户已被禁用');
-            }
-            $user_id = $user['id'];
-            $user_token = UserLogic::getInstance()->getToken($user_id);
+        if($newPwd !== $confirmPwd) return error_out("", UserLogic::PASSWORD_MSG);
+        $user["phone"]    = $phone;
+        $user["password"] = md5(config("user_login_prefix").$newPwd);
+        $user["province"] = "";
+        $user["city_code"]= "";
+        $user["ad_code"]  = "";
+        $user['create_time'] = CURR_TIME;
+        $user['update_time'] = CURR_TIME;
+        $uid = UsersModel::getInstance()->userAdd($user);
+        if($uid){
+            $user_token = UserLogic::getInstance()->getToken($uid);
             return success_out([
-                'user_token' => $user_token,
+                'token' => $user_token,
                 'phone' => $phone,
-                'name' => $user['name'],
-                'icon' => $user['icon'] ? config('img.domain') . $user['icon'] : '',  //头像
-                'status' => 1,
-
-            ], '登录成功');
+            ], MsgLogic::REG_SUCCESS);
         } else {
-            $parm['name'] = '';
-            $parm['phone'] = $phone;
-            $parm['icon'] = '';
-            $parm['sex'] = 1;
-            // $parm['birthday'] = '0'.'-'.'01'.'-'.'01';
-            $parm['age'] = 0;
-            $parm['height'] = 0;
-            $parm['weight'] = 0;
-            $parm['addr'] = '';
-            $parm['addr_info'] = '';
-            $parm['province'] = '';
-            $parm['city_code'] = '';
-            $parm['ad_code'] = '';
-            $parm['remark'] = '';
-            $parm['pay_code'] = 0;
-            $parm['is_member'] = 1;
-            $parm['is_del'] = 0;
-            $parm['status'] = 0;
-            $parm['create_time'] = CURR_TIME;
-            $parm['update_time'] = CURR_TIME;
-            $uid = UsersModel::register($parm);
-            if ($uid) {
-                $bind_user = UsersModel::userBindAll(["phone"=>$phone, "bind_status"=>1], "user_id, bind_user_id");
-                foreach ($bind_user as $key => $value){
-                    UsersModel::userBindUpAll($value["user_id"], $value["bind_user_id"], $uid);
-                }
-                $user_token = UserLogic::getInstance()->getToken($uid);
-                return success_out([
-                    'user_token' => $user_token,
-                    'phone' => $phone,
-                    'name' => '',
-                    'icon' => '',
-                    'status' => 0,
-                ], '登录成功');
-            } else {
-                return error_out('', '服务器异常');
-            }
-        }
-
-    }
-
-    // 保存push 数据
-    public function clientPushAccount(){
-        $coach_id = UserLogic::getInstance()->checkToken();
-        $device_type = request()->post('device_type/d' , 0);
-        $device_number = request()->post('device_number/s' , "");
-        $service_type = request()->post('service_type/d' , 0);
-        if(!$device_number) return error_out('', '参数错误');
-        $where['user_id']   = $coach_id;
-        $where['user_type'] = UsersModel::USER_TPYE_USER;
-        $data['device_type']  = $device_type;
-        $data['device_number']= $device_number;
-        $data['service_type'] = $service_type;
-        $user_push = UsersModel::clientPushFind(['user_id'=>$coach_id, 'user_type'=>UsersModel::USER_TPYE_USER], 'device_type, device_number');
-        if(!$user_push){
-            $data['user_id']   = $coach_id;
-            $data['user_type'] = UsersModel::USER_TPYE_USER;
-            $request = UsersModel::clientPushInsert($data);
-            if($request === false)  return error_out('', "服务器异常");
-        }
-        if($user_push['device_type'] != $device_type || $user_push['device_number'] != $device_number){
-            $request = UsersModel::clientPushUpdate(['user_id'=>$coach_id, 'user_type'=>UsersModel::USER_TPYE_USER], $data);
-            if($request === false)  return error_out('', "服务器异常");
-        }
-        return success_out("", "添加成功");
-    }
-
-
-    public function sendCode()
-    {
-        $phone = input('phone');
-        if (!UserLogic::getInstance()->check_mobile($phone)) {
-            return error_out('', '请输入正确的手机号');
-        }
-        $user_url = config("user_domain") ?: "";
-        if ($_SERVER["HTTP_HOST"] == $user_url && $phone != 15201276476){
-            $code = rand(100000 , 999999);
-            $cache_result = Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
-            if ($cache_result !== true){
-                return error_out('','发送失败');
-            }
-            $templateParam  = ['code'=>$code];
-            $response =UserSms::code($phone , $templateParam);
-            if ($response->Code == 'OK') {
-                Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
-                return success_out('', '发送成功');
-            } elseif ($response->Code == 'isv.BUSINESS_LIMIT_CONTROL') {
-                return error_out('', '当前账户频率操作过快 请稍后重试');
-            } else {
-                return error_out('', '服务器异常');
-            }
-        }else{
-            $code = 111111;
-            Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
-            return success_out('', '发送成功');
-        }
-    }
-
-    public function add()
-    {
-
-        $date['name'] = request()->post('name', '');
-        $date['phone'] = '';
-        $date['icon'] = '';
-        $date['addr_info'] = '';
-        $date['province'] = '';
-        $date['city_code'] = '';
-        $date['ad_code'] = '';
-        $date['create_time'] = '';
-        $date['update_time'] = '';
-        $date['sex'] = request()->post('sex', '');
-        $date['birthday'] = request()->post('birthday', '');
-        $date['birthday'] = $date['birthday'] . '-' . '01' . '-' . '01';
-        $date['height'] = request()->post('height', '');
-        $date['weight'] = request()->post('weight', '');
-        $date['addr'] = request()->post('addr', '');
-        $date['lon'] = request()->post('lon', '');
-        $date['lat'] = request()->post('lat', '');
-        $result = UsersModel::userAdd($date);
-        // print_r($date);die;
-        if ($result !== false) {
-            return success_out('', '添加成功');
-        } else {
-            return error_out('', '服务器异常');
+            return error_out("", MsgLogic::SERVER_EXCEPTION);
         }
     }
 
@@ -227,118 +131,16 @@ class Login extends Base
     {
         $user_id = UserLogic::getInstance()->checkToken();
         $result = UserLogic::getInstance()->delToken($user_id);
-        UserLogic::getInstance()->delDeviceId($user_id);
-        if ($result === false) {
-            return error_out('', '服务器异常');
-        }
-        return success_out('', '退出成功');
+        //UserLogic::getInstance()->delDeviceId($user_id);
+        if ($result === false)  return error_out('', MsgLogic::SERVER_EXCEPTION);
+        return success_out('', UserLogic::USER_OUT);
     }
 
-    //刷新token
-    public function refreshToken()
-    {
-        try {
-            $user_id = UserLogic::getInstance()->checkToken();
-            if ($user_id) {
-                $user_token = UserLogic::getInstance()->getToken($user_id, true);
-                return success_out([
-                    'user_token' => $user_token,
-                ], '刷新成功');
-            } else {
-                return error_out('', 'token已过期');
-            }
-        } catch (HttpException $e) {
-            return error_out('', $e->getMessage());
-        }
-    }
-
-    public function wechatOld()
-    {
-        $code = request()->post('code' , '');
-        if (!$code) {
-            return error_out('', '微信凭证不能为空');
-        }
-        $wx_token = WechatLogic::getInstance()->getToken($code);
-        if (isset($wx_token['errcode'])) {
-            return error_out('', $wx_token['errmsg']);
-        }
-
-        $access_token= $wx_token['access_token'];
-        $refresh_token= $wx_token['refresh_token'];
-        $openid = $wx_token['openid'];
-        $unionid = isset($wx_token['unionid']) ? $wx_token['unionid'] : '';
-
-        //验证openid是否已存在
-        $user = UsersModel::getOpenid($wx_token['openid']);
-        if ($user) { //已存在
-            if ($user['is_del'] != 0) {
-                return error_out('', '用户已被禁用');
-            }
-            $user_id = $user['id'];
-            $user_token = UserLogic::getInstance()->getToken($user_id);
-            $result['user_token'] = $user_token;
-            $result['name'] =$user['name'] ? $user['name'] : '';
-            $result['phone'] =$user['phone'] ? $user['phone'] : '';
-            $result['icon'] =$user['icon'] ? config('img.domain') . $user['icon'] : '';
-            $result['wechat_id'] =0;
-            $result['status'] =$user['phone'] ? 1 : 0;
-        }else{
-            $check_result = WechatLogic::getInstance()->check_access_token($access_token , $openid);
-            if ($check_result['errcode'] !== 0){
-                $refresh_result = WechatLogic::getInstance()->refresh_token($refresh_token);
-                if (isset($refresh_result['errcode'])){
-                    return error_out('' , $refresh_result['errmsg']);
-                }else{
-                    $access_token= $refresh_result['access_token'];
-                    $refresh_token= $refresh_result['refresh_token'];
-                    $openid = $refresh_result['openid'];
-                    $unionid = isset($refresh_result['unionid']) ? $refresh_result['unionid'] : '';
-                }
-            }
-            //获取微信信息
-            $user_info = WechatLogic::getInstance()->getUserInfo($access_token,$openid);
-            if (isset($user_info['errcode'])){
-                return error_out((object)array() , $user_info['errmsg']);
-            }
-            $wechat_info = UsersModel::wechatGetOpenid($wx_token['openid']);
-
-            $data['access_token'] = $wx_token['access_token'];
-            $data['unionid'] = $unionid;
-            $data['openid'] = $wx_token['openid'];
-            $data['refresh_token'] = $refresh_token;
-            $data['headimgurl'] = WechatLogic::getInstance()->downloadAvar($user_info['headimgurl']);
-            $data['nickname'] = $user_info['nickname'];
-            if (!$wechat_info){
-                $wx_id =UsersModel::wxInsert($data);
-                $wechat_id=intval($wx_id);
-                if (!$wechat_id){
-                    return error_out('', '服务器异常');
-                }
-            }else{
-                $wechat_id = $wechat_info['id'];
-                $update_result = UsersModel::wechatUpdate($wechat_info['id'],$data);
-                if (!$update_result){
-                    return error_out('', '服务器异常');
-                }
-            }
-            $result = [
-                'user_token' => '',
-                'phone' => '',
-                'name' => '',
-                'icon' => '',
-                'wechat_id' =>$wechat_id,
-                'status' => 0
-            ];
-        }
-        return success_out($result , '微信登陆');
-    }
-
+    // 微信登录
     public function wechat()
     {
         $code = request()->post('code' , '');
-        if (!$code) {
-            return error_out('', '微信凭证不能为空');
-        }
+        if (!$code) return error_out('', UserLogic::WECHAT_CODE);
         $wx_token = WechatLogic::getInstance()->getToken($code);
         if (isset($wx_token['errcode'])) {
             return error_out('', $wx_token['errmsg']);
@@ -348,169 +150,111 @@ class Login extends Base
         $openid = $wx_token['openid'];
         $unionid = isset($wx_token['unionid']) ? $wx_token['unionid'] : '';
         //验证openid是否已存在
-        $user = UsersModel::getOpenid($openid);
+        $user = UsersModel::getInstance()->userFind(["openid"=>$openid], "id, phone");
         if ($user) { //已存在
-            if ($user['is_del'] != 0) {
-                return error_out('', '用户已被禁用');
-            }
-            $user_id = $user['id'];
-            $user_token = UserLogic::getInstance()->getToken($user_id);
+            if ($user['is_del'] != UsersModel::STATUS_DEL) return error_out('', UserLogic::USER_STATUS);
+            $user_token = UserLogic::getInstance()->getToken($user['id']);
             $result['user_token'] = $user_token;
-            $result['name'] =$user['name'] ? $user['name'] : '';
-            $result['phone'] =$user['phone'] ? $user['phone'] : '';
-            $result['icon'] =$user['icon'] ? config('img.domain') . $user['icon'] : '';
-            $result['wechat_id'] =0;
-            $result['status'] =$user['phone'] ? 1 : 0;
+            $result['phone'] = $user['phone'];
+            $result['wechat_id'] = 0;
+            $result['status'] = $user['phone'] ? 1 : 0;  // 是否绑定手机号 1 已绑定  0 未绑定
         }else{
             //获取微信信息
             $user_info = WechatLogic::getInstance()->getUserInfo($wx_token['access_token'],$wx_token['openid']);
             if (isset($user_info['errcode'])){
                 return error_out((object)array() , $user_info['errmsg']);
             }
-            $wechat_info = UsersModel::wechatGetOpenid($wx_token['openid']);
+            $wechat_info = UsersModel::getInstance()->wechatFind(["openid"=>$wx_token['openid']], "id, openid, unionid");
             $data['access_token'] =$access_token;
-            $data['unionid'] =$unionid;
-            $data['openid'] =$openid;
-            $data['refresh_token'] = $refresh_token;
+            $data['unionid'] = $unionid;
+            $data['openid']  = $openid;
             $data['headimgurl'] = WechatLogic::getInstance()->downloadAvar($user_info['headimgurl']);
-            // $data['nickname'] = $user_info['nickname'];
+            $data['nickname'] = $user_info['nickname'];
             if (!$wechat_info){
-                $wx_id =UsersModel::wxInsert($data);
-                $wechat_id=intval($wx_id);
-                if (!$wechat_id){
-                    return error_out('', '服务器异常');
-                }
+                $wechat_id = UsersModel::getInstance()->wxInsert($data);
+                if (!$wechat_id) return error_out('', MsgLogic::SERVER_EXCEPTION);
             }else{
                 $wechat_id = $wechat_info['id'];
-                $update_result = UsersModel::wechatUpdate($wechat_info['id'],$data);
-                if (!$update_result){
-                    return error_out('', '服务器异常');
-                }
+                $update_result = UsersModel::getInstance()->wechatUpdate(["id"=>$wechat_info['id']], $data);
+                if (!$update_result) return error_out('', MsgLogic::SERVER_EXCEPTION);
             }
             $result = [
-                'user_token' => '',
+                'token' => '',
                 'phone' => '',
-                'name' => '',
-                'icon' => '',
-                'wechat_id' =>$wechat_id,
+                'wechat_id' =>(int) $wechat_id,
                 'status' => 0
             ];
         }
         return success_out($result , '微信登陆');
     }
 
-
-
-    //微信登录
+    // 微信登陆绑定手机号
     public function bindingPhone()
     {
-        $phone = $this->request->post('phone/s', '', 'trim,strip_tags');
-        $code = $this->request->post('code/d');
-        $wechat_id = $this->request->post('wechat_id/d');
-        $wechat_info = UsersModel::wechatInfo($wechat_id);
-        if (!$wechat_info){
-            return error_out('', '参数错误');
-        }
-        $check_result = WechatLogic::getInstance()->check_access_token($wechat_info['access_token'] , $wechat_info['openid']);
-        if ($check_result['errcode'] !== 0){
-            $refresh_result = WechatLogic::getInstance()->refresh_token($wechat_info['refresh_token']);
-            if (isset($refresh_result['errcode'])){
-                return error_out('' , $refresh_result['errmsg']);
-            }else{
-                $wechat_info['access_token'] = $refresh_result['access_token'];
-                $wechat_info['openid'] = $refresh_result['openid'];
-            }
-        }
-        $wx_user_info = WechatLogic::getInstance()->getUserInfo($wechat_info['access_token'],$wechat_info['openid']);
-        if (isset($wx_user_info['errcode'])) {
-            return error_out('', $wx_user_info['errmsg']);
-        }
+        $phone = $this->request->post('phone/s', '');
+        $code = $this->request->post('code/d', 0);
+        $wechat_id = $this->request->post('wechat_id/d', 0);
+        if(!$phone || !$code || !$wechat_id) return error_out("", MsgLogic::PARAM_MSG);
+        $wechat_info = UsersModel::getInstance()->wechatFind(["id"=>$wechat_id]);
+        if (!$wechat_info) return error_out('', MsgLogic::PARAM_MSG);
         //验证码写好放开
         $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
-        if (!$oldCode) {
-            return error_out('', '验证码已过期，请重新获取验证码');
-        }
-        if ($oldCode != $code) {
-            return error_out('', '验证码错误，请重新输入');
-        }
+        if (!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
+        if ($oldCode != $code) return error_out('', UserLogic::CODE_MSG);
         //验证phone是否已存在;
-        $user = UsersModel::getPhone($phone);
+        $user = UsersModel::getInstance()->userFind(["phone"=>$phone], "id, openid, is_del");
         if($user){
             if ($user['openid']){
-                return error_out('', '此手机号已绑定过微信!');
+                return error_out('', UserLogic::WECHAT_BINDINGS);
             }else{
-                if ($user['is_del'] != 0) {
-                    return error_out('', '用户已被禁用');
-                }
+                if ($user['is_del'] != 0) return error_out('', UserLogic::USER_IS_DEL);
                 try{
                     Db::startTrans();
-                    $update['unionid'] = $wechat_info['unionid'] ? $wechat_info['unionid']: '';
-                    $update['openid'] = $wechat_info['openid'];
-                    $update['update_time'] = CURR_TIME;
-                    UsersModel::userUpdate($user['id'],$update);
-
-                    $wx_update['user_id'] = $user['id'];
-                    $wx_update['headimgurl'] = $wx_user_info['headimgurl'];
-                    //$wx_update['nickname'] = $wx_user_info['nickname'];
-                    UsersModel::wechatUpdate($wechat_id,$wx_update);
+                    $update['unionid'] = $wechat_info['unionid'] ?: "";
+                    $update['openid']  = $wechat_info['openid'];
+                    UsersModel::getInstance()->userEdit(["id"=>$user['id']], $update);
+                    // 修改微信表关联
+                    UsersModel::getInstance()->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user['id']]);
                     Db::commit();
                 }catch (Exception $e){
                     Db::rollback();
                     return error_out((object)array() , $e->getMessage());
                 }
                 $user_token = UserLogic::getInstance()->getToken($user['id']);
-                $name = $user['name'] ? $user['name']: $wx_user_info['nickname'];
-                $icon = $user['icon'] ? $user['icon']: WechatLogic::getInstance()->downloadAvar($wx_user_info['headimgurl']);
+                //$icon = $user['icon'] ? $user['icon']: WechatLogic::getInstance()->downloadAvar($wechat_info['headimgurl']);
                 return success_out([
-                    'user_token' =>$user_token,
+                    'token' =>$user_token,
                     'phone' =>$phone,
-                    'name' =>$name,
-                    'icon' =>$icon ? config('img.domain') . $icon : '',
                     'wechat_id' =>0,
-                    'status' =>1,
-                ], '绑定手机号成功');
+                    'status' => 1,
+                ], UserLogic::WX_BIND_SUCCESS);
             }
         }else{
-            $parm['phone'] = $phone;
-            //$parm['name'] = $wx_user_info['nickname'];
-            $parm['name'] = '';
-            $parm['openid'] =  $wechat_info['openid'];
-            $parm['unionid'] =  $wechat_info['unionid'];
-            $parm['icon'] = WechatLogic::getInstance()->downloadAvar($wx_user_info['headimgurl']);
-            $parm['sex'] = 1;
-            //$parm['birthday'] = '0'.'-'.'01'.'-'.'01';
-            $parm['age'] = 0;
-            $parm['height'] = 0;
-            $parm['weight'] = 0;
-            $parm['addr'] = '';
-            $parm['addr_info'] = '';
+            $parm['phone']  = $phone;
+            $parm['name']   = $wechat_info["nickname"];
+            $parm['openid'] = $wechat_info['openid'];
+            $parm['unionid']= $wechat_info['unionid'];
+            $parm['icon']   = WechatLogic::getInstance()->downloadAvar($wechat_info['headimgurl']);
+            $parm["sex"]    = $wechat_info["sex"];
             $parm['province'] = '';
-            $parm['city_code'] = '';
-            $parm['ad_code'] = '';
-            $parm['remark'] = '';
-            $parm['pay_code'] = 0;
-            $parm['is_member'] = 1;
-            $parm['is_del'] = 0;
-            $parm['status'] = 0;
+            $parm['city_code']= '';
+            $parm['ad_code']  = '';
             $parm['create_time'] = CURR_TIME;
             $parm['update_time'] = CURR_TIME;
-            $user_id = UsersModel::register($parm);
+            $user_id = UsersModel::getInstance()->userWechatFind($wechat_info["id"], $parm);
             if ($user_id) {
                 $user_token = UserLogic::getInstance()->getToken($user_id);
                 return success_out([
-                    'user_token' => $user_token,
+                    'token' => $user_token,
                     'phone'=>$parm['phone'],
-                    'name' =>$parm['name'],
-                    'icon' => $parm['icon']? config('img.domain') . $parm['icon'] : '',
-                    'wechat_id' =>0,
-                    'status' =>0,
-                ], '登录成功');
+                    //'icon' => $parm['icon'] ? config('img.domain') . $parm['icon'] : '',
+                    'wechat_id' => 0,
+                    'status' => 1,
+                ], UserLogic::LOGIN_SUCCESS);
             } else {
-                return error_out('', '服务器异常');
+                return error_out('', MsgLogic::SERVER_EXCEPTION);
             }
         }
     }
-*/
-
 
 }

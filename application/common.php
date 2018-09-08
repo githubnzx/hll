@@ -63,7 +63,7 @@ function birthdayAge($birthday)
 
 if (!function_exists('handleImgPath')) {
     /**
-     * 当前日期零点时间戳
+     * 图片全路径
      * @param $date
      * @return int
      */
@@ -103,4 +103,3 @@ if (!function_exists('dateFormatTimestamp')) {
         return mktime(0, 0, 0, $date[1], $date[2], $date[0]);
     }
 }
-

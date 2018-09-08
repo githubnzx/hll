@@ -10,10 +10,25 @@ class UserLogic extends BaseLogic
 {
 
 
-    const USER_PWD_MSG = "手机号或密码错误";
-    const USER_STATUS  = "用户已被禁用";
-    const USER_SMS_SEND= "请输入正确的手机号";
-    const USER_SMS_FAIL= "发送失败";
+    const USER_PWD_MSG   = "手机号或密码错误";
+    const USER_STATUS    = "用户已被禁用";
+    const USER_SMS_SEND  = "请输入正确的手机号";
+    const USER_SMS_FAIL  = "发送失败";
+    const USER_PHONE_MSG = "手机号错误";
+    const PASSWORD_MSG   = "两次密码不一致";
+    const PWD_FOORMAT    = "密码格式不正确";
+    const HAS_REGISTER   = "该手机号已注册";
+    const CODE_MSG       = "验证码错误，请重新输入";
+    const REDIS_CODE_MSG = "验证码已过期，请重新获取验证码";
+    const USER_OUT       = "退出成功";
+    const WECHAT_CODE    = "微信凭证不能为空";
+    const USER_IS_DEL    = "用户已被禁用";
+    const WECHAT_BINDINGS= "此手机号已绑定过微信";
+    const WX_BIND_SUCCESS= "绑定手机号成功";
+    const LOGIN_SUCCESS  = "登录成功";
+    const PHONE_EXISTED  = "此手机号已注册，请重新输入";
+
+
 
 
 
@@ -47,7 +62,7 @@ class UserLogic extends BaseLogic
         $user_token = Cache::store('user')->get('user_id:' . $user_id);
         $expire = 60*60*24*10;
         if (!$is_refresh) {
-            $this->delDeviceId($user_id);
+            //$this->delDeviceId($user_id);
             Cache::store('user')->rm('user_token:' . $user_token);
             $user_token = str_shuffle(md5(str_shuffle(microtime(true))));
         }
@@ -91,6 +106,15 @@ class UserLogic extends BaseLogic
         //$preg_name='/^[\x{4e00}-\x{9fa5}]{1,10}$|^[a-zA-Z\s]*[a-zA-Z\s]{1,20}$/isu';
         $preg_name='/^[\x{4e00}-\x{9fa5}a-zA-Z]{1,10}$/isu';
         if(preg_match($preg_name, $name)){
+            return true;
+        } else {
+            return false;
+        }
+    }
+    // 密码验证
+    public function check_password($password){
+        $preg_name='/^[A-Za-z0-9]{6,11}$/isu';
+        if(preg_match($preg_name, $password)){
             return true;
         } else {
             return false;
