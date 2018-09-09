@@ -24,6 +24,9 @@ class UsersModel extends BaseModel
 
     const STATUS_DEL = 0;
     const USER_TYPE_USER  = 1;
+    const INTEGRAL_REGISTER = 10;
+    const TYPE_IN  = 1;
+    const TYPE_OUT = 2;
 
     public function userFind($where, $fields = '*'){
         return Db::table($this->tableUser)->field($fields)->where($where)->find();
@@ -40,8 +43,32 @@ class UsersModel extends BaseModel
         return Db::table($this->tableUser)->where($where)->update($param);
     }
 
-    public function userAdd($data){
+    public function userInsert($data){
+        $user['create_time'] = CURR_TIME;
+        $user['update_time'] = CURR_TIME;
         return Db::table($this->tableUser)->insertGetId($data);
+    }
+
+    // 用户注册
+    public function userAdd($data){
+        Db::startTrans();
+        try {
+            $user_id = $this->userInsert($data);
+            // 我的积分
+            IntegralModel::getInstance()->userIntegralAdd(["user_id"=>$user_id, "integral"=>UsersModel::INTEGRAL_REGISTER]);
+            // 积分记录
+            $record["user_id"] = $user_id;
+            $record["integral"]= UsersModel::INTEGRAL_REGISTER;
+            $record["type"]    = UsersModel::TYPE_IN;
+            $record["operation_type"] = 1;
+            $record["tag"] = "用户注册";
+            IntegralModel::getInstance()->userIntegralRecordInsert($record);
+            Db::commit();
+            return $user_id;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
     }
 
     public function wechatFind($where, $field = "*"){

@@ -112,8 +112,6 @@ class Login extends Base
         $user["province"] = "";
         $user["city_code"]= "";
         $user["ad_code"]  = "";
-        $user['create_time'] = CURR_TIME;
-        $user['update_time'] = CURR_TIME;
         $uid = UsersModel::getInstance()->userAdd($user);
         if($uid){
             $user_token = UserLogic::getInstance()->getToken($uid);

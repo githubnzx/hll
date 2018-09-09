@@ -57,6 +57,18 @@ class IntegralModel extends BaseModel
         }
     }
 
+    public function userIntegralRecordInsert($data){
+        $data['create_time'] = CURR_TIME;
+        $data['update_time'] = CURR_TIME;
+        return Db::table($this->userIntegralRecord)->insert($data);
+    }
+
+    public function userIntegralAdd($data){
+        $data['create_time'] = CURR_TIME;
+        $data['update_time'] = CURR_TIME;
+        return Db::table($this->userIntegral)->insert($data);
+    }
+
     public function integralOrderSelect($where, $fields = "*", $page){
         $where["o.is_del"] = IntegralModel::STATUS_DEL;
         return Db::table($this->integralOrderTable)
