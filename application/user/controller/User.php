@@ -54,9 +54,9 @@ class User extends Base
     // 我的积分
     public function userIntegral(){
         $user_id = UserLogic::getInstance()->checkToken();
-        $integral = IntegralModel::getInstance()->userIntegralFind(["user_id"=>$user_id], "integral")["integral"] ?: 0;
+        $integral = IntegralModel::getInstance()->userIntegralFind(["user_id"=>$user_id, "user_type"=>UsersModel::USER_TYPE_USER], "integral")["integral"] ?: 0;
         $data["integral"] = $integral;
-        $integralRecord = IntegralModel::getInstance()->userIntegralRecordList(["user_id"=>$user_id], "id, integral, type, operation_type, tag");
+        $integralRecord = IntegralModel::getInstance()->userIntegralRecordList(["user_id"=>$user_id, "user_type"=>UsersModel::USER_TYPE_USER], "id, integral, type, operation_type, tag");
         foreach ($integralRecord as $key => &$val){
             $val["type_title"] = $this->integralType[$val["type"]];
             $val["operation_type_title"] = $this->integralOperationType[$val["operation_type"]];

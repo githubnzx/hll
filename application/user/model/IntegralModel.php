@@ -20,8 +20,8 @@ use think\Model;
 class IntegralModel extends BaseModel
 {
     protected $integralGoodsTable = 'integral_goods';
-    protected $userIntegralRecord = 'user_integral_record';
-    protected $userIntegral       = 'user_integral';
+    protected $userIntegralRecord = 'integral_record';
+    protected $userIntegral       = 'integral';
     protected $integralOrderTable = 'integral_order';
     protected $userIntegralGood   = 'user_integral_goods';
 
@@ -48,7 +48,7 @@ class IntegralModel extends BaseModel
         Db::startTrans();
         try {
             $this->integralOrderInsert($data);
-            $this->userIntegralGoodAdd(["user_id"=>$data["user_id"],"goods_id"=>$data["goods_id"]]);
+            $this->userIntegralGoodAdd(["user_id"=>$data["user_id"],"goods_id"=>$data["goods_id"], "user_type"=>UsersModel::USER_TYPE_USER]);
             Db::commit();
             return true;
         } catch (\Exception $e) {

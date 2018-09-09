@@ -55,10 +55,11 @@ class UsersModel extends BaseModel
         try {
             $user_id = $this->userInsert($data);
             // 我的积分
-            IntegralModel::getInstance()->userIntegralAdd(["user_id"=>$user_id, "integral"=>UsersModel::INTEGRAL_REGISTER]);
+            IntegralModel::getInstance()->userIntegralAdd(["user_id"=>$user_id, "integral"=>UsersModel::INTEGRAL_REGISTER, "user_type"=>UsersModel::USER_TYPE_USER]);
             // 积分记录
             $record["user_id"] = $user_id;
             $record["integral"]= UsersModel::INTEGRAL_REGISTER;
+            $record["user_type"]= UsersModel::USER_TYPE_USER;
             $record["type"]    = UsersModel::TYPE_IN;
             $record["operation_type"] = 1;
             $record["tag"] = "用户注册";

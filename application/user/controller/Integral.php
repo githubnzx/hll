@@ -7,6 +7,7 @@ use app\user\logic\OrderLogic;
 use app\user\model\IntegralModel;
 use app\user\logic\UserLogic;
 use app\common\push\Push;
+use app\user\model\UsersModel;
 use think\Cache;
 use think\Config;
 
@@ -56,7 +57,7 @@ class Integral extends Base
         $surplusNumber = Cache::store('integral')->get('goods_id:' . $good_id);
         if($surplusNumber > 0) return error_out("", MsgLogic::INTEGRAL_SURPLUS_NUMBER);
         // 查看是否兑换过
-        $id = IntegralModel::getInstance()->userIntegralGoodFind(["user_id"=>$user_id, "goods_id"=>$good_id], "id")["id"] ?: 0;
+        $id = IntegralModel::getInstance()->userIntegralGoodFind(["user_id"=>$user_id, "goods_id"=>$good_id, "user_type"=>UsersModel::USER_TYPE_USER], "id")["id"] ?: 0;
         if($id) return error_out("", MsgLogic::INTEGRAL_CONVERTIBILITY);
         // 获取积分商品
         $integral = IntegralModel::getInstance()->integralFind(["id"=>$good_id], "integral")["integral"] ?: 0;
@@ -68,6 +69,8 @@ class Integral extends Base
         $data["addr_info"]= $addrInfo;
         $data["goods_id"] = $good_id;
         $data["integral"] = $integral;
+        $data["user_type"]= UsersModel::USER_TYPE_USER;
+        $data["date"]     = currZeroDateToTime();
         $data["status"]   = 1;
         $order = IntegralModel::getInstance()->integralOrderAdd($data);
         if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
@@ -79,7 +82,7 @@ class Integral extends Base
         $user_id = UserLogic::getInstance()->checkToken();
         $page = PageLogic::getInstance()->getPages();
         $status  = $this->request->post('status/d', 1);
-        $order = IntegralModel::getInstance()->integralOrderSelect(["status"=>$status], "o.id order_id, g.id goods_id, g.title, g.integral", $page);
+        $order = IntegralModel::getInstance()->integralOrderSelect(["status"=>$status, "user_type"=>UsersModel::USER_TYPE_USER], "o.id order_id, g.id goods_id, g.title, g.integral", $page);
         foreach ($order as $key => $val){
             $order[$key]["images"] = TruckModel::getInstance()->certFind(["main_id"=>$val["goods_id"]], "img", "create_time asc")["img"] ?: "";
         }
