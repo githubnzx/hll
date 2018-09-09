@@ -1,6 +1,7 @@
 <?php
 namespace app\user\controller;
 use app\common\logic\MsgLogic;
+use app\common\logic\PageLogic;
 use app\user\model\TruckModel;
 use app\user\logic\OrderLogic;
 use app\user\model\IntegralModel;
@@ -46,19 +47,56 @@ class Integral extends Base
         $good_id = $this->request->post('good_id/d', 0);
         $name    = $this->request->post('name/s', "");
         $phone   = $this->request->post('phone/s', "");
-        $addr    = $this->request->post('addr/s', "");
-        if(!$name || !$phone || !$addr) return error_out("", MsgLogic::PARAM_MSG);
+        $addrInfo= $this->request->post('addr_info/s', "");
+        if(!$good_id || !$name || !$phone || !$addrInfo) return error_out("", MsgLogic::PARAM_MSG);
+        if (!UserLogic::getInstance()->check_mobile($phone)) {
+            return error_out('', UserLogic::USER_SMS_SEND);
+        }
+        // 检测商品剩余数量
+        $surplusNumber = Cache::store('integral')->get('goods_id:' . $good_id);
+        if($surplusNumber > 0) return error_out("", MsgLogic::INTEGRAL_SURPLUS_NUMBER);
+        // 查看是否兑换过
+        $id = IntegralModel::getInstance()->userIntegralGoodFind(["user_id"=>$user_id, "goods_id"=>$good_id], "id")["id"] ?: 0;
+        if($id) return error_out("", MsgLogic::INTEGRAL_CONVERTIBILITY);
+        // 获取积分商品
+        $integral = IntegralModel::getInstance()->integralFind(["id"=>$good_id], "integral")["integral"] ?: 0;
         $code = OrderLogic::getInstance()->makeCode();
         $data["code"]    = $code;
         $data["user_id"] = $user_id;
         $data["name"]    = $name;
         $data["phone"]   = $phone;
-        $data["addr"]    = $addr;
-        $data["good_id"] = $good_id;
-        $data["status"]  = 1;
+        $data["addr_info"]= $addrInfo;
+        $data["goods_id"] = $good_id;
+        $data["integral"] = $integral;
+        $data["status"]   = 1;
         $order = IntegralModel::getInstance()->integralOrderAdd($data);
         if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
-        return success_out("兑换成功");
+        return success_out("", MsgLogic::INTEGRAL_DH_SUCCESS);
+    }
+
+    // 兑换订单
+    public function integralOrder(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $page = PageLogic::getInstance()->getPages();
+        $status  = $this->request->post('status/d', 1);
+        $order = IntegralModel::getInstance()->integralOrderSelect(["status"=>$status], "o.id order_id, g.id goods_id, g.title, g.integral", $page);
+        foreach ($order as $key => $val){
+            $order[$key]["images"] = TruckModel::getInstance()->certFind(["main_id"=>$val["goods_id"]], "img", "create_time asc")["img"] ?: "";
+        }
+        return success_out($order);
+    }
+
+    // 确认收货
+    public function confirmReceipt(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $order_id= $this->request->post('order_id/d', 0);
+        if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        // 验证用户订单
+        $orderStatus = IntegralModel::getInstance()->integralOrderFind(["user_id"=>$user_id, "id"=>$order_id], "status")["status"] ?: 0;
+        if($orderStatus !== 1) return error_out("", MsgLogic::INTEGRAL_RECEIPT_MSG);
+        $order = IntegralModel::getInstance()->integralOrderEdit(["id"=>$order_id], ["status"=>2]);
+        if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
     }
 
 

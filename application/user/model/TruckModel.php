@@ -26,6 +26,7 @@ class TruckModel extends BaseModel
     const CERT_TYPE  = 1;
 
     public function truckList($where = [], $fields = '*'){
+        $where["is_del"] = TruckModel::STATUS_DEL;
         return Db::table($this->tableUser)->field($fields)->where($where)->select();
     }
 
@@ -34,6 +35,13 @@ class TruckModel extends BaseModel
         foreach ($result as $key => $value){
             if($value["img"]) $result[$key]["img"] = handleImgPath($value["img"]);
         }
+        return $result;
+    }
+
+    public function certFind($where, $fields = "*", $order = ""){
+        $where["is_del"] = TruckModel::STATUS_DEL;
+        $result = Db::table($this->certTable)->field($fields)->where($where)->order($order)->find();
+        if(isset($result["img"])) $result["img"] = handleImgPath($result["img"]);
         return $result;
     }
 

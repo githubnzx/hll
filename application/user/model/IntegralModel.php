@@ -21,8 +21,9 @@ class IntegralModel extends BaseModel
 {
     protected $integralGoodsTable = 'integral_goods';
     protected $userIntegralRecord = 'user_integral_record';
-    protected $userIntegralGoods  = 'user_integral';
+    protected $userIntegral       = 'user_integral';
     protected $integralOrderTable = 'integral_order';
+    protected $userIntegralGood   = 'user_integral_goods';
 
     const STATUS_DEL = 0;
     const CERT_TYPE  = 4;
@@ -37,19 +38,67 @@ class IntegralModel extends BaseModel
         return Db::table($this->integralGoodsTable)->field($fields)->where($where)->find();
     }
 
-    public function integralOrderAdd($data){
+    public function integralOrderInsert($data){
         $data['create_time'] = CURR_TIME;
         $data['update_time'] = CURR_TIME;
         return Db::table($this->integralOrderTable)->insert($data);
     }
 
+    public function integralOrderAdd($data){
+        Db::startTrans();
+        try {
+            $this->integralOrderInsert($data);
+            $this->userIntegralGoodAdd(["user_id"=>$data["user_id"],"goods_id"=>$data["goods_id"]]);
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
+
+    public function integralOrderSelect($where, $fields = "*", $page){
+        $where["o.is_del"] = IntegralModel::STATUS_DEL;
+        return Db::table($this->integralOrderTable)
+            ->alias('o')
+            ->join("{$this->integralGoodsTable} g", 'g.id = o.goods_id')
+            ->field($fields)
+            ->where($where)
+            ->page($page)
+            //->fetchSql(true)
+            ->select() ?: [];
+    }
+
+    public function integralOrderFind($where, $fields = "*"){
+        $where["is_del"] = IntegralModel::STATUS_DEL;
+        return Db::table($this->integralOrderTable)->field($fields)->where($where)->find();
+    }
+
+    public function integralOrderEdit($where, $param){
+        if(!isset($param["update_time"])){
+            $param["update_time"] = CURR_TIME;
+        }
+        return Db::table($this->integralOrderTable)->where($where)->update($param);
+    }
+
+
+
     public function userIntegralFind($where, $field = "*"){
         $where["is_del"] = IntegralModel::STATUS_DEL;
-        return Db::table($this->userIntegralGoods)->field($field)->where($where)->find();
+        return Db::table($this->userIntegral)->field($field)->where($where)->find();
     }
 
     public function userIntegralRecordList($where, $field = "*"){
         return Db::table($this->userIntegralRecord)->field($field)->where($where)->select() ?: [];
+    }
+
+    public function userIntegralGoodFind($where, $fields = "*"){
+        return Db::table($this->userIntegralGood)->field($fields)->where($where)->find();
+    }
+    public function userIntegralGoodAdd($data){
+        $data["create_time"] = CURR_TIME;
+        $data["update_time"] = CURR_TIME;
+        return Db::table($this->userIntegralGood)->insert($data);
     }
 
 
