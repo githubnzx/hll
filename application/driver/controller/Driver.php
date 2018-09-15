@@ -3,6 +3,7 @@ namespace app\driver\controller;
 use app\common\logic\MsgLogic;
 use app\driver\model\IntegralModel;
 use app\driver\model\DriverModel;
+use app\driver\logic\DriverLogic;
 use app\user\logic\UserLogic;
 use app\common\push\Push;
 use think\Cache;
@@ -33,14 +34,14 @@ class driver extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-        $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
+        $oldCode = getCache()->get('mobile_code:' . $phone);
         if (!$oldCode) {
             return error_out('', UserLogic::REDIS_CODE_MSG);
         }
         if ($oldCode != $code) {
             return error_out('', UserLogic::CODE_MSG);
         }
-        UserLogic::getInstance()->delTokenPhone($phone);
+        //UserLogic::getInstance()->delTokenPhone($phone);
 
         $old_user_id = DriverModel::getInstance()->userFind(["phone" => $phone], 'id')["id"] ?: "";
         if ($old_user_id) {
@@ -70,6 +71,46 @@ class driver extends Base
     public function hasLogin(){
         $user_id = UserLogic::getInstance()->checkToken();
         return success_out();
+    }
+
+    // 完善信息
+    public function perfectInfo(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $cityCode = $this->request->post('city_code/s', "");
+        $name         = $this->request->post("name/s", "");
+        $id_card      = $this->request->post("id_number/s", "");
+        $contactsName = $this->request->post("contacts_name/s", "");
+        $contactsPhone= $this->request->post("contacts_phone/s", "");
+        $carColor     = $this->request->post("car_color/d", 0);
+        $carNumber    = $this->request->post("car_number/s", "");
+        $carType      = $this->request->post("car_type/d", 0);
+        $photo        = $this->request->post("photo/a", []);
+        if(!$cityCode || !$name || !$id_card || !$contactsName || !$contactsPhone || !$carColor || !$carNumber || !$carType || empty($photo)) return error_out('', '参数错误');
+        if(!UserLogic::getInstance()->check_name($name)) return error_out("", DriverLogic::USER_NAME);          // 用户名验证
+        if(!UserLogic::getInstance()->check_id_card($id_card)) return error_out("", DriverLogic::USER_NAME);    // 省份证正则验证
+        if(!UserLogic::getInstance()->check_name($contactsName)) return error_out("", DriverLogic::USER_NAME);  // 紧急联系人姓名验证
+        if(!UserLogic::getInstance()->check_mobile($contactsPhone)) return error_out('', UserLogic::USER_SMS_SEND);// 紧急联系人电话验证
+        if(!DriverLogic::getInstance()->check_vehicle_number($carNumber)) return error_out('', DriverLogic::USER_CAR_NUM);// 车牌号验证
+        if (!isset($photo["id_card"]["just"]) || empty($photo["id_card"]["just"])) { // 身份证 正面照验证
+            return error_out("", DriverLogic::USER_ID_JUST);
+        }
+        if (!isset($photo["id_card"]["back"]) || empty($photo["id_card"]["back"])){ // 身份证 反面照验证
+            return error_out("", DriverLogic::USER_ID_BACK);
+        }
+        if(!isset($photo["js_cert"]) || empty($photo["js_cert"])) return error_out("", DriverLogic::USER_JS_CERT); // 驾驶证 验证
+        if(!isset($photo["xs_cert"]) || empty($photo["xs_cert"])) return error_out("", DriverLogic::USER_XS_CERT); // 行驶证 验证
+        if(!isset($photo["car"]) || empty($photo["car"])) return error_out("", DriverLogic::USER_XS_CERT);          // 车辆照片 验证
+        $data["city_code"] = $cityCode;
+        $data["id_number"] = $id_card;
+        $data["car_color"] = $carColor;
+        $data["car_number"]= $carNumber;
+        $data["car_type"]  = $carType;
+        $data["contacts_name"] = $contactsName;
+        $data["contacts_phone"]= $contactsPhone;
+        $data["is_register"]= 1;
+        $result = DriverModel::getInstance()->userPerfectInfoEdit($user_id, $data, $photo);
+        if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
     }
 
 

@@ -28,6 +28,15 @@ class DriverLogic extends BaseLogic
     const LOGIN_SUCCESS  = "登录成功";
     const PHONE_EXISTED  = "此手机号已注册，请重新输入";
 
+    const USER_NAME      = "用户名称格式错误";
+    const USER_ID_CARD   = "用户身份证错误";
+    const USER_CAR_NUM   = "车牌号错误";
+    const USER_ID_JUST   = "身份证正面照必填";
+    const USER_ID_BACK   = "身份证反面照必填";
+    const USER_JS_CERT   = "驾驶证件照必填";
+    const USER_XS_CERT   = "行驶证件照必填";
+    const USER_CAR        = "车辆照片必填";
+
 
 
 
@@ -39,7 +48,7 @@ class DriverLogic extends BaseLogic
     {
         $token = Request::instance()->header('token', '');
         if ($token) {
-            $user_id = Cache::store('user')->get('user_token:' . $token, 0);
+            $user_id = getCache()->get('user_token:' . $token, 0);
             if (!$user_id) {
                 throw new HttpException(401, '用户令牌已过期');
             }
@@ -53,13 +62,13 @@ class DriverLogic extends BaseLogic
     {
         $user_id = 0;
         $token = Request::instance()->header('token', '');
-        if ($token) $user_id = Cache::store('user')->get('user_token:' . $token, 0);
+        if ($token) $user_id = getCache()->get('user_token:' . $token, 0);
         return $user_id ?: 0;
     }
 
     public function getToken($user_id, $is_refresh = false)
     {
-        $user_token = Cache::store('user')->get('user_id:' . $user_id);
+        $user_token = getCache()->get('user_id:' . $user_id);
         $expire = 60*60*24*10;
         if (!$is_refresh) {
             //$this->delDeviceId($user_id);
@@ -88,12 +97,12 @@ class DriverLogic extends BaseLogic
     public function delToken($user_id)
     {
         
-        $user_token = Cache::store('user')->pull('user_id:' . $user_id);
-        return Cache::store('user')->rm('user_token:' . $user_token);
+        $user_token = getCache()->pull('user_id:' . $user_id);
+        return getCache()->rm('user_token:' . $user_token);
     }
 
     public function delTokenPhone($phone){
-        Cache::store('user')->rm('mobile_code:' . $phone);
+        getCache()->rm('mobile_code:' . $phone);
     }
 
     public function check_mobile($mobile)
@@ -135,5 +144,16 @@ class DriverLogic extends BaseLogic
     public function getCityCode()
     {
         return request()->header('city') ?: config('default_city.code');
+    }
+
+    // 车牌号验证
+    public function check_vehicle_number($car_number){
+        // /[\x80-\xff][A-Z][a-z0-9]{5}/i
+        $vehicleNumber = "/^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Z]{1}[A-Z]{1}[A-Z0-9]{4}[A-Z0-9挂学警港澳]{1}$/isu";
+        if (preg_match($vehicleNumber, $car_number)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

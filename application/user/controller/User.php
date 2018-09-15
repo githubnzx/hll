@@ -72,6 +72,13 @@ class User extends Base
         return success_out();
     }
 
+    // 用户详情
+    public function userInfo(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $userInfo = UsersModel::getInstance()->userFind(["id"=>$user_id]) ?: [];
+        return success_out($userInfo);
+    }
+
 
 
 

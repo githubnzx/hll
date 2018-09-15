@@ -5,6 +5,7 @@ use app\admin\model\UserModel;
 use app\driver\model\DriverModel;
 use app\user\Logic\WechatLogic;
 use app\user\Logic\UserLogic;
+use app\driver\Logic\DriverLogic;
 use app\common\logic\MsgLogic;
 
 use think\Cache;
@@ -23,17 +24,17 @@ class Login extends Base
             return error_out('', UserLogic::USER_SMS_SEND);
         }
         if(!UserLogic::getInstance()->check_password($password)) return error_out("", UserLogic::PWD_FOORMAT);
-        $userInfo = DriverModel::getInstance()->userFind(["phone"=>$phone], "id, password, status");
+        $userInfo = DriverModel::getInstance()->userFind(["phone"=>$phone], "id, password, status, is_register");
         if(!$userInfo) return error_out("", UserLogic::USER_PWD_MSG);
         if($userInfo["status"]) return error_out("", UserLogic::USER_STATUS);
-        if($userInfo["password"] === md5(config("user_login_prefix").$password)) return error_out('', UserLogic::USER_PWD_MSG);
-        $user_token = UserLogic::getInstance()->getToken($userInfo["id"]);
+        if($userInfo["password"] !== md5(config("user_login_prefix").$password)) return error_out('', UserLogic::USER_PWD_MSG);
+        $user_token = DriverLogic::getInstance()->getToken($userInfo["id"]);
         return success_out([
             'token' => $user_token,
             'phone' => $phone,
+            "is_register"=>$userInfo["is_register"]
         ], UserLogic::LOGIN_SUCCESS);
     }
-
     // 发送短信
     public function sendCode()
     {
@@ -42,7 +43,7 @@ class Login extends Base
             return error_out('', UserLogic::USER_SMS_SEND);
         }
         $code = 111111;
-        Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
+        Cache::store('driver')->set('mobile_code:' . $phone, $code, 300);
         return success_out('', '发送成功');
         /*
         $code = rand(100000 , 999999);
@@ -73,7 +74,7 @@ class Login extends Base
         $userPhone = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: "";
         if($userPhone !== $phone) return error_out("", UserLogic::USER_PHONE_MSG);
         // 验证码
-        $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
+        $oldCode = Cache::store('driver')->get('mobile_code:' . $phone);
         if(!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
         if ($oldCode != $code) return error_out('', UserLogic::CODE_MSG);
         // 密码
@@ -99,7 +100,7 @@ class Login extends Base
         $user_id = DriverModel::getInstance()->userFind(["phone"=>$phone])["id"] ?: "";
         if($user_id) return error_out("", UserLogic::HAS_REGISTER);
         // 验证码
-        $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
+        $oldCode = Cache::store('driver')->get('mobile_code:' . $phone);
         if(!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
         if ($oldCode != $code) return error_out('', UserLogic::CODE_MSG);
         // 密码
@@ -109,6 +110,12 @@ class Login extends Base
         if($newPwd !== $confirmPwd) return error_out("", UserLogic::PASSWORD_MSG);
         $user["phone"]    = $phone;
         $user["password"] = md5(config("user_login_prefix").$newPwd);
+        $user["id_number"] = "";
+        $user["contacts_name"] = "";
+        $user["contacts_phone"] = "";
+        $user["car_color"] = "";
+        $user["car_number"] = "";
+        $user["car_type"] = "";
         $user["province"] = "";
         $user["city_code"]= "";
         $user["ad_code"]  = "";
@@ -117,7 +124,7 @@ class Login extends Base
             $user_token = UserLogic::getInstance()->getToken($uid);
             return success_out([
                 'token' => $user_token,
-                'phone' => $phone,
+                'phone' => $phone
             ], MsgLogic::REG_SUCCESS);
         } else {
             return error_out("", MsgLogic::SERVER_EXCEPTION);

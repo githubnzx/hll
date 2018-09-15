@@ -11,6 +11,7 @@
 namespace app\driver\model;
 
 use app\user\logic\UserLogic;
+use app\user\model\TruckModel;
 use im\Easemob;
 use think\Db;
 use think\Log;
@@ -20,12 +21,21 @@ class DriverModel extends BaseModel
 {
     protected $tableUser = 'driver';
     protected $wechatTable = 'wechat';
+    protected $certTable   = 'cert';
+
 
     const STATUS_DEL = 0;
     const USER_TYPE_USER    = 2;
     const INTEGRAL_REGISTER = 10;
     const TYPE_IN  = 1;
     const TYPE_OUT = 2;
+
+    const CARD_JUST = 4;
+    const CARD_BACK = 5;
+    const JS_CARD   = 6;
+    const XS_CARD   = 7;
+    const DRIVER_CAR  = 8;
+
 
     public function userFind($where, $fields = '*'){
         return Db::table($this->tableUser)->field($fields)->where($where)->find();
@@ -93,6 +103,64 @@ class DriverModel extends BaseModel
         try {
             $user_id = $this->userAdd($data);
             $this->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user_id]);
+            Db::commit();
+            return $user_id;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
+
+    // 添加照片
+    public function addCert($data){
+        return Db::table($this->certTable)->insertAll($data);
+    }
+
+    // 完善信息
+    public function userPerfectInfoEdit($user_id, $data, $photo){
+        Db::startTrans();
+        try {
+            $cart = [];
+            $user_id = $this->userEdit(["id"=>$user_id], $data);
+            if(!$user_id) return false;
+            // 身份证 正面
+            if(isset($photo["id_card"]["just"]) && $photo["id_card"]["just"]){
+                $_cart["main_id"] = $user_id;
+                $_cart["img"]  = $photo["id_card"]["just"];
+                $_cart["type"] = DriverModel::CARD_JUST;
+                $cart[] = $_cart;
+            }
+            // 身份证 反面
+            if(isset($photo["id_card"]["back"]) && $photo["id_card"]["back"]){
+                $_cart["main_id"] = $user_id;
+                $_cart["img"]  = $photo["id_card"]["back"];
+                $_cart["type"] = DriverModel::CARD_BACK;
+                $cart[] = $_cart;
+            }
+            // 驾驶证
+            if(isset($photo["js_cert"]) && $photo["js_cert"]){
+                $_cart["main_id"] = $user_id;
+                $_cart["img"]  = $photo["js_cert"];
+                $_cart["type"] = DriverModel::JS_CARD;
+                $cart[] = $_cart;
+            }
+            // 行驶证
+            if(isset($photo["xs_cert"]) && $photo["xs_cert"]){
+                $_cart["main_id"] = $user_id;
+                $_cart["img"]  = $photo["xs_cert"];
+                $_cart["type"] = DriverModel::XS_CARD;
+                $cart[] = $_cart;
+            }
+            // 行驶证
+            if(isset($photo["car"]) && $photo["car"]){
+                foreach ($photo["car"] as $key => $val) {
+                    $_cart["main_id"] = $user_id;
+                    $_cart["img"] = $val;
+                    $_cart["type"] = DriverModel::DRIVER_CAR;
+                    $cart[] = $_cart;
+                }
+            }
+            if($cart) $this->addCert($cart);
             Db::commit();
             return $user_id;
         } catch (\Exception $e) {

@@ -101,7 +101,7 @@ class UserLogic extends BaseLogic
         return preg_match("/^((\\(\\d{2,3}\\))|(\\d{3}\\-))?\\s*(13|14|15|16|17|18)\\d{9}$/", $mobile);
     }
 
-    // 课件名称 只包含中英文数字
+    // 姓名 只包含中英文
     public function check_name($name){
         //$preg_name='/^[\x{4e00}-\x{9fa5}]{1,10}$|^[a-zA-Z\s]*[a-zA-Z\s]{1,20}$/isu';
         $preg_name='/^[\x{4e00}-\x{9fa5}a-zA-Z]{1,10}$/isu';
@@ -131,9 +131,21 @@ class UserLogic extends BaseLogic
         }
     }
 
+    // 身份证验证
+    public function check_id_card($id_card){
+        $preg_card ="/(^\d{15}$)|(^\d{17}([0-9]|X)$)/isu";
+        if (preg_match($preg_card, $id_card)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     //获取定位用户所在城市编码
     public function getCityCode()
     {
         return request()->header('city') ?: config('default_city.code');
     }
+
+
 }

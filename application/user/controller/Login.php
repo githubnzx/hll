@@ -26,7 +26,7 @@ class Login extends Base
         $userInfo = UsersModel::getInstance()->userFind(["phone"=>$phone], "id, password, status");
         if(!$userInfo) return error_out("", UserLogic::USER_PWD_MSG);
         if($userInfo["status"]) return error_out("", UserLogic::USER_STATUS);
-        if($userInfo["password"] === md5(config("user_login_prefix").$password)) return error_out('', UserLogic::USER_PWD_MSG);
+        if($userInfo["password"] !== md5(config("user_login_prefix").$password)) return error_out('', UserLogic::USER_PWD_MSG);
         $user_token = UserLogic::getInstance()->getToken($userInfo["id"]);
         return success_out([
             'token' => $user_token,
