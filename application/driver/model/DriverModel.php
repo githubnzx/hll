@@ -38,7 +38,11 @@ class DriverModel extends BaseModel
 
 
     public function userFind($where, $fields = '*'){
-        return Db::table($this->tableUser)->field($fields)->where($where)->find();
+        $result = Db::table($this->tableUser)->field($fields)->where($where)->find() ?: [];
+        if(isset($result["icon"]) && $result["icon"]){
+            $result["icon"] = handleImgPath($result["icon"]);
+        }
+        return $result;
     }
 
     public function userBindAll($where, $fields = '*'){

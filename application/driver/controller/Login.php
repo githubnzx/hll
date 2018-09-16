@@ -25,7 +25,7 @@ class Login extends Base
         }
         if(!UserLogic::getInstance()->check_password($password)) return error_out("", UserLogic::PWD_FOORMAT);
         $userInfo = DriverModel::getInstance()->userFind(["phone"=>$phone], "id, password, status, is_register");
-        if(!$userInfo) return error_out("", UserLogic::USER_PWD_MSG);
+        if(!$userInfo) return error_out("", UserLogic::USER_NOT_EXISTS);
         if($userInfo["status"]) return error_out("", UserLogic::USER_STATUS);
         if($userInfo["password"] !== md5(config("user_login_prefix").$password)) return error_out('', UserLogic::USER_PWD_MSG);
         $user_token = DriverLogic::getInstance()->getToken($userInfo["id"]);
@@ -121,7 +121,7 @@ class Login extends Base
         $user["ad_code"]  = "";
         $uid = DriverModel::getInstance()->userAdd($user);
         if($uid){
-            $user_token = UserLogic::getInstance()->getToken($uid);
+            $user_token = DriverLogic::getInstance()->getToken($uid);
             return success_out([
                 'token' => $user_token,
                 'phone' => $phone
@@ -134,8 +134,8 @@ class Login extends Base
     //退出登录
     public function out()
     {
-        $user_id = UserLogic::getInstance()->checkToken();
-        $result = UserLogic::getInstance()->delToken($user_id);
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $result = DriverLogic::getInstance()->delToken($user_id);
         //UserLogic::getInstance()->delDeviceId($user_id);
         if ($result === false)  return error_out('', MsgLogic::SERVER_EXCEPTION);
         return success_out('', UserLogic::USER_OUT);
@@ -158,7 +158,7 @@ class Login extends Base
         $user = DriverModel::getInstance()->userFind(["openid"=>$openid], "id, phone");
         if ($user) { //已存在
             if ($user['is_del'] != DriverModel::STATUS_DEL) return error_out('', UserLogic::USER_STATUS);
-            $user_token = UserLogic::getInstance()->getToken($user['id']);
+            $user_token = DriverLogic::getInstance()->getToken($user['id']);
             $result['user_token'] = $user_token;
             $result['phone'] = $user['phone'];
             $result['wechat_id'] = 0;
@@ -225,7 +225,7 @@ class Login extends Base
                     Db::rollback();
                     return error_out((object)array() , $e->getMessage());
                 }
-                $user_token = UserLogic::getInstance()->getToken($user['id']);
+                $user_token = DriverLogic::getInstance()->getToken($user['id']);
                 //$icon = $user['icon'] ? $user['icon']: WechatLogic::getInstance()->downloadAvar($wechat_info['headimgurl']);
                 return success_out([
                     'token' =>$user_token,
@@ -248,7 +248,7 @@ class Login extends Base
             $parm['update_time'] = CURR_TIME;
             $user_id = DriverModel::getInstance()->userWechatFind($wechat_info["id"], $parm);
             if ($user_id) {
-                $user_token = UserLogic::getInstance()->getToken($user_id);
+                $user_token = DriverLogic::getInstance()->getToken($user_id);
                 return success_out([
                     'token' => $user_token,
                     'phone'=>$parm['phone'],

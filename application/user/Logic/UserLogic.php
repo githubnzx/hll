@@ -27,6 +27,7 @@ class UserLogic extends BaseLogic
     const WX_BIND_SUCCESS= "绑定手机号成功";
     const LOGIN_SUCCESS  = "登录成功";
     const PHONE_EXISTED  = "此手机号已注册，请重新输入";
+    const USER_NOT_EXISTS= "用户不存在";
 
 
 

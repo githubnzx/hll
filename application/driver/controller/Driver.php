@@ -27,7 +27,7 @@ class driver extends Base
     // 修改手机号
     public function upUserPhone()
     {
-        $user_id = UserLogic::getInstance()->checkToken();
+        $user_id = DriverLogic::getInstance()->checkToken();
         $phone = $this->request->post('phone/s', "");
         $code = $this->request->post('code/d', 0);
         if (!$phone || !$code) return error_out('', MsgLogic::PARAM_MSG);
@@ -54,7 +54,7 @@ class driver extends Base
 
     // 我的积分
     public function userIntegral(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        $user_id = DriverLogic::getInstance()->checkToken();
         $integral = IntegralModel::getInstance()->userIntegralFind(["user_id"=>$user_id, "user_type"=>DriverModel::USER_TYPE_USER], "integral")["integral"] ?: 0;
         $data["integral"] = $integral;
         $integralRecord = IntegralModel::getInstance()->userIntegralRecordList(["user_id"=>$user_id, "user_type"=>DriverModel::USER_TYPE_USER], "id, integral, type, operation_type, tag");
@@ -69,13 +69,13 @@ class driver extends Base
 
     // 检测是否登录
     public function hasLogin(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        $user_id = DriverLogic::getInstance()->checkToken();
         return success_out();
     }
 
     // 完善信息
     public function perfectInfo(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        $user_id = DriverLogic::getInstance()->checkToken();
         $cityCode = $this->request->post('city_code/s', "");
         $name         = $this->request->post("name/s", "");
         $id_card      = $this->request->post("id_number/s", "");
@@ -111,6 +111,13 @@ class driver extends Base
         $result = DriverModel::getInstance()->userPerfectInfoEdit($user_id, $data, $photo);
         if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
+    }
+
+    // 司机详情
+    public function driverInfo(){
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id]);
+        return success_out($driverInfo);
     }
 
 

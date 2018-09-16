@@ -72,11 +72,11 @@ class DriverLogic extends BaseLogic
         $expire = 60*60*24*10;
         if (!$is_refresh) {
             //$this->delDeviceId($user_id);
-            Cache::store('user')->rm('user_token:' . $user_token);
+            getCache()->rm('user_token:' . $user_token);
             $user_token = str_shuffle(md5(str_shuffle(microtime(true))));
         }
-        Cache::store('user')->set('user_token:' . $user_token, $user_id, $expire);
-        Cache::store('user')->set('user_id:' . $user_id, $user_token, $expire);
+        getCache()->set('user_token:' . $user_token, $user_id, $expire);
+        getCache()->set('user_id:' . $user_id, $user_token, $expire);
         return $user_token;
         /*if (!$user_token || $is_refresh) {
             $expire = 60*60*24*10;

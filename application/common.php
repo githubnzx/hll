@@ -77,6 +77,26 @@ if (!function_exists('handleImgPath')) {
     }
 }
 
+if (!function_exists('statisticsContentRangeValid')) {
+    /**
+     * 统计内容数量
+     * @param $min 最小数量
+     * @param $max 最大数量
+     * @return true false
+     */
+    function statisticsContentRangeValid($content, $min = 10, $max = 200)
+    {
+        $count = mb_strlen($content, "utf-8");
+        if($count >= $min && $count <= $max){
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+}
+
+
 
 if (!function_exists('currZeroDateToTime')) {
     /**
