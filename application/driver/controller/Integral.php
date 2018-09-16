@@ -1,13 +1,13 @@
 <?php
-namespace app\user\controller;
+namespace app\driver\controller;
 use app\common\logic\MsgLogic;
 use app\common\logic\PageLogic;
-use app\user\model\TruckModel;
-use app\user\logic\OrderLogic;
-use app\user\model\IntegralModel;
+use app\driver\logic\DriverLogic;
+use app\driver\model\DriverModel;
 use app\user\logic\UserLogic;
-use app\common\push\Push;
-use app\user\model\UsersModel;
+use app\user\model\TruckModel;
+use app\driver\logic\OrderLogic;
+use app\driver\model\IntegralModel;
 use think\Cache;
 use think\Config;
 
@@ -44,7 +44,7 @@ class Integral extends Base
 
     // 积分兑换
     public function integralBuy(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        $user_id = DriverLogic::getInstance()->checkToken();
         $good_id = $this->request->post('good_id/d', 0);
         $name    = $this->request->post('name/s', "");
         $phone   = $this->request->post('phone/s', "");
@@ -57,7 +57,7 @@ class Integral extends Base
         $surplusNumber = Cache::store('integral')->get('goods_id:' . $good_id);
         if($surplusNumber > 0) return error_out("", MsgLogic::INTEGRAL_SURPLUS_NUMBER);
         // 查看是否兑换过
-        $id = IntegralModel::getInstance()->userIntegralGoodFind(["user_id"=>$user_id, "goods_id"=>$good_id, "user_type"=>UsersModel::USER_TYPE_USER], "id")["id"] ?: 0;
+        $id = IntegralModel::getInstance()->userIntegralGoodFind(["user_id"=>$user_id, "goods_id"=>$good_id, "user_type"=>DriverModel::USER_TYPE_USER], "id")["id"] ?: 0;
         if($id) return error_out("", MsgLogic::INTEGRAL_CONVERTIBILITY);
         // 获取积分商品
         $integral = IntegralModel::getInstance()->integralFind(["id"=>$good_id], "integral")["integral"] ?: 0;
@@ -69,7 +69,7 @@ class Integral extends Base
         $data["addr_info"]= $addrInfo;
         $data["goods_id"] = $good_id;
         $data["integral"] = $integral;
-        $data["user_type"]= UsersModel::USER_TYPE_USER;
+        $data["user_type"]= DriverModel::USER_TYPE_USER;
         $data["date"]     = currZeroDateToTime();
         $data["status"]   = 1;
         $order = IntegralModel::getInstance()->integralOrderAdd($data);
@@ -79,10 +79,10 @@ class Integral extends Base
 
     // 兑换订单
     public function integralOrder(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        $user_id = DriverLogic::getInstance()->checkToken();
         $page = PageLogic::getInstance()->getPages();
         $status  = $this->request->post('status/d', 1);
-        $order = IntegralModel::getInstance()->integralOrderSelect(["status"=>$status, "user_type"=>UsersModel::USER_TYPE_USER], "o.id order_id, g.id goods_id, g.title, g.integral", $page);
+        $order = IntegralModel::getInstance()->integralOrderSelect(["status"=>$status, "user_type"=>DriverModel::USER_TYPE_USER], "o.id order_id, g.id goods_id, g.title, g.integral", $page);
         foreach ($order as $key => $val){
             $order[$key]["images"] = TruckModel::getInstance()->certFind(["main_id"=>$val["goods_id"]], "img", "create_time asc")["img"] ?: "";
         }
@@ -91,7 +91,7 @@ class Integral extends Base
 
     // 确认收货
     public function confirmReceipt(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        $user_id = DriverLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
         // 验证用户订单

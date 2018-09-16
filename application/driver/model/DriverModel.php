@@ -75,7 +75,7 @@ class DriverModel extends BaseModel
             $record["user_type"]= DriverModel::USER_TYPE_USER;
             $record["type"]    = DriverModel::TYPE_IN;
             $record["operation_type"] = 1;
-            $record["tag"] = "用户注册";
+            $record["tag"] = "司机注册";
             IntegralModel::getInstance()->userIntegralRecordInsert($record);
             Db::commit();
             return $user_id;
