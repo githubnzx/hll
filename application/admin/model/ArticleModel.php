@@ -15,7 +15,7 @@ use think\Model;
 class ArticleModel extends Model
 {
     // 确定链接表名
-    protected $name = 'articles';
+    protected $name = 'admin_articles';
 
     /**
      * 查询文章

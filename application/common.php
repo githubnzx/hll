@@ -9,6 +9,7 @@
 // | Author: 流年 <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
+
 // 应用公共文件
 function makeUniqueCode()
 {
@@ -25,6 +26,9 @@ function makeLoginToken($sub = '' , $prefix = '')
 define('CURR_TIME', time());
 define('CURR_DATE', date('Y-m-d'));
 define('HOUR', 3600);
+//定义删除状态
+define('DEL_STATUS', 1);
+define('NOT_DEL_STATUS', 0);
 /**
  * 统一返回信息
  * @param $code

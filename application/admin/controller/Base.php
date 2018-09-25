@@ -13,38 +13,49 @@ namespace app\admin\controller;
 
 use think\Controller;
 use app\admin\model\RoleModel;
+use think\exception\HttpException;
+use think\Request;
+
+session_start();
 
 class Base extends Controller
 {
+
+    protected $msg = "";
+
     public function _initialize()
     {
+        if (request()->isOptions()){
+            throw new HttpException('204','');
+        }
         if(empty(session('username')) || empty(session('id'))){
-
-            $loginUrl = url('login/index');
+            $loginUrl = url('page/login', '', false);
             if(request()->isAjax()){
-                return msg(111, $loginUrl, '登录超时');
+                $this->msg = "登录超时";
+                //return msg(111, $loginUrl, '登录超时');
+            } else {
+                $this->msg = "请登陆";
             }
-
-            $this->redirect($loginUrl);
+            //throw new HttpException(402, '请登陆');
         }
 
         // 检查缓存
-        $this->cacheCheck();
+        //$this->cacheCheck();
 
         // 检测权限
         $control = lcfirst(request()->controller());
         $action = lcfirst(request()->action());
 
-        if(empty(authCheck($control . '/' . $action))){
+        /*if(empty(authCheck($control . '/' . $action))){
             if(request()->isAjax()){
                 return msg(403, '', '您没有权限');
             }
 
             $this->error('403 您没有权限');
-        }
+        }*/
 
         $this->assign([
-            'head'     => session('head'),
+            //'head'     => session('head'),
             'username' => session('username'),
             'rolename' => session('role')
         ]);
