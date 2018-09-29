@@ -61,7 +61,7 @@ class UserLogic extends BaseLogic
     public function getToken($user_id, $is_refresh = false)
     {
         $user_token = Cache::store('user')->get('user_id:' . $user_id);
-        $expire = 60*60*24*10;
+        $expire = 60*60*24*10; 
         if (!$is_refresh) {
             //$this->delDeviceId($user_id);
             Cache::store('user')->rm('user_token:' . $user_token);
