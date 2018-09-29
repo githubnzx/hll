@@ -41,7 +41,7 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-        $code = 111111;
+        $code = 111111; 
         Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
         return success_out('', '发送成功');
         /*
