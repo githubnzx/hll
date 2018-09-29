@@ -99,7 +99,13 @@ class UserLogic extends BaseLogic
 
     public function check_mobile($mobile)
     {
-        return preg_match("/^((\\(\\d{2,3}\\))|(\\d{3}\\-))?\\s*(13|14|15|16|17|18)\\d{9}$/", $mobile);
+        //return preg_match("/^((\\(\\d{2,3}\\))|(\\d{3}\\-))?\\s*(13|14|15|16|17|18)\\d{9}$/", $mobile);
+        $preg_name = "/^((\\(\\d{2,3}\\))|(\\d{3}\\-))?\\s*(13|14|15|16|17|18)\\d{9}$/";
+        if(preg_match($preg_name, $mobile)){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // 姓名 只包含中英文
