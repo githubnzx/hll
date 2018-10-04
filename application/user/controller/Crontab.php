@@ -2,8 +2,10 @@
 
 namespace app\user\controller;
 
+use app\user\logic\OrderLogic;
 use app\user\model\IntegralModel;
 use app\common\push\Push;
+use app\user\model\OrderModel;
 use im\Easemob;
 use think\Log;
 
@@ -18,6 +20,21 @@ class Crontab extends Base
         $data['date']   = currZeroDateToTime() - (3600 * 24 * 15);
         $data['status'] = 1;
         IntegralModel::getInstance()->integralOrderEdit($data, ["status" => 2]);
+        die('OK');
+    }
+
+    /**
+     * 预约司机
+     * *  *  *  *  * root /usr/local/php/bin/php  /home/wwwroot/public/user.php crontab/CheckEndOrderScan
+     */
+    public function CheckOrder(){
+        set_time_limit(0);
+        $data['order_time'] = currZeroDateToTime();
+        $data['is_place_order'] = 1;
+        $orderLset = OrderModel::getInstance()->orderSelect($data, "id, driver_ids");
+        foreach ($orderLset as $key => $value) {
+            OrderModel::getInstance()->placeOrderEdit($value["id"], $value["driver_ids"]);
+        }
         die('OK');
     }
 

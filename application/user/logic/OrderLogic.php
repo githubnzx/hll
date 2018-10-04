@@ -2,6 +2,7 @@
 
 namespace app\user\logic;
 
+use app\common\config\DriverConfig;
 use app\user\model\MessagsModel;
 use app\user\model\OrderModel;
 use app\user\model\UsersModel;
@@ -187,188 +188,16 @@ class OrderLogic extends BaseLogic
     {
         return 'DX-APP-' . date('Y') . '-' . sprintf("%010d", $order_id);
     }
-    /**
-     * 处理时间节点返回时长
-     * @param  string $time_nodes    时间节点
-     * @return int    $length_time   时长
-     */
-    public function lengthTime($time_nodes){
-        if(empty($time_nodes)) return 0;
-        $length_time = count(array_filter(explode(',', $time_nodes))) / 2;
-        return $length_time;
-    }
-    // 私教/陪打
-    public function sendSPSms($uid, $type_id, $date, $timeNode, $pay_user_id, $type){
-        if($pay_user_id === $uid){
-            $where['id'] = $uid;
-        } else {
-            $where['id'] = ['in', [$uid, $pay_user_id]];
-        }
-        $userInfo = UsersModel::getUserGroupInfo($where, 'name, phone');
-        $timeNodeAr = ScheduleConfig::getInstance()->formatTimeNode($timeNode);
-        $msg['date'] = date('Y年m月d日', $date);
-        $msg['timeNode'] = $timeNodeAr['start_time'] . '-' . $timeNodeAr['end_time'];
-        $msg['serviceType'] = CourseConfig::getInstance()->getCourseById($type_id);
-        //var_dump($msg);die;
-        switch ($type) {
-            case 'cancel':
-                foreach ($userInfo as $key => $val){
-                    $msg['name'] = $val['name'];
-                    if($val['phone']){
-                        $sms_code = UserSms::cancel($val['phone'], $msg);
-                        if($sms_code->Code != "OK" || $sms_code->Message != "OK"){
-                            $error_msg = "姓名：".$val["name"]." 手机号：".$val["phone"].$sms_code->Message;
-                            Log::record($error_msg,'error');
-                        }
-                    }
-                }
-                break;
-            case 'upsign':
-                foreach ($userInfo as $key => $val){
-                    $msg['name'] = $val['name'];
-                    if($val['phone']){
-                        $sms_code = UserSms::endorse($val['phone'], $msg);
-                        if($sms_code->Code != "OK" || $sms_code->Message != "OK"){
-                            $error_msg = "姓名：".$val["name"]." 手机号：".$val["phone"].$sms_code->Message;
-                            Log::record($error_msg,'error');
-                        }
-                    }
-                }
-                break;
-            case 'create':
-                foreach ($userInfo as $key => $val){
-                    $msg['name'] = $val['name'];
-                    if($val['phone']){
-                        $sms_code = UserSms::subscribe($val['phone'], $msg);
-                        if($sms_code->Code != "OK" || $sms_code->Message != "OK"){
-                            $error_msg = "姓名：".$val["name"]." 手机号：".$val["phone"].$sms_code->Message;
-                            Log::record($error_msg,'error');
-                        }
-                    }
-                }
-                break;
-        }
-    }
-    // 团课
-    public function sendTKSms($order_id, $user_id, $pay_user_id, $type){
-        if($pay_user_id === $user_id){
-            $where['id'] = $user_id;
-        } else {
-            $where['id'] = ['in', [$user_id, $pay_user_id]];
-        }
-        $start_time = $end_time = '';
-        $orderDate = OrderModel::getInstance()->getOrderDateColumn(['order_id'=>$order_id]);
-        if($orderDate){
-            $start_time = key($orderDate);
-            $_end_time = array_keys($orderDate);
-            $end_time = array_pop($_end_time);
-            $start_time = OrderModel::getInstance()->courseTime(reset($orderDate), $start_time)["start_time"];
-        }
-        $userInfo = UsersModel::getUserGroupInfo($where, 'name, phone');
-        $msg['startDate'] = $start_time ? date('Y年m月d日', $start_time) : '';
-        $msg['endDate'] = $end_time ? date('Y年m月d日', $end_time) : '';
-        switch ($type) {
-            case 'cancel':
-                foreach ($userInfo as $key => $val){
-                    $msg['name'] = $val['name'];
-                    if($val['phone']){
-                        UserSms::tkCancel($val['phone'], $msg);
-                    }
-                }
-                break;
-            case 'create':
-                foreach ($userInfo as $key => $val){
-                    $msg['name'] = $val['name'];
-                    if($val['phone']){
-                        UserSms::tkOrder($val['phone'], $msg);
-                    }
-                }
-                break;
-        }
-    }
 
-    public function scheduleVerify($time_nodes, $ordered_time_nodes, $date_time, $hour_time = 1){
-        $dataAr = ['start'=>[], 'end'=>0];
-        // 计算可预约时间
-        $currDateDelayTimeNode = [];
-        if($date_time === strtotime(CURR_DATE)){
-            $currDateDelayTimeNode = range(18, currDateDelayTimeNode());
-        }
-        $result = startTimeNodeByDuration($time_nodes, $ordered_time_nodes, $hour_time, $currDateDelayTimeNode);
-        if($result){
-            $dataAr['start'] = $result;
-            $dataAr['end'] = reset($result)+1;
-        }
-        return $dataAr;
+    // 计算价格
+    public function imputedPrice($kilometers, $truck_type, $fee_price){
+        $truckPrice = DriverConfig::getInstance()->truckPriceId($truck_type);
+        $kilometers = ceil($kilometers);
+        $actualKilometer = bcsub($kilometers, 5);  // 总共里数减去5公里（起步价包含5公里）
+        // 起步价 + 超出公里数总价格 = 总费用
+        $actualKilometerPrice = bcadd($truckPrice["starting_price"], bcsub($actualKilometer, $truckPrice["excess_fee"]));
+        $price = bcadd($actualKilometerPrice, $fee_price); // 总公里价 + 小费
+        return $price;
     }
-
-    public function memberAvgPirce($order_list, $member_list){
-        $memberlist = $date_number = $data = [];
-        foreach ($member_list as $value){
-            for ($keyi = 0; $keyi < $value["surplus_number"]; $keyi++){
-                $memberlist[] = $value["id"] . "_" . $value["avg_price"];
-            }
-        }
-        foreach ($order_list as $key => $val){
-            $time_nodes = OrderLogic::getInstance()->lengthTime($val["time_nodes"]);
-            $date_number = array_slice($memberlist, 0, $time_nodes);
-            $memberlist = array_slice($memberlist, $time_nodes);
-            $res = array_count_values($date_number);
-            $data[$val["id"]] = json_encode($res);
-        }
-        return $data;
-    }
-
-    // redis 同时间段课程微信多人支付 处理
-    public function wxHandleSynchPay($order_id, $coach_id, $date, $time_nodes){
-        $time_nodes_ar = explode(',', $time_nodes);
-        array_push($time_nodes_ar, strval(end($time_nodes_ar)+1));
-        $redis_count = false;
-        foreach ($time_nodes_ar as $key => $value) {
-            $redis_key = 'orderpay:' . $coach_id . $date . $value;
-            if(getCache()->has($redis_key)){
-                $redis_count = true; break;
-            }
-        }
-        if($redis_count) return false;
-        foreach ($time_nodes_ar as $key => $value) {
-            $redis_key = 'orderpay:' . $coach_id . $date . $value;
-            getCache()->set($redis_key, $order_id, 100);
-        }
-        return true;
-    }
-    // 清楚redis 占用
-    public function cancelRedisPay($coach_id, $date_time, $time_nodes){
-        $time_nodes_ar = explode(',', $time_nodes);
-        array_push($time_nodes_ar, strval(end($time_nodes_ar)+1));
-        foreach ($time_nodes_ar as $key => $value) {
-            $redis_key = 'orderpay:' . $coach_id . $date_time . $value;
-            if (getCache()->has($redis_key)) {
-                getCache()->rm($redis_key);
-            }
-        }
-        return true;
-    }
-
-    // 处理预约场地数据
-    public function handleFieldSchedule($schedule_time_nodes, $ordered_time_nodes, $data_time_nodes, $type = "Inc")
-    {
-        $data = [];
-        $posTimeNodes = strpos($schedule_time_nodes, $data_time_nodes);
-        if ($posTimeNodes === false) return false;
-        $ordered_time_nodes_arr = $ordered_time_nodes ? explode(",", $ordered_time_nodes) : [];
-        $time_nodes_arr = $data_time_nodes ? explode(",", $data_time_nodes) : [];
-        if ($type == "Inc") {
-            $data_ordered_time_nodes = array_merge($ordered_time_nodes_arr, $time_nodes_arr);
-        } elseif ($type == "Dec"){
-            $data_ordered_time_nodes = array_diff($ordered_time_nodes_arr, $time_nodes_arr);
-        } else {
-            return $data;
-        }
-        sort($data_ordered_time_nodes);
-        $data = implode(",", $data_ordered_time_nodes);
-        return $data;
-    }
-
 
 }

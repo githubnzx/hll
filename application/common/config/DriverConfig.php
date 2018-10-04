@@ -46,4 +46,26 @@ class DriverConfig extends BaseConfig
         return '';
     }
 
+    public function truckPrice()
+    {
+        return [
+            ['id' => 1, 'starting_price' => "35", "excess_fee" => "3"],
+            ['id' => 2, 'starting_price' => "49", "excess_fee" => "4"],
+            ['id' => 3, 'starting_price' => "48", "excess_fee" => "4"],
+            ['id' => 4, 'starting_price' => "95", "excess_fee" => "5"],
+            ['id' => 5, 'starting_price' => "95", "excess_fee" => "5"],
+        ];
+    }
+
+    public function truckPriceId($id) {
+        $list = $this->truckPrice();
+        foreach ($list as $k=>$v){
+            if ($v['id'] == $id){
+                return $v;
+            }
+        }
+        return '';
+    }
+
+
 }
