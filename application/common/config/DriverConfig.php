@@ -67,5 +67,26 @@ class DriverConfig extends BaseConfig
         return '';
     }
 
+    public function truckTypeName()
+    {
+        return [
+            ['id' => 1, 'title' => "小型面包车"],
+            ['id' => 2, 'title' => "小型平板车"],
+            ['id' => 3, 'title' => "小型厢式货车"],
+            ['id' => 4, 'title' => "中型厢式货车"],
+            ['id' => 5, 'title' => "中型平板车"],
+        ];
+    }
+
+    public function truckTypeNameId($id) {
+        $list = $this->truckTypeName();
+        foreach ($list as $k=>$v){
+            if ($v['id'] == $id){
+                return $v["title"];
+            }
+        }
+        return '';
+    }
+
 
 }

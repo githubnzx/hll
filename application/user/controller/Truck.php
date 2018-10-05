@@ -1,5 +1,6 @@
 <?php
 namespace app\user\controller;
+use app\common\config\DriverConfig;
 use app\common\logic\MsgLogic;
 use app\user\model\TruckModel;
 use app\user\model\UsersModel;
@@ -20,8 +21,6 @@ class Truck extends Base
      * @return array
      * @date  2018/02/09
      */
-
-    private $truck_type = [1=>"小面包车", 2=>"中面包车", 3=>"小货车", 4=>"大货车"];
     private $truck_param= ["load"=>"吨", "long"=>"长", "wide"=>"宽", "high"=>"高", "cube"=>"方"];
 
     // 货车信息
@@ -30,7 +29,7 @@ class Truck extends Base
         $truckList = TruckModel::getInstance()->truckList([], "id, type, load, long, wide, high, cube") ?: [];
         foreach ($truckList as $key => $value){
             $imageArr = [];
-            $truckList[$key]['title'] = $this->truck_type[$value['type']];
+            $truckList[$key]['title'] = DriverConfig::getInstance()->truckTypeNameId($value['type']);
             $images = TruckModel::getInstance()->certList(["main_id"=>$value["id"], "type"=>TruckModel::CERT_TYPE], "img");
             foreach ($images as $ks => $vs){
                 $imageArr[] = $vs["img"];

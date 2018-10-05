@@ -19,8 +19,14 @@ class MsgLogic extends BaseLogic
     const ORDER_USER_NAME    = "用户名格式错误";
     const ORDER_IS_EXISTS    = "有未完成订单，不可预约";
     const ORDER_IS_RECEIVABLE= "预约必填";
-    // 货车不存在
+    const ORDER_NOT_EXISTS   = "订单有误";
+    // 货车
     const TRUCK_IS_EXISTS    = "货车不存在";
+    // 评论
+    const EVALUATE_CONTENT   = "评价最多输入300字";
+    // 熟人
+    const FRIEND_PHONE_EXISTS= "该手机号已存在";
+
 
 
 

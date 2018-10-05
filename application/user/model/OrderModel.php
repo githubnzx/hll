@@ -21,6 +21,7 @@ use think\Model;
 class OrderModel extends BaseModel
 {
     protected $orderTable = 'orders';
+    protected $evaluatesTable = 'evaluates';
 
     const STATUS_DEL = 0;
 
@@ -40,6 +41,12 @@ class OrderModel extends BaseModel
         return Db::table($this->orderTable)->where($where)->update($param);
     }
 
+    public function orderList($where, $field = "*", $orders = ""){
+        $where["is_del"] = OrderModel::STATUS_DEL;
+        return Db::table($this->orderTable)->field($field)->where($where)->order($orders)->select();
+    }
+
+
     public function orderInsert($order){
         Db::startTrans();
         try {
@@ -47,7 +54,7 @@ class OrderModel extends BaseModel
             // 存入redis 判断熟人抢单
             $friend = explode(",", $order["driver_ids"]);
             foreach ($friend as $key => $value){
-                Cache::store('user')->set("RobOrder:" . $friend . $order_id, $order_id, 60);
+                Cache::store('user')->set("RobOrder:" . $value . $order_id, $order_id, 60);
             }
             Db::commit();
             return true;
@@ -64,7 +71,7 @@ class OrderModel extends BaseModel
             // 存入redis 判断熟人抢单
             $friend = explode(",", $driver_ids);
             foreach ($friend as $key => $value){
-                Cache::store('user')->set("RobOrder:" . $friend . $order_id, $order_id, 60);
+                Cache::store('user')->set("RobOrder:" . $value . $order_id, $order_id, 60);
             }
             Db::commit();
             return true;
@@ -72,6 +79,23 @@ class OrderModel extends BaseModel
             Db::rollback();
             return false;
         }
+    }
+
+    // 评论
+    public function evaluateInfo($where, $fields = "*"){
+        $where["is_del"] = self::IS_SHOW;
+        return Db::table($this->evaluatesTable)->field($fields)->where($where)->find();
+    }
+
+    public function evaluateList($where, $fields = "*"){
+        $where["is_del"] = self::IS_SHOW;
+        return Db::table($this->evaluatesTable)->field($fields)->where($where)->select();
+    }
+
+    // 总评分
+    public function evaluateColumn($where, $fields = "*"){
+        $where["is_del"] = self::IS_SHOW;
+        return Db::table($this->evaluatesTable)->where($where)->column($fields);
     }
 
 }

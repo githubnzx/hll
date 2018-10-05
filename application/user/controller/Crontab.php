@@ -29,7 +29,7 @@ class Crontab extends Base
      */
     public function CheckOrder(){
         set_time_limit(0);
-        $data['order_time'] = currZeroDateToTime();
+        $data['order_time'] = strtotime(date("Y-m-d H:i"));
         $data['is_place_order'] = 1;
         $orderLset = OrderModel::getInstance()->orderSelect($data, "id, driver_ids");
         foreach ($orderLset as $key => $value) {
