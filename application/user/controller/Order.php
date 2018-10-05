@@ -147,6 +147,7 @@ class Order extends Base
         if ($order_Info["is_confirm_cancel"] === 1) { // 需要支付损失费用（司机到达发货地后）
             // 计算损失费用
             $lossPrice = bcdiv($order_Info["price"], 10, 1);
+            //$result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["loss_price"=>$lossPrice]);
         } else { // 零费用取消订单
             $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>3]);
             if($result === false) return error_out("", MsgLogic::PARAM_MSG);
@@ -157,6 +158,27 @@ class Order extends Base
         return success_out($data, MsgLogic::SUCCESS);
 
 
+    }
+    
+    // 支付
+    public function pay(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $order_id = $this->request->post('order_id/d', 0);
+        $status = $this->request->post('status/d', 0); // 是否取消支付 0否 1是
+        $pay_type = $this->request->post('pay_type/d', 0); // 1 微信 2支付宝
+        if (!$order_id || !$pay_type) return error_out("", MsgLogic::PARAM_MSG);
+        $order = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, truck_id, driver_id, is_confirm_cancel, price, fee, total_price");
+        if (!$order) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
+        if ($status === 1) {
+            $actualPrice = bcdiv($order["price"], 10, 1);
+        } else {
+            $actualPrice = $order["total_price"];
+        }
+        if ($pay_type == 1) { //微信
+            $data['wxData'] = OrderLogic::getInstance()->payWx($order['code'], $actualPrice, url('user/pay/notifyWx', '', true, true));
+        } else { // 支付宝
+            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $actualPrice, url('user/pay/notifyZfb', '', true, true));
+        }
     }
 
 

@@ -19,7 +19,7 @@ class Login extends Base
     public function index(){
         $phone    = $this->request->post('phone/s', "");
         $password = $this->request->post('password/s', "");
-        if(!$phone || !$password) return error_out('', '参数错误');
+        if(!$phone || !$password) return error_out('', MsgLogic::PARAM_MSG);
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }

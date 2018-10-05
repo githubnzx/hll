@@ -19,7 +19,7 @@ use think\Log;
 class OrderLogic extends BaseLogic
 {
 
-    public function makePdf($orderInfo, $service_time, $service_end_time, $order_price)
+    /*public function makePdf($orderInfo, $service_time, $service_end_time, $order_price)
     {
         $template = ROOT_PATH . 'public/upload/service-type-1.html';
         if (strpos($orderInfo['pdf_url'], '.html') !== false) {
@@ -42,7 +42,7 @@ class OrderLogic extends BaseLogic
         $content = view($template, $data)->getContent();
         return \app\common\logic\FileLogic::getInstance()
             ->writeContent($content, $orderInfo['user_code'] . '-' . $orderInfo['order_id'] . '.html', 'order');
-    }
+    }*/
 
     public function payWx($code, $price, $notifyUrl)
     {
@@ -53,7 +53,7 @@ class OrderLogic extends BaseLogic
         Loader::import('wxpay.user.lib.WxPay#Api');
         $inputObj = new \WxPayUnifiedOrder();
         $inputObj->SetOut_trade_no($code);
-        $inputObj->SetBody('昊动');
+        $inputObj->SetBody('hll');
         $inputObj->SetNotify_url($notifyUrl);
         $inputObj->SetTotal_fee(intval($price * 100));
         $inputObj->SetTrade_type("APP");
