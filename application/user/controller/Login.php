@@ -61,7 +61,7 @@ class Login extends Base
     }
     // 忘记 密码
     public function forgetPwd(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        //$user_id = UserLogic::getInstance()->checkToken();
         $phone = $this->request->post('phone/s', "");
         $code  = $this->request->post('code/d', 0);
         $newPwd= $this->request->post('newPwd/s', "");
