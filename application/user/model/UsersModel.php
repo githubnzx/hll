@@ -29,7 +29,7 @@ class UsersModel extends BaseModel
     const TYPE_OUT = 2;
 
     public function userFind($where, $fields = '*'){
-        $result = Db::table($this->tableUser)->field($fields)->where($where)->find() ?: [];
+        $result = Db::table($this->tableUser)->field($fields)->where($where)->find();
         if(isset($result["icon"])) {
             $result["icon"] = handleImgPath($result["icon"]);
         }
