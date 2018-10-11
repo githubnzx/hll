@@ -163,12 +163,13 @@ class Order extends Base
     // 支付
     public function pay(){
         $user_id = UserLogic::getInstance()->checkToken();
-        $order_id = $this->request->post('order_id/d', 0);
+        $order_id = $this->request->post('order_id/d', 6);
         $status = $this->request->post('status/d', 0); // 是否取消支付 0否 1是
         $pay_type = $this->request->post('pay_type/d', 0); // 1 微信 2支付宝
         if (!$order_id || !$pay_type) return error_out("", MsgLogic::PARAM_MSG);
-        $order = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, truck_id, driver_id, is_confirm_cancel, price, fee, total_price");
+        $order = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, code, truck_id, driver_id, is_confirm_cancel, price, fee, total_price");
         if (!$order) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
+        //var_dump($order);die;
         if ($status === 1) {
             $actualPrice = bcdiv($order["price"], 10, 1);
         } else {
@@ -179,6 +180,7 @@ class Order extends Base
         } else { // 支付宝
             $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $actualPrice, url('user/pay/notifyZfb', '', true, true));
         }
+        return success_out($data);
     }
 
 
