@@ -3,9 +3,9 @@ namespace app\driver\controller;
 
 use app\admin\model\UserModel;
 use app\driver\model\DriverModel;
-use app\user\Logic\WechatLogic;
-use app\user\Logic\UserLogic;
-use app\driver\Logic\DriverLogic;
+use app\user\logic\WechatLogic;
+use app\user\logic\UserLogic;
+use app\driver\logic\DriverLogic;
 use app\common\logic\MsgLogic;
 
 use think\Cache;
