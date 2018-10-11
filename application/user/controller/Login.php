@@ -70,8 +70,8 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-        $userPhone = UsersModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: "";
-        if($userPhone !== $phone) return error_out("", UserLogic::USER_PHONE_MSG);
+        $user_id = UsersModel::getInstance()->userFind(["phone"=>$phone], "id")["id"] ?: 0;
+        if(!$user_id) return error_out("", UserLogic::USER_NOT_EXISTS);
         // 验证码
         $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
         if(!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
@@ -81,7 +81,7 @@ class Login extends Base
             return error_out('', UserLogic::PWD_FOORMAT);
         }
         if($newPwd !== $confirmPwd) return error_out("", UserLogic::PASSWORD_MSG);
-        $result = UsersModel::getInstance()->userEdit(["id"=>$user_id], ["passwrod"=>md5(config("user_login_prefix").$newPwd)]);
+        $result = UsersModel::getInstance()->userEdit(["id"=>$user_id], ["password"=>md5(config("user_login_prefix").$newPwd)]);
         if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::EDIT_SUCCESS);
     }
@@ -118,7 +118,7 @@ class Login extends Base
             return success_out([
                 'token' => $user_token,
                 'phone' => $phone,
-            ], MsgLogic::REG_SUCCESS);
+            ], MsgLogic::SUCCESS);
         } else {
             return error_out("", MsgLogic::SERVER_EXCEPTION);
         }

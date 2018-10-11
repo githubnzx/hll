@@ -46,11 +46,13 @@ function api_out($code, $data, $msg, $httpCode = 200)
 
 function success_out($data = '', $msg = '')
 {
+    $data = $data ?: null;
     return api_out(1, $data, $msg);
 }
 
-function error_out($data = '', $msg = '')
+function error_out($data = "", $msg = '')
 {
+    $data = $data ?: null;
     return api_out(0, $data, $msg);
 }
 
