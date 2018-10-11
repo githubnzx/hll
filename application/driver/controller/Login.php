@@ -62,7 +62,7 @@ class Login extends Base
     }
     // 忘记 密码
     public function forgetPwd(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        //$user_id = UserLogic::getInstance()->checkToken();
         $phone = $this->request->post('phone/s', "");
         $code  = $this->request->post('code/d', 0);
         $newPwd= $this->request->post('newPwd/s', "");
@@ -71,8 +71,8 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-        $userPhone = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: "";
-        if($userPhone !== $phone) return error_out("", UserLogic::USER_PHONE_MSG);
+        $user_id = DriverModel::getInstance()->userFind(["phone"=>$phone], "id")["id"] ?: 0;
+        if(!$user_id) return error_out("", UserLogic::USER_NOT_EXISTS);
         // 验证码
         $oldCode = Cache::store('driver')->get('mobile_code:' . $phone);
         if(!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
