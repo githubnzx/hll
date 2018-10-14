@@ -24,9 +24,12 @@ class FriendModel extends BaseModel
         return Db::table($this->table)->insert($data);
     }
 
-    public function friendList($where, $fields = "*"){
+    public function friendList($where, $whereOr = [], $fields = "*"){
         $where["is_del"] = self::IS_DEL;
-        return Db::table($this->table)->field($fields)->where($where)->select();
+        return Db::table($this->table)->field($fields)->where($where)
+            ->where(function($query) use($whereOr){
+                $query->whereOr($whereOr);
+            })->select();
     }
 
     public function friendFind($where, $fields = "*"){

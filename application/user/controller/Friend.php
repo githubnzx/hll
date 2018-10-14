@@ -24,7 +24,7 @@ use think\log;
 class Friend extends Base
 {
     // 收藏熟人
-    public function add(){
+    public function collect(){
         $user_id = UserLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
@@ -40,17 +40,18 @@ class Friend extends Base
         if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
-    // 熟人列表
+    // 列表
     public function lst(){
         $user_id = UserLogic::getInstance()->checkToken();
-        $name    = $this->request->post('name/s', "");
-        $phone   = $this->request->post('phone/s', "");
-        if ($name)  if (!UserLogic::getInstance()->check_name($name)) return error_out("", FriendMsgLogic::ORDER_USER_NAME);
-        if ($phone) if (!UserLogic::getInstance()->check_mobile($phone)) return error_out("", UserLogic::USER_PHONE_MSG);
-        if ($name) $where["driver_name"] = ["LIKE", "%".$name."%"];
-        if ($phone) $where["driver_name"] = ["LIKE", "%".$phone."%"];
+        $content = $this->request->post('content/s', "");
+        //if ($name)  if (!UserLogic::getInstance()->check_name($name)) return error_out("", FriendMsgLogic::ORDER_USER_NAME);
+        //if ($phone) if (!UserLogic::getInstance()->check_mobile($phone)) return error_out("", UserLogic::USER_PHONE_MSG);
+        //if ($name) $where["driver_name"] = ["LIKE", "%".$name."%"];
+        //if ($phone) $where["driver_phone"] = ["LIKE", "%".$phone."%"];
+        $whereOr["driver_name"] = ["LIKE", "%".$content."%"];
+        $whereOr["driver_phone"] = ["LIKE", "%".$content."%"];
         $where["user_id"] = $user_id;
-        $list = FriendModel::getInstance()->friendList($where, "id, user_id, driver_name, driver_phone");
+        $list = FriendModel::getInstance()->friendList($where, $whereOr, "id, user_id, driver_name, driver_phone");
         if($list === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out($list);
     }
@@ -80,5 +81,22 @@ class Friend extends Base
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
+
+
+    public function add(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $name  = $this->request->post('name/s', "");
+        $phone = $this->request->post('phone/s', "");
+        if(!$name || !$phone) return error_out("", MsgLogic::PARAM_MSG);
+        $id = FriendModel::getInstance()->friendFind(["driver_phone"=>$phone], "id")["id"] ?: 0;
+        if ($id) return error_out("", FriendMsgLogic::FRIEND_PHONE_EXISTS);
+        $data["user_id"] = $user_id;
+        $data["driver_name"] = $name;
+        $data["driver_phone"]= $phone;
+        $result = FriendModel::getInstance()->friendAdd($data);
+        if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
+    }
+
 
 }
