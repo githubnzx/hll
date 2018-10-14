@@ -66,6 +66,11 @@ function birthdayAge($birthday)
     return $year_diff;
 }
 
+// 理解价格
+function handlePrice($price){
+    return (string) ceil($price);
+}
+
 
 if (!function_exists('handleImgPath')) {
     /**

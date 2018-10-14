@@ -16,6 +16,8 @@ class MsgLogic extends BaseLogic
     const ADVISE_MSG_SUCCESS = "谢谢您的建议，我们将持续为你改进";
     const ADVISE_MSG_EXCEED  = "网络拥挤，请稍后再试";
 
+    const DRIVER_NOT_EXCEED  = "司机不存在";
+
 
 
     const COACH_USER_TYPE = 1;

@@ -12,7 +12,7 @@ use app\driver\logic\DriverLogic;
 use app\common\push\Push;
 use think\Cache;
 use think\Config;
-
+use think\cache\driver\Redis;
 
 class Order extends Base
 {
@@ -28,6 +28,14 @@ class Order extends Base
     // 抢单列表
     public function lst(){
         $user_id = DriverLogic::getInstance()->checkToken();
+        //$redis = new Redis(\config("cache.user"));
+        //$redis->keys("RobOrder".$phone."*");
+        // 获取司机手机号
+        $phone = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: 0;
+        if ($phone) {
+            $redis = new Redis(\config("cache.user"));
+            $orderIds = $redis->mget($redis->keys("RobOrder".$phone."*"));
+        }
         $field = "id order_id, truck_id, order_time, send_good_addr, collect_good_addr, is_receivables, remarks";
         $orderInfo = OrderModel::getInstance()->orderList(["driver_id"=>0, "status"=>0], $field);
         foreach ($orderInfo as $key => &$value) {

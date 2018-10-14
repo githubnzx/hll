@@ -154,6 +154,32 @@ class Redis extends Driver
     }
 
     /**
+     * 获取全部key  20181014 手动添加
+     * @access public
+     * @param string $name 缓存变量名
+     * @return boolean
+     */
+    public function keys($name)
+    {
+        return $this->handler->keys($this->getCacheKey($name));
+    }
+
+    /**
+     * 获取多个值 20181014 手动添加
+     * @access public
+     * @param string $name 缓存变量名
+     * @return boolean
+     */
+    public function mget($name)
+    {
+        if(is_string($name)) return false;
+        foreach ($name as $key => &$value){
+            $value = $this->getCacheKey($value);
+        }
+        return $this->handler->mget($name);
+    }
+
+    /**
      * 清除缓存
      * @access public
      * @param string $tag 标签名
