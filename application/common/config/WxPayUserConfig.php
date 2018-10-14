@@ -20,7 +20,7 @@ class WxPayUserConfig extends WxPayConfigInterface
      */
     public function GetAppId()
     {
-        return 'wx426b3015555a46be';
+        return 'wx72aa412d243f6cda';
     }
     public function GetMerchantId()
     {

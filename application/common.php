@@ -134,3 +134,18 @@ if (!function_exists('dateFormatTimestamp')) {
         return mktime(0, 0, 0, $date[1], $date[2], $date[0]);
     }
 }
+
+if (!function_exists('handleUserName')) {
+    /**
+     * 图片全路径
+     * @param $date
+     * @return int
+     */
+    function handleUserName($name, $start = 0, $length = 1, $encoding = "utf-8")
+    {
+        if (!$name) return "";
+        $nameStr = mb_substr($name, $start, $length, $encoding);
+        return $nameStr;
+    }
+}
+

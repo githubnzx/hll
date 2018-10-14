@@ -88,5 +88,24 @@ class DriverConfig extends BaseConfig
         return '';
     }
 
+    public function userNameType()
+    {
+        return [
+            ['id' => 0, 'title' => "未知"],
+            ['id' => 1, 'title' => "先生"],
+            ['id' => 2, 'title' => "女士"]
+        ];
+    }
+
+    public function userNameTypeId($id) {
+        $list = $this->userNameType();
+        foreach ($list as $k=>$v){
+            if ($v['id'] == $id){
+                return $v["title"];
+            }
+        }
+        return '';
+    }
+
 
 }

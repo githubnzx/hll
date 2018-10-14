@@ -87,7 +87,7 @@ class Order extends Base
     public function lst(){
         $user_id = UserLogic::getInstance()->checkToken();
         $field = "id, truck_id, status, order_time, send_good_addr, collect_good_addr";
-        $list = OrderModel::getInstance()->orderList(["status"=>["in", [0,1,2,3]]], $field, "`status` ASC, order_time DESC");
+        $list = OrderModel::getInstance()->orderList(["user_id"=>$user_id,"status"=>["in", [0,1,2,3]]], $field, "`status` ASC, order_time DESC");
         foreach ($list as $key => &$value) {
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
             $value["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);

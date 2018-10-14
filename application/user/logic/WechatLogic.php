@@ -11,7 +11,7 @@ use think\Request;
 
 class WechatLogic extends BaseLogic
 {
-    protected $app_id = 'wxdb7a0dc1a6b65c70';
+    protected $app_id = 'wx72aa412d243f6cda';
     protected $app_secret = '767417834a6adf4a85944f519f88de06';
 
 

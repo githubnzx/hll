@@ -20,6 +20,7 @@ class MsgLogic extends BaseLogic
     const ORDER_IS_EXISTS    = "有未完成订单，不可预约";
     const ORDER_IS_RECEIVABLE= "预约必填";
     const ORDER_NOT_EXISTS   = "订单有误";
+    const ORDER_BERESERVED_EXISTS   = "订单已被预约";
     // 货车
     const TRUCK_IS_EXISTS    = "货车不存在";
     // 评论
