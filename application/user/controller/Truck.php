@@ -21,12 +21,12 @@ class Truck extends Base
      * @return array
      * @date  2018/02/09
      */
-    private $truck_param= ["load"=>"吨", "long"=>"长", "wide"=>"宽", "high"=>"高", "cube"=>"方"];
+    private $truck_param= ["load"=>"吨", "length"=>"长", "wide"=>"宽", "high"=>"高", "cube"=>"方"];
 
     // 货车信息
     public function index()
     {
-        $truckList = TruckModel::getInstance()->truckList([], "id, type, load, long, wide, high, cube") ?: [];
+        $truckList = TruckModel::getInstance()->truckList([], "id, type, load, length, wide, high, cube") ?: [];
         foreach ($truckList as $key => $value){
             $imageArr = [];
             $truckList[$key]['title'] = DriverConfig::getInstance()->truckTypeNameId($value['type']);
