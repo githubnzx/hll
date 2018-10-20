@@ -21,6 +21,8 @@ class MsgLogic extends BaseLogic
     const ORDER_IS_RECEIVABLE= "预约必填";
     const ORDER_NOT_EXISTS   = "订单有误";
     const ORDER_BERESERVED_EXISTS   = "订单已被预约";
+    const ORDER_UPPER_LIMIT  = "抢单已达上限";
+
     // 货车
     const TRUCK_IS_EXISTS    = "货车不存在";
     // 评论

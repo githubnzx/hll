@@ -163,7 +163,7 @@ class Order extends Base
     // 支付
     public function pay(){
         $user_id = UserLogic::getInstance()->checkToken();
-        $order_id = $this->request->post('order_id/d', 6);
+        $order_id = $this->request->post('order_id/d', 0);
         $status = $this->request->post('status/d', 0); // 是否取消支付 0否 1是
         $pay_type = $this->request->post('pay_type/d', 0); // 1 微信 2支付宝
         if (!$order_id || !$pay_type) return error_out("", MsgLogic::PARAM_MSG);

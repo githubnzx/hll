@@ -21,7 +21,7 @@ use think\Cache;
 use think\config;
 use think\log;
 
-class Friend extends Base
+class Friends extends Base
 {
     // 收藏熟人
     public function collect(){

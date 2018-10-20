@@ -54,8 +54,10 @@ class OrderModel extends BaseModel
             // 存入redis 判断熟人抢单
             $friend = explode(",", $order["driver_ids"]);
             foreach ($friend as $key => $value){
-                Cache::store('user')->set("RobOrder:" . $value . $order_id, $order_id, 60);
+                Cache::store('driver')->set("RobOrder:" . $value . $order_id, $order_id, 60);
             }
+            // 订单存入redis
+            Cache::store('driver')->set("RobOrderData:" . $order_id, json_encode($order));
             Db::commit();
             return true;
         } catch (\Exception $e) {

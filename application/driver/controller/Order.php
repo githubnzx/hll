@@ -6,12 +6,13 @@ use app\common\logic\MsgLogic;
 use app\driver\model\MemberModel;
 use app\user\logic\OrderLogic;
 use app\user\logic\MsgLogic as OrderMsgLogic;
-use app\user\model\OrderModel;
+use app\driver\model\OrderModel;
 use app\user\model\TruckModel;
 use app\user\logic\UserLogic;
 use app\user\model\UsersModel;
 use app\driver\logic\DriverLogic;
 use app\common\push\Push;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use think\Cache;
 use think\Config;
 use think\cache\driver\Redis;
@@ -19,7 +20,6 @@ use think\cache\driver\Redis;
 class Order extends Base
 {
     private $week = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-    private $robTimeLeng = 30;
 
     // 预约时间处理
     private function handl_order_date($order_time){
@@ -29,37 +29,85 @@ class Order extends Base
     }
 
     // 抢单列表
-    public function lst(){
+    public function robLst(){
         $user_id = DriverLogic::getInstance()->checkToken();
-        $orderIds = [];
+        $orderIds = $data = [];
         // 获取司机手机号
         $phone = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: 0;
+        $redis = new Redis(\config("cache.driver"));
         if ($phone) { // reids 判断当前司机是否是用户选的熟人订单
-            $redis = new Redis(\config("cache.user"));
             $orderIds = $redis->mget($redis->keys("RobOrder:".$phone."*"));
         }
         if ($orderIds) { // 去掉选择熟人的订单
             $orderWhere["id"] = ["not in", $orderIds];
         }
-        $orderWhere["driver_id"] = 0;
-        $orderWhere["status"]    = 0;
-        $field = "id order_id, truck_id, order_time, driver_ids, send_good_addr, collect_good_addr, is_receivables, remarks";
-        $orderInfo = OrderModel::getInstance()->orderList($orderWhere, $field);
-        // 判断是否是会员
-        //if (!MemberModel::getInstance()->isMember(["user_id"=>$user_id, "user_type"=>MemberModel::USER_TYPE_USER])) {
-        $isMember = false;
-        foreach ($orderInfo as $key => &$value) {
-            $order_time = $value["order_time"];
-            $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
-            $value["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
-            $value["order_time"] = $this->handl_order_date($value["order_time"]);//$this->week[$value["type"]];
-            if (!$isMember) {
-                if (CURR_TIME < ($order_time + $this->robTimeLeng)) {
-                    unset($orderInfo[$key]); continue;
-                }
+        //$orderWhere["driver_id"] = 0;
+        //$orderWhere["status"]    = 0;
+        //$field = "id order_id, truck_id, order_time, driver_ids, send_good_addr, collect_good_addr, is_receivables, remarks";
+        //$orderInfo = OrderModel::getInstance()->orderList($orderWhere, $field);
+        // 查询是否是会员
+        $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
+        if ($memberInfo) { // 有会员卡
+            $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
+            // 会员类型
+            $order_time = 0;
+            if ($memberInfo["type"] === 1) { // 有限制
+                $order_time = $orderCount ? $memberInfo["limit_second"] : 0;
+            }
+        } else {
+            $order_time = MemberModel::MEMBER_DEFAULT_TIME;
+        }
+        // redis中取订单数据
+        $orderList = $redis->mget($redis->keys("RobOrderData:*")) ?: [];
+        foreach ($orderList as $key => $value) {
+            $orderInfo = json_decode($value);
+            $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
+            $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
+            $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
+            $order_time = (int) bcadd($orderInfo["order_time"], $order_time);
+            if ($order_time >= CURR_TIME) {
+                $order["order_id"] = $orderInfo["id"];
+                $order["truck_id"] = $orderInfo["truck_id"];
+                $order["order_time"] = $orderInfo["order_time"];
+                $order["driver_ids"] = $orderInfo["driver_ids"];
+                $order["send_good_addr"] = $orderInfo["send_good_addr"];
+                $order["collect_good_addr"] = $orderInfo["collect_good_addr"];
+                $order["is_receivables"] = $orderInfo["is_receivables"];
+                $order["remarks"] = $orderInfo["remarks"];
+                $order["truck_name"] = $orderInfo["truck_name"];
+                $data[] = $order;
             }
         }
-        return success_out($orderInfo ?: []);
+        return success_out($data, MsgLogic::SUCCESS);
+    }
+
+    // 抢单
+    public function robbing(){
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $order_id= $this->request->post('order_id/d', 0);
+        if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        // 查询是否是会员
+        $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
+        $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
+        if ($memberInfo) { // 有会员卡
+            if(in_array($memberInfo["type"], [1,2])) { // 会员权限
+                if ($orderCount >= $memberInfo["up_limit_number"]) return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
+            }
+        } else {
+            if ($orderCount >= MemberModel::MEMBER_DEFAULT_NUMBER) return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
+        }
+        // redis 中取订单数据
+        $orderInfo = Cache::store('driver')->get("RobOrderData:" . $order_id);
+        if ($orderInfo === false) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+        // 删除redis订单数据
+        Cache::store('driver')->rm("RobOrderData:" . $order_id);
+        // 查询订单是否真实存在
+        $orderDataId = OrderModel::getInstance()->orderFind(["id"=>$orderInfo["id"], "driver_id"=>0, "status"=>0], "id")["id"] ?: 0;
+        if (!$orderDataId) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+        // 修改订单
+        $result = OrderModel::getInstance()->orderEdit(["id"=>$orderDataId], ["driver_id"=>$user_id]);
+        if ($result) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
     }
 
 
@@ -96,7 +144,7 @@ class Order extends Base
     }
 
     // 历史订单
-    public function historyLst(){
+    public function lst(){
         $user_id = DriverLogic::getInstance()->checkToken();
         $field = "id, truck_id, status, order_time, send_good_addr, collect_good_addr";
         $list = OrderModel::getInstance()->orderList(["driver_id"=>$user_id, "status"=>["in", [0,1,2,3]]], $field, "`status` ASC, order_time DESC");

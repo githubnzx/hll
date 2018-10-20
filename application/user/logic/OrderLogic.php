@@ -163,6 +163,7 @@ class OrderLogic extends BaseLogic
     // 计算价格
     public function imputedPrice($kilometers, $truck_type, $fee_price){
         $truckPrice = DriverConfig::getInstance()->truckPriceId($truck_type);
+        if($kilometers <= 5) return $truckPrice["starting_price"];
         $kilometers = ceil($kilometers);
         $actualKilometer = bcsub($kilometers, 5);  // 总共里数减去5公里（起步价包含5公里）
         // 起步价 + 超出公里数总价格 = 总费用

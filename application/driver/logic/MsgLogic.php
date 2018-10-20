@@ -18,6 +18,11 @@ class MsgLogic extends BaseLogic
 
     const DRIVER_NOT_EXCEED  = "司机不存在";
 
+    const MEMBER_NOT_EXISTS  = "会员卡不存在";
+    const MEMBER_IS_BUY      = "您已是该类型会员";
+    const MEMBER_IS_MAX_AUTH = "您当前会员级别大于购买级别";
+    const MEMBER_REPLACE_MSG = "如果更换会员，之前会员会失效";
+
 
 
     const COACH_USER_TYPE = 1;

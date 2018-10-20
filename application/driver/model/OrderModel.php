@@ -23,6 +23,8 @@ class OrderModel extends BaseModel
     protected $evaluatesTable = 'evaluates';
 
     const STATUS_DEL = 0;
+    const ORDER_PAY_WX  = 1;
+    const ORDER_PAY_ZFB = 2;
 
     public function orderFind($where = [], $fields = '*'){
         $where["is_del"] = OrderModel::STATUS_DEL;
@@ -31,6 +33,11 @@ class OrderModel extends BaseModel
     public function orderSelect($where = [], $fields = '*'){
         $where["is_del"] = OrderModel::STATUS_DEL;
         return Db::table($this->orderTable)->field($fields)->where($where)->select();
+    }
+
+    public function orderCount($where = [], $fields = '*'){
+        $where["is_del"] = OrderModel::STATUS_DEL;
+        return Db::table($this->orderTable)->field($fields)->where($where)->count();
     }
 
     public function orderEdit($where, $param){
