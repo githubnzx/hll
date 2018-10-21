@@ -51,7 +51,9 @@ class OrderModel extends BaseModel
         Db::startTrans();
         try {
             // 删除redis订单数据
-            Cache::store('driver')->rm("RobOrderData:" . $where["id"]);
+            if (Cache::store('driver')->has("RobOrderData:" . $where["id"])) {
+                Cache::store('driver')->rm("RobOrderData:" . $where["id"]);
+            }
             $this->orderEdit($where, $param);
             Db::commit();
             return true;
