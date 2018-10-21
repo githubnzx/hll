@@ -60,12 +60,13 @@ class Order extends Base
         // redis中取订单数据
         $orderList = $redis->mget($redis->keys("RobOrderData:*")) ?: [];
         foreach ($orderList as $key => $value) {
-            $orderInfo = json_decode($value);
-            $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
+            $orderInfo = json_decode($value, true);
+            $orderTime = $orderInfo["order_time"];
+            $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
             $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
-            $order_time = (int) bcadd($orderInfo["order_time"], $order_time);
-            if ($order_time >= CURR_TIME) {
+            $order_time = (int) bcadd($orderTime, $order_time);
+            if (CURR_TIME >= $order_time) {
                 $order["order_id"] = $orderInfo["id"];
                 $order["truck_id"] = $orderInfo["truck_id"];
                 $order["order_time"] = $orderInfo["order_time"];
@@ -100,13 +101,13 @@ class Order extends Base
         $orderInfo = Cache::store('driver')->get("RobOrderData:" . $order_id);
         if ($orderInfo === false) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
         // 删除redis订单数据
-        Cache::store('driver')->rm("RobOrderData:" . $order_id);
+        //Cache::store('driver')->rm("RobOrderData:" . $order_id);
         // 查询订单是否真实存在
         $orderDataId = OrderModel::getInstance()->orderFind(["id"=>$orderInfo["id"], "driver_id"=>0, "status"=>0], "id")["id"] ?: 0;
         if (!$orderDataId) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
         // 修改订单
-        $result = OrderModel::getInstance()->orderEdit(["id"=>$orderDataId], ["driver_id"=>$user_id]);
-        if ($result) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        $result = OrderModel::getInstance()->robbing(["id"=>$orderDataId], ["driver_id"=>$user_id]);
+        if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
 

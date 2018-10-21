@@ -57,6 +57,7 @@ class OrderModel extends BaseModel
                 Cache::store('driver')->set("RobOrder:" . $value . $order_id, $order_id, 60);
             }
             // 订单存入redis
+            $order["id"] = $order_id;
             Cache::store('driver')->set("RobOrderData:" . $order_id, json_encode($order));
             Db::commit();
             return true;

@@ -47,6 +47,20 @@ class OrderModel extends BaseModel
         return Db::table($this->orderTable)->where($where)->update($param);
     }
 
+    public function robbing($where, $param){
+        Db::startTrans();
+        try {
+            // 删除redis订单数据
+            Cache::store('driver')->rm("RobOrderData:" . $where["id"]);
+            $this->orderEdit($where, $param);
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
+
     public function orderList($where, $field = "*", $orders = ""){
         $where["is_del"] = OrderModel::STATUS_DEL;
         return Db::table($this->orderTable)->field($field)->where($where)->order($orders)->select();
