@@ -1,7 +1,6 @@
 <?php
 namespace app\user\controller;
 
-use app\admin\model\UserModel;
 use app\user\logic\UserLogic;
 use app\user\model\UsersModel;
 use app\user\Logic\WechatLogic;

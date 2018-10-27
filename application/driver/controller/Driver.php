@@ -1,6 +1,7 @@
 <?php
 namespace app\driver\controller;
 use app\common\logic\MsgLogic;
+use app\driver\logic\MsgLogic as DriverMsgLogic;
 use app\driver\model\IntegralModel;
 use app\driver\model\DriverModel;
 use app\driver\logic\DriverLogic;
@@ -23,6 +24,13 @@ class driver extends Base
      */
     private $integralType = [1=>"收入", 2=>"转出"];
     private $integralOperationType = [1=>"司机注册"];
+    // 明细
+    private $type        = [1=>'转入', 2=>'转出'];
+    private $pay_type    = [0=>"", 1=>'支付宝支付', 2=>'微信支付', 3=>'会员卡支付', 4=>'余额支付'];
+    private $type_symbol = [1=>'+', 2=>'-'];
+    private $tx_number   = [1=>'d', 2=>'W', 3=>'n', 4=>'Y'];
+    private $tx_number_msg = [1=>'本日', 2=>'本周', 3=>'本月', 4=>'本年'];
+
 
     // 修改手机号
     public function upUserPhone()
@@ -120,6 +128,41 @@ class driver extends Base
         return success_out($driverInfo);
     }
 
+    // 体现
+    public function transfer(){
+        error_reporting(0);
+        $tx_status = false;
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $price = request()->post('price/f' , 0);
+        $password = request()->post('password/s' , "");
+        //$payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
+        if(!$price || !$password) return error_out('', MsgLogic::PARAM_MSG);
+        // 判断是否微信授权
+        $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
+        // 判断用户支付密码
+        if($driver["pay_pwd"] !== md5($password)) return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
+        if(!is_array($driver) || empty($driver['openid'])){
+            return error_out('', DriverMsgLogic::TRANSFER_WX_AUTH);
+        }
+        if (bccomp($price, 100.00, 2) < 0) {
+            return error_out('', DriverMsgLogic::TRANSFER_WX_MIN_PRICE);
+        }
+        // 查询余额是否满足体现金额
+        $result = DriverModel::getInstance()->balanceInfoById($user_id);
+        if(!$result || bccomp($result['balance'], $price, 2) < 0) return error_out('', DriverMsgLogic::DRIVER_PRICE_LESS);
+        // 教练余额
+        $balance_total = bcsub($result['balance'], $price, 2);
+        $balance_res = DriverModel::getInstance()->addBillAndTxBalance($user_id, $result['id'], $balance_total, $price, DriverModel::TYPE_OUT, 1, '提现', 1);
+        if($balance_res){
+            // 发送消息
+            //$msg['name'] = $coach['title'];
+            //$msg['money']= $price;
+            //CoachSms::withdrawal($coach['phone'], $msg);
+            return success_out('', '已处理');
+        } else {
+            return error_out('', MsgLogic::SERVER_EXCEPTION);
+        }
+    }
 
 
 

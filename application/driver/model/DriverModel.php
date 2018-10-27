@@ -10,9 +10,11 @@
 // +----------------------------------------------------------------------
 namespace app\driver\model;
 
+use app\driver\logic\OrderLogic;
 use app\user\logic\UserLogic;
 use app\user\model\TruckModel;
 use im\Easemob;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use think\Db;
 use think\Log;
 use think\Model;
@@ -22,6 +24,9 @@ class DriverModel extends BaseModel
     protected $tableUser = 'driver';
     protected $wechatTable = 'wechat';
     protected $certTable   = 'cert';
+    protected $bill_table  = 'bill';
+    protected $billWithdraw= 'bill_withdraw';
+    protected $balance  = 'balance';
 
 
     const STATUS_DEL = 0;
@@ -29,6 +34,7 @@ class DriverModel extends BaseModel
     const INTEGRAL_REGISTER = 10;
     const TYPE_IN  = 1;
     const TYPE_OUT = 2;
+    const USER_type= 1;
 
     const CARD_JUST = 4;
     const CARD_BACK = 5;
@@ -172,4 +178,76 @@ class DriverModel extends BaseModel
             return false;
         }
     }
+
+    // 获取账单
+    public function billList($where, $pages, $fields = '*'){
+        $where['is_del'] = self::STATUS_DEL;
+        return Db::table($this->bill_table)->field($fields)->where($where)->page($pages)->order('update_time desc')->select();
+    }
+
+    // 余额 查询余额
+    public function balanceFind($where, $fields = '*'){
+        $where["is_del"] = self::STATUS_DEL;
+        return Db::table($this->balance)->field($fields)->where($where)->find();
+    }
+    // 查询预约
+    public function balanceInfoById($driver_id)
+    {
+        $where['user_id'] = $driver_id;
+        $where['user_type'] = self::USER_TYPE_USER;
+        $balance = $this->balanceFind($where, 'id, balance');
+        if (!$balance) {
+            $where['balance'] = "0.00";
+            $where['create_time']  = CURR_TIME;
+            $where['update_time']  = CURR_TIME;
+            $where['transfer_date']= 0;
+            $where['transfer_status'] = 0;
+            $id = Db::table($this->balance)->insertGetId($where);
+            $balance['id'] = (int)$id;
+            $balance['balance'] = $where['balance'];
+        }
+        return $balance;
+    }
+
+    // 提现
+    public function addBillAndTxBalance($driver_id, $balance_id, $balance_total, $price, $type, $pay_type, $tag, $status = 2)
+    {
+        Db::startTrans();
+        try {
+            $current_time = CURR_TIME;
+            // 添加账单
+            $bill['type'] = $type;
+            $bill['tag']  = $tag;
+            $bill['price'] = $price;
+            $bill['status']= $status;
+            $bill['type_status']= 1; // 提现
+            $bill['balance'] = $balance_total;
+            $bill['user_type']= self::USER_TYPE_USER;
+            $bill['driver_id']= $driver_id;
+            $bill['date']  = strtotime(CURR_DATE);
+            $bill['create_time'] = $current_time;
+            $bill['update_time'] = $current_time;
+            $id = Db::table($this->bill_table)->insertGetId($bill);
+            if(!$id) return false;
+            //$balance = $this->balanceFind(['user_id'=>$driver_id, 'user_type'=>self::USER_TYPE_USER], 'balance')['balance'];
+            // 提现订单
+            $billw['bill_id'] = $id;
+            $billw['code'] = OrderLogic::getInstance()->makeCode();
+            $billw['type'] = $pay_type;
+            $billw['create_time'] = $current_time;
+            $billw['update_time'] = $current_time;
+            Db::table($this->billWithdraw)->insert($billw);
+
+            // 修改账号余额
+            $aBalance['balance']= $balance_total;
+            $aBalance['update_time']= $current_time;
+            Db::table($this->balance)->where(['id' => $balance_id])->update($aBalance);
+            Db::commit();
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+        return true;
+    }
+
 }
