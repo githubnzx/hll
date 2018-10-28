@@ -97,8 +97,8 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-        $user_id = DriverModel::getInstance()->userFind(["phone"=>$phone])["id"] ?: "";
-        if($user_id) return error_out("", UserLogic::HAS_REGISTER);
+        //$user_id = DriverModel::getInstance()->userFind(["phone"=>$phone])["id"] ?: "";
+        //if($user_id) return error_out("", UserLogic::HAS_REGISTER);
         // 验证码
         $oldCode = Cache::store('driver')->get('mobile_code:' . $phone);
         if(!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
@@ -108,18 +108,26 @@ class Login extends Base
             return error_out('', UserLogic::PWD_FOORMAT);
         }
         if($newPwd !== $confirmPwd) return error_out("", UserLogic::PASSWORD_MSG);
-        $user["phone"]    = $phone;
-        $user["password"] = md5(config("user_login_prefix").$newPwd);
-        $user["id_number"] = "";
-        $user["contacts_name"] = "";
-        $user["contacts_phone"] = "";
-        $user["car_color"] = "";
-        $user["car_number"] = "";
-        $user["car_type"] = "";
-        $user["province"] = "";
-        $user["city_code"]= "";
-        $user["ad_code"]  = "";
-        $uid = DriverModel::getInstance()->userAdd($user);
+        $userInfo = DriverModel::getInstance()->userFind(["phone"=>$phone], "id, phone, register_status");
+        if ($userInfo) {
+            if($userInfo["register_status"] === 1) return error_out("", UserLogic::HAS_REGISTER);
+            // 微信绑定未注册手机号时，默认注册用户
+            $uid = DriverModel::getInstance()->userUpdate($userInfo["id"], ["register_status"=>1, "password"=>md5(config("user_login_prefix").$newPwd)]);
+        } else {
+            $user["phone"]    = $phone;
+            $user["password"] = md5(config("user_login_prefix").$newPwd);
+            $user["id_number"] = "";
+            $user["contacts_name"] = "";
+            $user["contacts_phone"] = "";
+            $user["car_color"] = "";
+            $user["car_number"] = "";
+            $user["car_type"] = "";
+            $user["province"] = "";
+            $user["city_code"]= "";
+            $user["ad_code"]  = "";
+            $user["register_status"]  = 1;
+            $uid = DriverModel::getInstance()->userAdd($user);
+        }
         if($uid){
             $user_token = DriverLogic::getInstance()->getToken($uid);
             return success_out([
@@ -219,7 +227,7 @@ class Login extends Base
                     $update['openid']  = $wechat_info['openid'];
                     DriverModel::getInstance()->userEdit(["id"=>$user['id']], $update);
                     // 修改微信表关联
-                    DriverModel::getInstance()->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user['id']]);
+                    DriverModel::getInstance()->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user['id'], "type"=>DriverModel::USER_TYPE_USER]);
                     Db::commit();
                 }catch (Exception $e){
                     Db::rollback();
@@ -244,6 +252,7 @@ class Login extends Base
             $parm['province'] = '';
             $parm['city_code']= '';
             $parm['ad_code']  = '';
+            $parm['register_status']  = 0;  // 0未注册
             $parm['create_time'] = CURR_TIME;
             $parm['update_time'] = CURR_TIME;
             $user_id = DriverModel::getInstance()->userWechatFind($wechat_info["id"], $parm);
