@@ -101,10 +101,10 @@ class OrderLogic extends BaseLogic
     public function payZfb($code, $price, $notifyUrl)
     {
         $price = 0.01;
-        Loader::import('alipay.Alipay');
+        Loader::import('alipay.user.Alipay');
         $alipay = new \Alipay();
-        $param['body'] = '昊动';
-        $param['subject'] = '昊动';
+        $param['body'] = '亟亟城运';
+        $param['subject'] = '亟亟城运';
         $param['out_trade_no'] = $code;
         $param['total_fee'] = $price;
         $param['notify_url'] = $notifyUrl;

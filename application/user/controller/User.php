@@ -122,19 +122,18 @@ class User extends Base
         if (bccomp($price, intval($price), 2) !== 0 || intval($price) % 10 !== 0) {
             return error_out('', UserMsgLogic::PRICE_MISTAKEN);
         }
-        $data["user_id"]   = $user_id;
-        $data["user_type"] = UsersModel::USER_TYPE_USER;
-        $data["price"]     = $price;
-        $data["code"]      = OrderLogic::getInstance()->makeCode();
-        $data["pay_type"]  = $payType;
-        $data["status"]    = UsersModel::STAY_PAY;
-        $order_id = UsersModel::getInstance()->rechargeOrderInsert($data);
-        var_dump($order_id);die;
+        $rechargeData["user_id"]   = $user_id;
+        $rechargeData["user_type"] = UsersModel::USER_TYPE_USER;
+        $rechargeData["price"]     = $price;
+        $rechargeData["code"]      = OrderLogic::getInstance()->makeCode();
+        $rechargeData["pay_type"]  = $payType;
+        $rechargeData["status"]    = UsersModel::STAY_PAY;
+        $order_id = UsersModel::getInstance()->rechargeOrderInsert($rechargeData);
         if ($order_id === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         if ($payType === 1) { // 微信支付
-            $data["wxData"] = OrderLogic::getInstance()->payWx($data['code'], $data['price'], url('user/pay/notifyWxRecharge', '', true, true), "APP");//亟亟城运会员购买
+            $data["wxData"] = OrderLogic::getInstance()->payWx($rechargeData['code'], $rechargeData['price'], url('user/pay/notifyWxRecharge', '', true, true), "APP");//亟亟城运会员购买
         } else {  // 支付宝支付
-
+            $data["zfbData"]= OrderLogic::getInstance()->payZfb($rechargeData['code'], $rechargeData['price'], url('user/pay/notifyZfbRecharge', '', true, true));
         }
         return success_out($data);
     }

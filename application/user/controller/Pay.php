@@ -29,7 +29,7 @@ class Pay extends Base
 
     private function wechatNotifyHandel($callback)
     {
-        Loader::import('wxpay.user.lib.WxPay#Api');
+        Loader::import('wxpay.lib.WxPay#Api');
         $notifyReply = new \WxPayNotifyReply();
         $msg = "OK";
         //验证签名
@@ -57,6 +57,26 @@ class Pay extends Base
         exit($result);
     }
 
+    // 支付宝充值
+    public function notifyZfbRecharge()
+    {
+        $result = $this->zfbNotifyHandel(function ($code) {
+            return $this->updateZfbRechargeOrder($code, OrderModel::ORDER_PAY_ZFB);
+        });
+        exit($result);
+    }
+
+
+    // 司机会员充值回调(支付宝)
+    public function updateZfbRechargeOrder($code, $pay_type)
+    {
+        $order =  UsersModel::getInstance()->rechargeOrderFind(["code"=>$code]);
+        if ($order['status'] != 1) return false;
+        // 处理账户
+        $result = UsersModel::getInstance()->payDriverRechargeSuccess($order, $pay_type);
+        return $result;
+    }
+
     /*public function notifySalaryZfb()
     {
         $result = $this->zfbNotifyHandel(function ($code) {
@@ -67,7 +87,7 @@ class Pay extends Base
 
     private function zfbNotifyHandel($callback)
     {
-        Loader::import('alipay.Alipay');
+        Loader::import('alipay.user.Alipay');
         $alipay = new \Alipay();
         $data = input('post.');
         $is_true = $alipay->checkSign($data);
