@@ -52,8 +52,8 @@ class UsersModel extends BaseModel
     }
 
     public function userInsert($data){
-        $user['create_time'] = CURR_TIME;
-        $user['update_time'] = CURR_TIME;
+        $data['create_time'] = CURR_TIME;
+        $data['update_time'] = CURR_TIME;
         return Db::table($this->tableUser)->insertGetId($data);
     }
 
@@ -62,6 +62,31 @@ class UsersModel extends BaseModel
         Db::startTrans();
         try {
             $user_id = $this->userInsert($data);
+            // 我的积分
+            IntegralModel::getInstance()->userIntegralAdd(["user_id"=>$user_id, "integral"=>UsersModel::INTEGRAL_REGISTER, "user_type"=>UsersModel::USER_TYPE_USER]);
+            // 积分记录
+            $record["user_id"] = $user_id;
+            $record["integral"]= UsersModel::INTEGRAL_REGISTER;
+            $record["user_type"]= UsersModel::USER_TYPE_USER;
+            $record["type"]    = UsersModel::TYPE_IN;
+            $record["operation_type"] = 1;
+            $record["tag"] = "用户注册";
+            IntegralModel::getInstance()->userIntegralRecordInsert($record);
+            Db::commit();
+            return $user_id;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
+
+    // 用户注册
+    public function userUpdate($user_id, $param){
+        Db::startTrans();
+        try {
+            $param["create_time"] = CURR_TIME;
+            $param["update_time"] = CURR_TIME;
+            $this->userEdit(["id"=>$user_id], $param);
             // 我的积分
             IntegralModel::getInstance()->userIntegralAdd(["user_id"=>$user_id, "integral"=>UsersModel::INTEGRAL_REGISTER, "user_type"=>UsersModel::USER_TYPE_USER]);
             // 积分记录
@@ -101,7 +126,7 @@ class UsersModel extends BaseModel
         Db::startTrans();
         try {
             $user_id = $this->userAdd($data);
-            $this->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user_id]);
+            $this->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user_id, "type"=>self::USER_TYPE_USER]);
             Db::commit();
             return $user_id;
         } catch (\Exception $e) {

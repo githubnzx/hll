@@ -133,7 +133,7 @@ class Pay extends Base
     }
 
     // 司机会员充值回调
-    public function updateRechargeOrder($code = "20181028180853408908", $pay_type=1)
+    public function updateRechargeOrder($code, $pay_type)
     {
         $order =  UsersModel::getInstance()->rechargeOrderFind(["code"=>$code]);
         if ($order['status'] != 1) return false;

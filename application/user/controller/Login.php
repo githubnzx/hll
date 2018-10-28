@@ -5,6 +5,7 @@ use app\user\logic\UserLogic;
 use app\user\model\UsersModel;
 use app\user\Logic\WechatLogic;
 use app\common\logic\MsgLogic;
+use app\user\logic\MsgLogic as UserMsgLogic;
 
 use think\Cache;
 use think\Db;
@@ -95,8 +96,6 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-        $user_id = UsersModel::getInstance()->userFind(["phone"=>$phone])["id"] ?: "";
-        if($user_id) return error_out("", UserLogic::HAS_REGISTER);
         // 验证码
         $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
         if(!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
@@ -106,12 +105,20 @@ class Login extends Base
             return error_out('', UserLogic::PWD_FOORMAT);
         }
         if($newPwd !== $confirmPwd) return error_out("", UserLogic::PASSWORD_MSG);
-        $user["phone"]    = $phone;
-        $user["password"] = md5(config("user_login_prefix").$newPwd);
-        $user["province"] = "";
-        $user["city_code"]= "";
-        $user["ad_code"]  = "";
-        $uid = UsersModel::getInstance()->userAdd($user);
+        $userInfo = UsersModel::getInstance()->userFind(["phone"=>$phone], "id, phone, register_status");
+        if ($userInfo) {
+            if($userInfo["register_status"] === 1) return error_out("", UserLogic::HAS_REGISTER);
+            // 微信绑定未注册手机号时，默认注册用户
+            $uid = UsersModel::getInstance()->userUpdate($userInfo["id"], ["register_status"=>1, "password"=>md5(config("user_login_prefix").$newPwd)]);
+        } else {
+            $user["phone"]    = $phone;
+            $user["password"] = md5(config("user_login_prefix").$newPwd);
+            $user["province"] = "";
+            $user["city_code"]= "";
+            $user["ad_code"]  = "";
+            $user["register_status"]  = 1;
+            $uid = UsersModel::getInstance()->userAdd($user);
+        }
         if($uid){
             $user_token = UserLogic::getInstance()->getToken($uid);
             return success_out([
@@ -192,6 +199,7 @@ class Login extends Base
         $code = $this->request->post('code/d', 0);
         $wechat_id = $this->request->post('wechat_id/d', 0);
         if(!$phone || !$code || !$wechat_id) return error_out("", MsgLogic::PARAM_MSG);
+        if(!UserLogic::getInstance()->check_mobile($phone)) return error_out("", UserLogic::USER_PHONE_MSG);
         $wechat_info = UsersModel::getInstance()->wechatFind(["id"=>$wechat_id]);
         if (!$wechat_info) return error_out('', MsgLogic::PARAM_MSG);
         //验证码写好放开
@@ -211,7 +219,7 @@ class Login extends Base
                     $update['openid']  = $wechat_info['openid'];
                     UsersModel::getInstance()->userEdit(["id"=>$user['id']], $update);
                     // 修改微信表关联
-                    UsersModel::getInstance()->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user['id']]);
+                    UsersModel::getInstance()->wechatUpdate(["id"=>$wechat_id], ["user_id"=>$user['id'], "type"=>UsersModel::USER_TYPE_USER]);
                     Db::commit();
                 }catch (Exception $e){
                     Db::rollback();
@@ -236,9 +244,10 @@ class Login extends Base
             $parm['province'] = '';
             $parm['city_code']= '';
             $parm['ad_code']  = '';
+            $parm['register_status']  = 0;  // 0未注册
             $parm['create_time'] = CURR_TIME;
             $parm['update_time'] = CURR_TIME;
-            $user_id = UsersModel::getInstance()->userWechatFind($wechat_info["id"], $parm);
+            $user_id = UsersModel::getInstance()->userInsert($wechat_info["id"], $parm);
             if ($user_id) {
                 $user_token = UserLogic::getInstance()->getToken($user_id);
                 return success_out([
