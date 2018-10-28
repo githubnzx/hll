@@ -1,12 +1,11 @@
 <?php
-namespace app\driver\controller;
+namespace app\user\controller;
 use app\common\logic\MsgLogic;
-use app\driver\model\IntegralModel;
-use app\driver\model\DriverModel;
-use app\driver\logic\DriverLogic;
-use app\driver\logic\MsgLogic as DriverMsgLogic;
-use app\driver\model\MyModel;
+use app\user\model\IntegralModel;
+use app\user\model\UsersModel;
 use app\user\logic\UserLogic;
+use app\user\logic\MsgLogic as UserMsgLogic;
+use app\user\model\MyModel;
 use app\common\logic\PageLogic;
 use app\common\push\Push;
 use think\Cache;
@@ -21,26 +20,26 @@ class my extends Base
     private $type_symbol = [1=>'+', 2=>'-'];
     // 账户余额
     public function account(){
-        $driver_id = DriverLogic::getInstance()->checkToken();
-        $balance = MyModel::getInstance()->balanceFind(["user_id"=>$driver_id, "user_type"=>MyModel::USER_TYPE_USER, "status"=>MyModel::STATUS], "balance")["balance"] ?: "0.00";
-        $driverInfo = DriverModel::getInstance()->userFind(["id"=>$driver_id], "name, phone, icon");
-        if(!$driverInfo) return error_out("", DriverMsgLogic::DRIVER_NOT_EXCEED);
-        $driverInfo["name"] = $driverInfo["name"] ?: "";
-        $driverInfo["icon"] = handleImgPath($driverInfo["icon"]);
-        $driverInfo["balance"] = $balance;
-        return success_out($driverInfo);
+        $user_id = UserLogic::getInstance()->checkToken();
+        $balance = MyModel::getInstance()->balanceFind(["user_id"=>$user_id, "user_type"=>MyModel::USER_TYPE_USER, "status"=>MyModel::STATUS], "balance")["balance"] ?: "0.00";
+        $userInfo = UsersModel::getInstance()->userFind(["id"=>$user_id], "name, phone, icon");
+        if(!$userInfo) return error_out("", UserMsgLogic::USER_NOT_EXCEED);
+        $userInfo["name"] = $userInfo["name"] ?: "";
+        $userInfo["icon"] = handleImgPath($userInfo["icon"]);
+        $userInfo["balance"] = $balance;
+        return success_out($userInfo);
     }
 
     // 设置支付密码
     public function setPayPwd()
     {
-        $driver_id = DriverLogic::getInstance()->checkToken();
+        $user_id = UserLogic::getInstance()->checkToken();
         $password = $this->request->param('password/s', "");
         $repeat_pwd = $this->request->param('repeat_pwd/s', "");
         if (!$password || !$repeat_pwd) return error_out('', MsgLogic::PARAM_MSG);
-        if ($password !== $repeat_pwd) return error_out('', DriverMsgLogic::DRIVER_REPEAT_PWD);
+        if ($password !== $repeat_pwd) return error_out('', UserMsgLogic::USER_REPEAT_PWD);
         $password = md5($password);//md5(config::get("pay_password").$password);
-        $res = DriverModel::getInstance()->userEdit(['id' => $driver_id], ["pay_pwd" => $password]);
+        $res = UsersModel::getInstance()->userEdit(['id' => $user_id], ["pay_pwd" => $password]);
         if ($res === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }

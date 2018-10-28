@@ -6,7 +6,7 @@ use think\Db;
 use think\Loader;
 use WxPayConfigInterface;
 
-class WxPayUserConfig extends WxPayConfigInterface
+class WxPayDriverConfig extends WxPayConfigInterface
 {
     //=======【基本信息设置】=====================================
     /**
@@ -20,11 +20,11 @@ class WxPayUserConfig extends WxPayConfigInterface
      */
     public function GetAppId()
     {
-        return 'wx72aa412d243f6cda';
+        return 'wxe848d28147e0c097';
     }
     public function GetMerchantId()
     {
-        return '1516673251';
+        return '1516674411';
     }
 
     //=======【支付相关配置：支付成功回调地址/签名方式】===================================
@@ -38,7 +38,7 @@ class WxPayUserConfig extends WxPayConfigInterface
     }
     public function GetSignType()
     {
-        return "HMAC-SHA256";
+        return "MD5";//"HMAC-SHA256";
     }
 
     //=======【curl代理设置】===================================
@@ -84,7 +84,7 @@ class WxPayUserConfig extends WxPayConfigInterface
     }
     public function GetAppSecret()
     {
-        return '04e910edf2d8c0edad3c6952d4ffb53a';
+        return '7717d983c6111c91131e58cd119535ac';
     }
 
 

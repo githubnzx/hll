@@ -3,6 +3,7 @@
 namespace app\driver\logic;
 
 use app\user\model\OrderModel;
+use app\common\config\WxPayDriverConfig;
 use app\driver\model\DriverModel;
 use app\user\model\TasteModel;
 use app\common\sms\UserSms;
@@ -19,47 +20,24 @@ use think\Log;
 class OrderLogic extends BaseLogic
 {
 
-    /*public function makePdf($orderInfo, $service_time, $service_end_time, $order_price)
-    {
-        $template = ROOT_PATH . 'public/upload/service-type-1.html';
-        if (strpos($orderInfo['pdf_url'], '.html') !== false) {
-            $template = config('img.path') . $orderInfo['pdf_url'];
-        }
-        $data['orderShow'] = '#orderShow{display:block;}';
-
-        $data['user_name'] = $orderInfo['user_name'];
-        $data['user_phone'] = $orderInfo['user_phone'];
-        $data['user_address'] = $orderInfo['user_addr'] . $orderInfo['user_addr_info'];
-        $data['service_time'] = date('Y.m.d', $service_time);
-        $data['service_end_time'] = date('Y.m.d', $service_end_time);
-        $data['service_name'] = $orderInfo['service_name'];
-        $data['service_id_card'] = $orderInfo['service_id_card'];
-        $data['service_phone'] = $orderInfo['service_phone'];
-        $data['service_birthplace'] = $orderInfo['service_birthplace'];
-        $data['service_addr'] = $orderInfo['service_addr'];
-        $data['order_price'] = $order_price;
-        $data['deputy'] = '北京博灵凯乐科技有限责任公司';
-        $content = view($template, $data)->getContent();
-        return \app\common\logic\FileLogic::getInstance()
-            ->writeContent($content, $orderInfo['user_code'] . '-' . $orderInfo['order_id'] . '.html', 'order');
-    }*/
-
-    public function payWx($code, $price, $notifyUrl)
+    public function payWx($code, $price, $notifyUrl, $body = "	亟亟城运支付")
     {
         $price = 0.01;
         $times = CURR_TIME;
         $time_start = date("YmdHis", $times);
         $time_expire= date("YmdHis", $times + 90);
-        Loader::import('wxpay.user.lib.WxPay#Api');
+        Loader::import('wxpay.lib.WxPay#Api');
         $inputObj = new \WxPayUnifiedOrder();
         $inputObj->SetOut_trade_no($code);
-        $inputObj->SetBody('hll');
+        $inputObj->SetBody($body);
         $inputObj->SetNotify_url($notifyUrl);
         $inputObj->SetTotal_fee(intval($price * 100));
         $inputObj->SetTrade_type("APP");
         $inputObj->SetTime_start($time_start);
         $inputObj->SetTime_expire($time_expire);
-        $order = \WxPayApi::unifiedOrder($inputObj);
+        $config = new WxPayDriverConfig();
+        $order = \WxPayApi::unifiedOrder($config, $inputObj);
+        var_dump($order);die;
         if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
             return false;
         }

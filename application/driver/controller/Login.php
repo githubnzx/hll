@@ -3,7 +3,7 @@ namespace app\driver\controller;
 
 use app\admin\model\UserModel;
 use app\driver\model\DriverModel;
-use app\user\logic\WechatLogic;
+use app\driver\logic\WechatLogic;
 use app\user\logic\UserLogic;
 use app\driver\logic\DriverLogic;
 use app\common\logic\MsgLogic;
@@ -144,8 +144,14 @@ class Login extends Base
     // 微信登录
     public function wechat()
     {
-        $code = request()->post('code' , '');
-        if (!$code) return error_out('', UserLogic::WECHAT_CODE);
+        //$code = request()->post('code' , '');
+        //if (!$code) return error_out('', DriverLogic::WECHAT_CODE);
+        $code = WechatLogic::getInstance()->getCode();
+        var_dump($code);die;
+
+
+
+
         $wx_token = WechatLogic::getInstance()->getToken($code);
         if (isset($wx_token['errcode'])) {
             return error_out('', $wx_token['errmsg']);
@@ -157,7 +163,7 @@ class Login extends Base
         //验证openid是否已存在
         $user = DriverModel::getInstance()->userFind(["openid"=>$openid], "id, phone");
         if ($user) { //已存在
-            if ($user['is_del'] != DriverModel::STATUS_DEL) return error_out('', UserLogic::USER_STATUS);
+            if ($user['is_del'] != DriverModel::STATUS_DEL) return error_out('', DriverLogic::USER_STATUS);
             $user_token = DriverLogic::getInstance()->getToken($user['id']);
             $result['user_token'] = $user_token;
             $result['phone'] = $user['phone'];

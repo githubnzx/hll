@@ -16,6 +16,8 @@ class MsgLogic extends BaseLogic
     const ADVISE_MSG_SUCCESS = "谢谢您的建议，我们将持续为你改进";
     const ADVISE_MSG_EXCEED  = "网络拥挤，请稍后再试";
 
+    const USER_PHONE_NOT_EXTSIS = "用户手机号不存在";
+
     const DRIVER_NOT_EXCEED  = "司机不存在";
     const DRIVER_PAY_PWD     = "支付密码有误";
     const DRIVER_REPEAT_PWD  = "两次密码不一致";

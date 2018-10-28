@@ -74,14 +74,12 @@ class Member extends Base
         $data['rights'] = $member_specs_info["rights"];
         $data['notes'] = $member_specs_info["notes"];
         $order_id = MemberModel::getInstance()->memberOrderInsertGetId($data);
-        var_dump($order_id);die;
         if($order_id === false) return error_out('', MsgLogic::SERVER_EXCEPTION);
         if ($pay_type === 1) { // 微信支付
-            $data["wxData"] = OrderLogic::getInstance()->payWx($data['code'], $data['total_price'], url('user/pay/notifyWx', '', true, true));
+            $data["wxData"] = OrderLogic::getInstance()->payWx($data['code'], $data['present_price'], url('user/pay/notifyWx', '', true, true), "APP");//亟亟城运会员购买
         } else {  // 支付宝支付
 
         }
-
         return success_out($data);
     }
 

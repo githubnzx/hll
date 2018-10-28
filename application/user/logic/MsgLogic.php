@@ -16,6 +16,9 @@ class MsgLogic extends BaseLogic
     const ADVISE_MSG_SUCCESS = "谢谢您的建议，我们将持续为你改进";
     const ADVISE_MSG_EXCEED  = "网络拥挤，请稍后再试";
     const USER_PHONE_NOT_EXTSIS  = "用户手机号不存在";
+    const USER_NOT_EXCEED    = "用户不存在";
+    const USER_PAY_PWD       = "支付密码有误";
+    const USER_REPEAT_PWD    = "两次密码不一致";
 
     // 订单
     const ORDER_USER_NAME    = "用户名格式错误";

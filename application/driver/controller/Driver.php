@@ -60,6 +60,30 @@ class driver extends Base
         return success_out('', MsgLogic::EDIT_SUCCESS);
     }
 
+    // 修改登录密码
+    public function changePwd()
+    {
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $code    = $this->request->post('code/d', 0);
+        $password= $this->request->post('password/s', "");
+        if (!$password || !$code) return error_out('', MsgLogic::PARAM_MSG);
+        //  获取用户手机号
+        $userPhone = DriverModel::getInstance()->userFind(["id" => $user_id], 'phone')["phone"] ?: "";
+        if (!$userPhone) return error_out("", DriverMsgLogic::USER_PHONE_NOT_EXTSIS);
+        $oldCode = Cache::store('driver')->get('mobile_code:' . $userPhone);
+        if (!$oldCode) {
+            return error_out('', DriverLogic::REDIS_CODE_MSG);
+        }
+        if ($oldCode != $code) {
+            return error_out('', DriverLogic::CODE_MSG);
+        }
+        UserLogic::getInstance()->delTokenPhone($userPhone);
+        // 修改手机号
+        $res = DriverModel::getInstance()->userEdit(["id"=>$user_id], ["password"=>md5(config("user_login_prefix").$password)]);
+        if ($res === false) return error_out('', MsgLogic::SERVER_EXCEPTION);
+        return success_out('', MsgLogic::EDIT_SUCCESS);
+    }
+
     // 我的积分
     public function userIntegral(){
         $user_id = DriverLogic::getInstance()->checkToken();

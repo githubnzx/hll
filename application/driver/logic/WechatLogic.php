@@ -1,6 +1,6 @@
 <?php
 
-namespace app\user\logic;
+namespace app\driver\logic;
 
 use think\Cache;
 use think\Config;
@@ -11,9 +11,17 @@ use think\Request;
 
 class WechatLogic extends BaseLogic
 {
-    protected $app_id = 'wx72aa412d243f6cda';
-    protected $app_secret = '04e910edf2d8c0edad3c6952d4ffb53a';
+    protected $app_id = 'wxe848d28147e0c097';
+    protected $app_secret = '7717d983c6111c91131e58cd119535ac';
 
+    // 获取code
+    public function getCode()
+    {
+        $url = 'https://open.weixin.qq.com/connect/oauth2/authorize?';
+        $data = "appid=".$this->app_id."&redirect_uri= " . "www.baidu.com" . "&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect";
+        $full_url = $url . $data;
+        return $this->send($full_url);
+    }
 
     public function check_access_token($access_token,$openid)
     {
