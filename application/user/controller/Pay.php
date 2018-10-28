@@ -1,10 +1,9 @@
 <?php
-namespace app\driver\controller;
+namespace app\user\controller;
 
-use app\driver\model\DriverModel;
+use app\user\model\UsersModel;
 use app\user\logic\OrderLogic;
-use app\driver\model\OrderModel;
-use app\driver\model\MemberModel;
+use app\user\model\OrderModel;
 use think\Loader;
 
 
@@ -134,12 +133,12 @@ class Pay extends Base
     }
 
     // 司机会员充值回调
-    public function updateRechargeOrder($code, $pay_type)
+    public function updateRechargeOrder($code = "20181028180853408908", $pay_type=1)
     {
-        $order =  DriverModel::getInstance()->rechargeOrderFind(["code"=>$code]);
+        $order =  UsersModel::getInstance()->rechargeOrderFind(["code"=>$code]);
         if ($order['status'] != 1) return false;
         // 处理账户
-        $result = DriverModel::getInstance()->payDriverRechargeSuccess($order, $pay_type);
+        $result = UsersModel::getInstance()->payDriverRechargeSuccess($order, $pay_type);
         return $result;
     }
 

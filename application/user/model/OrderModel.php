@@ -24,6 +24,9 @@ class OrderModel extends BaseModel
     protected $evaluatesTable = 'evaluates';
 
     const STATUS_DEL = 0;
+    const ORDER_PAY_WX  = 1;
+    const ORDER_PAY_ZFB = 2;
+
 
     public function orderFind($where = [], $fields = '*'){
         $where["is_del"] = OrderModel::STATUS_DEL;

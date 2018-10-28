@@ -144,14 +144,8 @@ class Login extends Base
     // 微信登录
     public function wechat()
     {
-        //$code = request()->post('code' , '');
-        //if (!$code) return error_out('', DriverLogic::WECHAT_CODE);
-        $code = WechatLogic::getInstance()->getCode();
-        var_dump($code);die;
-
-
-
-
+        $code = request()->post('code' , '');
+        if (!$code) return error_out('', DriverLogic::WECHAT_CODE);
         $wx_token = WechatLogic::getInstance()->getToken($code);
         if (isset($wx_token['errcode'])) {
             return error_out('', $wx_token['errmsg']);
@@ -196,7 +190,7 @@ class Login extends Base
                 'status' => 0
             ];
         }
-        return success_out($result , '微信登陆');
+        return success_out($result , MsgLogic::SUCCESS);
     }
 
     // 微信登陆绑定手机号
@@ -209,16 +203,16 @@ class Login extends Base
         $wechat_info = DriverModel::getInstance()->wechatFind(["id"=>$wechat_id]);
         if (!$wechat_info) return error_out('', MsgLogic::PARAM_MSG);
         //验证码写好放开
-        $oldCode = Cache::store('user')->get('mobile_code:' . $phone);
-        if (!$oldCode) return error_out('', UserLogic::REDIS_CODE_MSG);
-        if ($oldCode != $code) return error_out('', UserLogic::CODE_MSG);
+        $oldCode = Cache::store('driver')->get('mobile_code:' . $phone);
+        if (!$oldCode) return error_out('', DriverLogic::REDIS_CODE_MSG);
+        if ($oldCode != $code) return error_out('', DriverLogic::CODE_MSG);
         //验证phone是否已存在;
         $user = DriverModel::getInstance()->userFind(["phone"=>$phone], "id, openid, is_del");
         if($user){
             if ($user['openid']){
-                return error_out('', UserLogic::WECHAT_BINDINGS);
+                return error_out('', DriverLogic::WECHAT_BINDINGS);
             }else{
-                if ($user['is_del'] != 0) return error_out('', UserLogic::USER_IS_DEL);
+                if ($user['is_del'] != 0) return error_out('', DriverLogic::USER_IS_DEL);
                 try{
                     Db::startTrans();
                     $update['unionid'] = $wechat_info['unionid'] ?: "";
@@ -261,7 +255,7 @@ class Login extends Base
                     //'icon' => $parm['icon'] ? config('img.domain') . $parm['icon'] : '',
                     'wechat_id' => 0,
                     'status' => 1,
-                ], UserLogic::LOGIN_SUCCESS);
+                ], DriverLogic::LOGIN_SUCCESS);
             } else {
                 return error_out('', MsgLogic::SERVER_EXCEPTION);
             }

@@ -157,7 +157,7 @@ class Login extends Base
             $result['status'] = $user['phone'] ? 1 : 0;  // 是否绑定手机号 1 已绑定  0 未绑定
         }else{
             //获取微信信息
-            $user_info = WechatLogic::getInstance()->getUserInfo($wx_token['access_token'],$wx_token['openid']);
+            $user_info = WechatLogic::getInstance()->getUserInfo($wx_token['access_token'], $wx_token['openid']);
             if (isset($user_info['errcode'])){
                 return error_out((object)array() , $user_info['errmsg']);
             }
@@ -182,7 +182,7 @@ class Login extends Base
                 'status' => 0
             ];
         }
-        return success_out($result , '微信登陆');
+        return success_out($result , MsgLogic::SUCCESS);
     }
 
     // 微信登陆绑定手机号

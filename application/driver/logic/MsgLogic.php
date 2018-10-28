@@ -27,6 +27,9 @@ class MsgLogic extends BaseLogic
     const MEMBER_IS_MAX_AUTH = "您当前会员级别大于购买级别";
     const MEMBER_REPLACE_MSG = "如果更换会员，之前会员会失效";
 
+    const PRICE_MISTAKEN     = "充值金额有误";
+    const RECHARGE_MIN_PRICE = "充值金额不得少于10元";
+
     const TRANSFER_WX_AUTH   = "请微信授权";
     const TRANSFER_WX_MIN_PRICE = "提现金额不得少于100元";
     const DRIVER_PRICE_LESS  = "余额不足";

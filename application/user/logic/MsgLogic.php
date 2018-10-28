@@ -20,6 +20,9 @@ class MsgLogic extends BaseLogic
     const USER_PAY_PWD       = "支付密码有误";
     const USER_REPEAT_PWD    = "两次密码不一致";
 
+    const PRICE_MISTAKEN     = "充值金额有误";
+    const RECHARGE_MIN_PRICE = "充值金额不得少于10元";
+
     // 订单
     const ORDER_USER_NAME    = "用户名格式错误";
     const ORDER_IS_EXISTS    = "有未完成订单，不可预约";

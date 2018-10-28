@@ -5,8 +5,10 @@ use app\driver\logic\MsgLogic as DriverMsgLogic;
 use app\driver\model\IntegralModel;
 use app\driver\model\DriverModel;
 use app\driver\logic\DriverLogic;
+use app\driver\logic\OrderLogic;
 use app\user\logic\UserLogic;
 use app\common\push\Push;
+use app\user\model\UsersModel;
 use think\Cache;
 use think\Config;
 
@@ -186,6 +188,39 @@ class driver extends Base
         } else {
             return error_out('', MsgLogic::SERVER_EXCEPTION);
         }
+    }
+
+    // 充值
+    public function recharge() {
+        error_reporting(0);
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $price   = request()->post('price/f' , 0);
+        $password= request()->post('pay_pwd/s' , "");
+        $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
+        if(!$price || !$password || !$payType) return error_out('', MsgLogic::PARAM_MSG);
+        // 验证金额
+        if (bccomp($price, 10.00, 2) < 0) {
+            return error_out('', DriverMsgLogic::RECHARGE_MIN_PRICE);
+        }
+        // 充值金额有误
+        if (bccomp($price, intval($price), 2) !== 0 || intval($price) % 10 !== 0) {
+            return error_out('', DriverMsgLogic::PRICE_MISTAKEN);
+        }
+        $data["user_id"]   = $user_id;
+        $data["user_type"] = DriverModel::USER_TYPE_USER;
+        $data["price"]     = $price;
+        $data["code"]      = OrderLogic::getInstance()->makeCode();
+        $data["pay_type"]  = $payType;
+        $data["status"]    = DriverModel::STAY_PAY;
+        $order_id = DriverModel::getInstance()->rechargeOrderInsert($data);
+        var_dump($order_id);die;
+        if ($order_id === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        if ($payType === 1) { // 微信支付
+            $data["wxData"] = OrderLogic::getInstance()->payWx($data['code'], $data['price'], url('Driver/pay/notifyWxRecharge', '', true, true), "APP");//亟亟城运会员购买
+        } else {  // 支付宝支付
+
+        }
+        return success_out($data);
     }
 
 

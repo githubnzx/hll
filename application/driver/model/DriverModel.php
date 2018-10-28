@@ -27,6 +27,7 @@ class DriverModel extends BaseModel
     protected $bill_table  = 'bill';
     protected $billWithdraw= 'bill_withdraw';
     protected $balance  = 'balance';
+    protected $rechargeOrder  = 'recharge_order';
 
 
     const STATUS_DEL = 0;
@@ -35,6 +36,8 @@ class DriverModel extends BaseModel
     const TYPE_IN  = 1;
     const TYPE_OUT = 2;
     const USER_type= 1;
+
+    const STAY_PAY = 1;
 
     const CARD_JUST = 4;
     const CARD_BACK = 5;
@@ -66,6 +69,27 @@ class DriverModel extends BaseModel
         $user['create_time'] = CURR_TIME;
         $user['update_time'] = CURR_TIME;
         return Db::table($this->tableUser)->insertGetId($data);
+    }
+
+    // 添加充值订单
+    public function rechargeOrderInsert($data){
+        $user['create_time'] = CURR_TIME;
+        $user['update_time'] = CURR_TIME;
+        return Db::table($this->rechargeOrder)->insertGetId($data);
+    }
+
+    // 修改充值订单
+    public function rechargeOrdeEdit($where, $param){
+        if(!isset($param["update_time"])){
+            $param["update_time"] = CURR_TIME;
+        }
+        return Db::table($this->rechargeOrder)->where($where)->update($param);
+    }
+
+    // 查询充值订单
+    public function rechargeOrderFind($where, $field = "*"){
+        $where["is_del"] = self::STATUS_DEL;
+        return Db::table($this->rechargeOrder)->field($field)->where($where)->find();
     }
 
     // 用户注册
@@ -190,6 +214,20 @@ class DriverModel extends BaseModel
         $where["is_del"] = self::STATUS_DEL;
         return Db::table($this->balance)->field($fields)->where($where)->find();
     }
+
+    // 余额 修改余额
+    public function balanceEdit($where, $param){
+        if(!isset($param["update_time"])){
+            $param["update_time"] = CURR_TIME;
+        }
+        return Db::table($this->balance)->where($where)->update($param);
+    }
+
+    // 余额 修改余额
+    public function balanceSetInc($where, $price){
+        return Db::table($this->balance)->where($where)->setInc("balance", $price);
+    }
+
     // 查询预约
     public function balanceInfoById($driver_id)
     {
@@ -242,6 +280,47 @@ class DriverModel extends BaseModel
             $aBalance['balance']= $balance_total;
             $aBalance['update_time']= $current_time;
             Db::table($this->balance)->where(['id' => $balance_id])->update($aBalance);
+            Db::commit();
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+        return true;
+    }
+
+    // 修改 账户余额
+    public function balanceUp($where, $param) {
+        Db::startTrans();
+        try {
+            // 账号增加金额
+
+
+            $this->rechargeOrdeEdit(["id"=>$order["id"]], ["status"=>2]);
+            Db::commit();
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+        return true;
+    }
+
+    // 司机支付充值回调
+    public function payDriverRechargeSuccess($order, $pay_type){
+        Db::startTrans();
+        try {
+            // 账号增加金额
+            $balanceId = $this->balanceFind(["user_id"=>$order["user_id"], "user_type"=>self::USER_TYPE_USER], "id")["id"] ?: "";
+            if ($balanceId) {
+                $this->balanceSetInc(["user_id"=>$order["user_id"], "user_type"=>self::USER_TYPE_USER], $order["price"]);
+            } else { // 添加账单
+                $data["user_id"] = $order["user_id"];
+                $data["user_type"] = self::USER_TYPE_USER;
+                $data["balance"] = $order["price"];
+                $data["create_time"] = CURR_TIME;
+                $data["update_time"] = CURR_TIME;
+                Db::table($this->balance)->insert($data);
+            }
+            $this->rechargeOrdeEdit(["id"=>$order["id"]], ["status"=>2]);
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();
