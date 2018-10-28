@@ -46,11 +46,11 @@ class my extends Base
     // 明细
     public function record(){
         $user_id = DriverLogic::getInstance()->checkToken();
-        $pages = PageLogic::getInstance()->getPages();
+        //$pages = PageLogic::getInstance()->getPages();
         $balance = DriverModel::getInstance()->balanceFind(["user_id"=>$user_id, "user_type"=>$user_id], "balance");
         $data['balance'] = $balance['balance'] ?: '0.00';
         $fields = 'id, user_id, driver_id, balance, type, pay_type, type_status, status, tag, price, date, update_time';
-        $bill = DriverModel::getInstance()->billList(['driver_id'=>$user_id, 'user_type'=>DriverModel::USER_TYPE_USER], $pages, $fields);
+        $bill = DriverModel::getInstance()->billList(['driver_id'=>$user_id, 'user_type'=>DriverModel::USER_TYPE_USER], "", $fields);
         $dataAll = [];
         foreach ($bill as $key => $val){
             if (!isset($dataAll[$val["date"]])) {
@@ -63,8 +63,8 @@ class my extends Base
             }
             $_date['date']   = date('Y-m-d H:i', $val['update_time']);
             $_date['title']  = $this->title[$val["type_status"]];
-            $_date['price']  = $val['price'] ? $this->type_symbol[$val['type']].$val['price'].'元' : '0.00';
-            $_date['balance']= $val['balance'] ? $val['balance'].'元' : '0.00';
+            $_date['price']  = $val['price'] ? $this->type_symbol[$val['type']].$val['price']: '0.00';
+            $_date['balance']= $val['balance'] ?: '0.00';
             $dataAll[$val["date"]]["list"][] = $_date;
         }
         return success_out($dataAll);

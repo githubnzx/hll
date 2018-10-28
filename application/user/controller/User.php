@@ -1,9 +1,11 @@
 <?php
 namespace app\user\controller;
+use app\admin\model\UserModel;
 use app\common\logic\MsgLogic;
 use app\user\model\IntegralModel;
 use app\user\model\UsersModel;
 use app\user\logic\UserLogic;
+use app\user\logic\MsgLogic as UserMsgLogic;
 use app\common\push\Push;
 use think\Cache;
 use think\Config;
@@ -16,7 +18,7 @@ class User extends Base
      *
      * @access  public
      * @author  niuzhenxiang
-     * @param mixed token  用户token
+     * @param mixed token  用户tokenupUserPhone
      * @return array
      * @date  2018/02/09
      */
@@ -47,6 +49,30 @@ class User extends Base
             return error_out('', UserLogic::PHONE_EXISTED);
         }
         $res = UsersModel::getInstance()->userEdit(['id' => $user_id], ['phone' => $phone]);
+        if ($res === false) return error_out('', MsgLogic::SERVER_EXCEPTION);
+        return success_out('', MsgLogic::EDIT_SUCCESS);
+    }
+
+    // 修改登录密码
+    public function changePwd()
+    {
+        $user_id = UserLogic::getInstance()->checkToken();
+        $code    = $this->request->post('code/d', 0);
+        $password= $this->request->post('password/s', "");
+        if (!$password || !$code) return error_out('', MsgLogic::PARAM_MSG);
+        //  获取用户手机号
+        $userPhone = UsersModel::getInstance()->userFind(["id" => $user_id], 'phone')["phone"] ?: "";
+        if (!$userPhone) return error_out("", UserMsgLogic::USER_PHONE_NOT_EXTSIS);
+        $oldCode = Cache::store('user')->get('mobile_code:' . $userPhone);
+        if (!$oldCode) {
+            return error_out('', UserLogic::REDIS_CODE_MSG);
+        }
+        if ($oldCode != $code) {
+            return error_out('', UserLogic::CODE_MSG);
+        }
+        UserLogic::getInstance()->delTokenPhone($userPhone);
+        // 修改手机号
+        $res = UsersModel::getInstance()->userEdit(["id"=>$user_id], ["password"=>md5(config("user_login_prefix").$password)]);
         if ($res === false) return error_out('', MsgLogic::SERVER_EXCEPTION);
         return success_out('', MsgLogic::EDIT_SUCCESS);
     }

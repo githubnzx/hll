@@ -80,11 +80,11 @@ class WxPayUserConfig extends WxPayConfigInterface
      */
     public function GetKey()
     {
-        return '8934e7d15453e97507ef794cf7b0519d';
+        return 'X21M52zZks4mfxRcjD85M9M5UUPRhm3s';
     }
     public function GetAppSecret()
     {
-        return '7813490da6f1265e4901ffb80afaa36f';
+        return '04e910edf2d8c0edad3c6952d4ffb53a';
     }
 
 
