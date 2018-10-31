@@ -15,8 +15,9 @@ use think\Controller;
 use app\admin\model\RoleModel;
 use think\exception\HttpException;
 use think\Request;
+use think\session;
 
-session_start();
+//session_start();
 
 class Base extends Controller
 {
@@ -25,26 +26,24 @@ class Base extends Controller
 
     public function _initialize()
     {
+        //var_dump(md5(config("admin_login_prefix")."123456"));die;
         if (request()->isOptions()){
             throw new HttpException('204','');
         }
         if(empty(session('username')) || empty(session('id'))){
             $loginUrl = url('page/login', '', false);
             if(request()->isAjax()){
-                $this->msg = "登录超时";
-                //return msg(111, $loginUrl, '登录超时');
-            } else {
-                $this->msg = "请登陆";
+                return msg(111, $loginUrl, '登录超时');
             }
-            //throw new HttpException(402, '请登陆');
+            throw new HttpException(401, '请登陆');
         }
 
         // 检查缓存
         //$this->cacheCheck();
 
         // 检测权限
-        $control = lcfirst(request()->controller());
-        $action = lcfirst(request()->action());
+        //$control = lcfirst(request()->controller());
+        //$action = lcfirst(request()->action());
 
         /*if(empty(authCheck($control . '/' . $action))){
             if(request()->isAjax()){

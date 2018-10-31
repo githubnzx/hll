@@ -102,4 +102,17 @@ class Login extends Controller
         return json(msg(1, '', '退出成功'));
         //$this->redirect(url('index'));
     }
+
+    // 注册操作
+    public function register()
+    {
+        session('username', null);
+        session('id', null);
+        //session('head', null);
+        session('role', null);  // 角色名
+        session('role_id', null);
+        session('rule', null);
+        return json(msg(1, '', '退出成功'));
+        //$this->redirect(url('index'));
+    }
 }
