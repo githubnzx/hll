@@ -12,6 +12,7 @@ class DriverConfig extends BaseConfig
     public function carColorList()
     {
         return [
+            ['id' => 0, 'title' => '未知'],
             ['id' => 1, 'title' => '黄牌'],
             ['id' => 2, 'title' => '蓝牌'],
         ];
@@ -70,6 +71,7 @@ class DriverConfig extends BaseConfig
     public function truckTypeName()
     {
         return [
+            ['id' => 0, 'title' => "未知"],
             ['id' => 1, 'title' => "小型面包车"],
             ['id' => 2, 'title' => "小型平板车"],
             ['id' => 3, 'title' => "小型厢式货车"],

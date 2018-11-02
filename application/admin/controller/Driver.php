@@ -4,6 +4,7 @@ use app\admin\model\DriverModel;
 use app\common\config\DriverConfig;
 use app\common\logic\MsgLogic;
 use app\admin\model\EvaluateModel;
+use app\common\model\CourseModel;
 use app\common\push\Push;
 use think\Cache;
 use think\Config;
@@ -21,11 +22,10 @@ class Driver extends Base
         $pages = $pageNumber . ', ' . $pageSize;
         $where = [];
         if ($name) $where["d.name"] = $name;
-        $list = DriverModel::getInstance()->driverList($where, "id, name, phone, car_type, car_color, car_number, audit_status, addr_info,create_time") ?: [];
-        foreach ($list as $key => $value){
-
-
-
+        $list = DriverModel::getInstance()->driverList($where, "id, name, phone, car_type, car_color, car_number, addr_info,create_time") ?: [];
+        foreach ($list as $key => &$value){
+            $value["car_color"] = DriverConfig::getInstance()->getCarID($value["car_color"]);
+            $value["car_type"] = DriverConfig::getInstance()->truckTypeNameId($value["car_type"]);
          }
         $total = DriverModel::getInstance()->driverCount($where);
         return json(['total' => $total, 'list' => $list, 'msg' => '']);

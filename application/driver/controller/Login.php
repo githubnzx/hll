@@ -117,11 +117,8 @@ class Login extends Base
             $user["phone"]    = $phone;
             $user["password"] = md5(config("user_login_prefix").$newPwd);
             $user["id_number"] = "";
-            $user["contacts_name"] = "";
             $user["contacts_phone"] = "";
-            $user["car_color"] = "";
             $user["car_number"] = "";
-            $user["car_type"] = "";
             $user["province"] = "";
             $user["city_code"]= "";
             $user["ad_code"]  = "";
