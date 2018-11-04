@@ -64,10 +64,10 @@ class Integral extends Base
     public function add(){
         $data["title"]   = $this->request->post('title/s', "");
         $data["number"]  = $this->request->post('number/d', 0);
-        $data["surplus_number"]= $this->request->post('surplus_number/d', 0);
         $data["integral"] = $this->request->post('integral/s', "");
         $image = $this->request->post('image/a', []);
         if(!$data["title"] || !$data["number"] || !$data["surplus_number"] || !$data["integral"]) return error_out("", MsgLogic::PARAM_MSG);
+        $data["surplus_number"]  = $data["number"];
         $order = IntegralModel::getInstance()->integralGoodAdd($data, $image);
         if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);

@@ -17,12 +17,16 @@ class Driver extends Base
     public function lst()
     {
         $name = request()->post("name/s", "");
+        $phone = request()->post("phone/s", "");
+        $audit_status = request()->post("audit_status/d", 0);
         $pageNumber = request()->post('pageNumber', '1');
         $pageSize = request()->post('pageSize', '10');
         $pages = $pageNumber . ', ' . $pageSize;
         $where = [];
-        if ($name) $where["d.name"] = $name;
-        $list = DriverModel::getInstance()->driverList($where, "id, name, phone, car_type, car_color, car_number, addr_info,create_time") ?: [];
+        if ($name) $where["name"] = $name;
+        if ($phone) $where["phone"] = $phone;
+        if ($audit_status) $where["audit_status"] = $audit_status;
+        $list = DriverModel::getInstance()->driverList($where, "id, name, phone, car_type, car_color, car_number, addr_info, audit_status, create_time") ?: [];
         foreach ($list as $key => &$value){
             $value["car_color"] = DriverConfig::getInstance()->getCarID($value["car_color"]);
             $value["car_type"] = DriverConfig::getInstance()->truckTypeNameId($value["car_type"]);

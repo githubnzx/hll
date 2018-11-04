@@ -55,7 +55,7 @@ class Integral extends Base
         }
         // 检测商品剩余数量
         $surplusNumber = Cache::store('integral')->get('goods_id:' . $good_id);
-        if($surplusNumber > 0) return error_out("", MsgLogic::INTEGRAL_SURPLUS_NUMBER);
+        if($surplusNumber <= 0) return error_out("", MsgLogic::INTEGRAL_SURPLUS_NUMBER);
         // 查看是否兑换过
         $id = IntegralModel::getInstance()->userIntegralGoodFind(["user_id"=>$user_id, "goods_id"=>$good_id, "user_type"=>UsersModel::USER_TYPE_USER], "id")["id"] ?: 0;
         if($id) return error_out("", MsgLogic::INTEGRAL_CONVERTIBILITY);

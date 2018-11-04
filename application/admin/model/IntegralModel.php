@@ -113,6 +113,9 @@ class IntegralModel extends BaseModel
                 }
                 if ($cert) TruckModel::getInstance()->certAddAll($cert);
             }
+            // 添加redis
+            Cache::store('integral')->set('goods_id:' . $goodId, $data["number"]);
+
             Db::commit();
             return true;
         } catch (\Exception $e) {

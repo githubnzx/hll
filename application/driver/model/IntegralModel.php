@@ -16,6 +16,7 @@ use im\Easemob;
 use think\Db;
 use think\Log;
 use think\Model;
+use think\Cache;
 
 class IntegralModel extends BaseModel
 {
@@ -47,8 +48,14 @@ class IntegralModel extends BaseModel
     public function integralOrderAdd($data){
         Db::startTrans();
         try {
+            // 添加积分兑换商品订单
             $this->integralOrderInsert($data);
+            // 添加用户和积分商品关联数据
             $this->userIntegralGoodAdd(["user_id"=>$data["user_id"],"goods_id"=>$data["goods_id"], "user_type"=>DriverModel::USER_TYPE_USER]);
+            // redis 减去一个商品
+            Cache::store('integral')->dec('goods_id:' . $data["goods_id"]);
+            // 删除积分商城表中的剩余数量
+            Db::table($this->integralGoodsTable)->setDec("surplus_number");
             Db::commit();
             return true;
         } catch (\Exception $e) {
