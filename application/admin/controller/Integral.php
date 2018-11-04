@@ -24,9 +24,10 @@ class Integral extends Base
         $list = IntegralModel::getInstance()->integralList($where, "id, title, integral", $pages) ?: [];
         foreach ($list as $key => $value){
             $images = TruckModel::getInstance()->certFind(["main_id"=>$value["id"], "type"=> IntegralModel::CERT_TYPE], "img", "id asc");
-            $list[$key]["images"] = $images["img"];
+            $list[$key]["images"] = $images["img"] ?: "";
         }
-        return success_out($list);
+        $total = IntegralModel::getInstance()->integralTotal($where);
+        return json(['total' => $total, 'list' => $list, 'msg' => MsgLogic::SUCCESS]);
     }
 
     // 积分详情
@@ -47,10 +48,9 @@ class Integral extends Base
     public function edit(){
         $good_id = $this->request->post('good_id/d', 0);
         $data["title"]   = $this->request->post('title/s', "");
-        $data["number"]  = $this->request->post('number/s', "");
-        $data["surplus_number"]= $this->request->post('surplus_number/s', "");
-        $data["integral"] = $this->request->post('integral/s', "");
-        $image = $this->request->post('image/arr', []);
+        //$data["number"]  = $this->request->post('number/s', "");
+        //$data["integral"] = $this->request->post('integral/s', "");
+        $image = $this->request->post('image/s', "");
         if(!$good_id) return error_out("", MsgLogic::PARAM_MSG);
         foreach ($data as $key => $val) {
             if (empty($val)) unset($data[$key]);
@@ -66,7 +66,7 @@ class Integral extends Base
         $data["number"]  = $this->request->post('number/d', 0);
         $data["integral"] = $this->request->post('integral/s', "");
         $image = $this->request->post('image/a', []);
-        if(!$data["title"] || !$data["number"] || !$data["surplus_number"] || !$data["integral"]) return error_out("", MsgLogic::PARAM_MSG);
+        if(!$data["title"] || !$data["number"] || !$data["integral"]) return error_out("", MsgLogic::PARAM_MSG);
         $data["surplus_number"]  = $data["number"];
         $order = IntegralModel::getInstance()->integralGoodAdd($data, $image);
         if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);

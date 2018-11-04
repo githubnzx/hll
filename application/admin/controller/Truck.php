@@ -58,7 +58,7 @@ class Truck extends Base
 
     // 修改
     public function edit(){
-        $id = request()->post('id/d', 0);
+        $id = request()->post('truck_id/d', 0);
         $data["type"] = request()->post('type/d', 0);
         $data["load"] = request()->post('load/s', "");
         $data["length"] = request()->post('length/s', "");
@@ -75,7 +75,7 @@ class Truck extends Base
     }
 
     public function del(){
-        $id = request()->post('id/d', 0);
+        $id = request()->post('truck_id/d', 0);
         if (!$id) return error_out("", "参数错误");
         $result = TruckModel::getInstance()->truckEdit(["id"=>$id], ["is_del"=>1]);
         if ($result === false) return error_out("", "服务器异常");

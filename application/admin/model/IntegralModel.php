@@ -15,6 +15,7 @@ use im\Easemob;
 use think\Db;
 use think\Log;
 use think\Model;
+use think\Cache;
 
 class IntegralModel extends BaseModel
 {
@@ -30,6 +31,10 @@ class IntegralModel extends BaseModel
     public function integralList($where = [], $fields = '*', $page = ""){
         $where["is_del"] = IntegralModel::STATUS_DEL;
         return Db::table($this->integralGoodsTable)->field($fields)->where($where)->page($page)->select();
+    }
+    public function integralTotal($where = []){
+        $where["is_del"] = IntegralModel::STATUS_DEL;
+        return Db::table($this->integralGoodsTable)->where($where)->count();
     }
 
     public function integralFind($where = [], $fields = '*'){
@@ -62,7 +67,7 @@ class IntegralModel extends BaseModel
         try {
             $this->integralEdit(["id"=>$goodId], $data);
             // 图片
-            if ($image["add"]){
+            if (isset($image["add"])){
                 $cert = [];
                 $imageArrAdd = explode(",", $image);
                 foreach ($imageArrAdd as $key => $val) {
@@ -75,7 +80,7 @@ class IntegralModel extends BaseModel
                 }
                 if ($cert) TruckModel::getInstance()->integralAdd($cert);
             }
-            if ($image["del"]) {
+            if (isset($image["del"])){
                 $imageArrDel = explode(",", $image["del"]);
                 // 删除表
                 $goodList = $this->integralList(["id"=>["in", $imageArrDel]]);
