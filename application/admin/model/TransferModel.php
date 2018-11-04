@@ -15,12 +15,14 @@ use im\Easemob;
 use think\Db;
 use think\Log;
 use think\Model;
+use think\Session;
 
 class TransferModel extends BaseModel
 {
     protected $bill = 'bill';
     protected $billWithdraw = 'bill_withdraw';
     protected $driver = 'driver';
+    protected $balance = 'balance';
 
     const STATUS_DEL = 0;
     const CERT_TYPE  = 4;
@@ -64,17 +66,16 @@ class TransferModel extends BaseModel
     }
 
     public function editBalance($where, $price){
-        return Db::table(self::$balanceName)->where($where)->setInc('balance', $price);
+        return Db::table($this->balance)->where($where)->setInc('balance', $price);
     }
 
     public function showBillFind($id, $fields = '*'){
         return Db::table($this->bill)->field($fields)->where(['id'=>$id, 'is_del'=>0])->find();
     }
 
-    public function editBillBalance($id){
+    public function editBillBalance($id, $billInfo){
         Db::startTrans();
         try {
-            $billInfo = self::showBillFind($id, 'price, driver_id');
             $this->billEdit(['id'=>$id], ['status' => 3, 'tag'=>'提现失败']);//balance
             $this->editWithdraw(['bill_id'=>$id], ['title'=>Session::get('username'), 'audit_time'=>CURR_TIME]);
             $this->editBalance(['user_id'=>$billInfo['driver_id'], 'user_type'=>2, 'is_del'=>0], $billInfo['price']);
@@ -91,13 +92,14 @@ class TransferModel extends BaseModel
     }
 
     public function showBillWFind($where, $fields = '*'){
-        $where['b.is_del'] = self::IS_DEL;
-        $where['w.is_del'] = self::IS_DEL;
+        $where['b.is_del'] = self::STATUS_DEL;
+        $where['w.is_del'] = self::STATUS_DEL;
         return Db::table($this->bill)
             ->alias('b')
             ->join($this->billWithdraw . ' w', 'w.bill_id = b.id', 'left')
             ->where($where)
             ->field($fields)
+            //->fetchSql(true)
             ->find();
     }
 

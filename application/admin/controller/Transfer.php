@@ -7,6 +7,7 @@ use app\admin\model\TruckModel;
 use app\admin\model\IntegralModel;
 use think\Cache;
 use think\Config;
+use think\Session;
 
 
 class Transfer extends Base
@@ -40,7 +41,9 @@ class Transfer extends Base
     public function refuse(){
         $id = request()->post('id/d', 0);
         if(!$id) error_out([], MsgLogic::PARAM_MSG);
-        $result = TransferModel::editBillBalance($id);
+        $billInfo = TransferModel::getInstance()->showBillFind($id, 'status, price, driver_id');
+        if ($billInfo["status"] !== 1) return error_out("", "拒绝失败");
+        $result = TransferModel::getInstance()->editBillBalance($id, $billInfo);
         if(!$result) return error_out('', MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
@@ -48,10 +51,10 @@ class Transfer extends Base
     public static function transfer(){
         $id = request()->post('id/d', 0);
         if(!$id) return error_out([], MsgLogic::PARAM_MSG);
-        $bill = TransferModel::getInstance()->showBillWFind(['b.id'=>$id], 'b.id,b.driver_id, b.price, w.code');
+        $bill = TransferModel::getInstance()->showBillWFind(['b.id'=>$id], 'b.id, b.driver_id, b.price, w.code');
         if(!$bill || !$bill['driver_id'] || !$bill['price'] ||! $bill['code']) return error_out([], '提现失败');
-        $driver = TransferModel::getInstance()->showDriverFind($bill['driver_id'], 'title, openid');
-        if(!$driver || !$driver['title'] || !$driver['openid']) return error_out([], '提现失败');
+        $driver = TransferModel::getInstance()->showDriverFind($bill['driver_id'], 'name, openid');
+        if(!$driver || !$driver['name'] || !$driver['openid']) return error_out([], '提现失败');
         //$result = WithdrawalModel::transferWx($id, $bill['code'], $coach['openid'], $bill['price']);
         $order = TransferLogic::getInstance()->transferWx($bill['code'], $driver['openid'], $bill['price']);
         if($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS'){
@@ -67,72 +70,6 @@ class Transfer extends Base
         if(!$result) return error_out('', MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-    // 积分详情
-    public function info(){
-        $good_id = $this->request->post('good_id/d', 0);
-        if(!$good_id) return error_out("", MsgLogic::PARAM_MSG);
-        $integralInfo = IntegralModel::getInstance()->integralFind(["id"=>$good_id], "id, title, integral, surplus_number") ?: [];
-        $imageArr = [];
-        $images = TruckModel::getInstance()->certList(["main_id"=>$integralInfo["id"], "type"=> IntegralModel::CERT_TYPE], "img");
-        foreach ($images as $ks => $vs){
-            $imageArr[] = $vs["img"];
-        }
-        $integralInfo["images"] = $imageArr;
-        return success_out($integralInfo);
-    }
-
-    // 编辑
-    public function edit(){
-        $good_id = $this->request->post('good_id/d', 0);
-        $data["title"]   = $this->request->post('title/s', "");
-        $data["number"]  = $this->request->post('number/s', "");
-        $data["surplus_number"]= $this->request->post('surplus_number/s', "");
-        $data["integral"] = $this->request->post('integral/s', "");
-        $image = $this->request->post('image/arr', []);
-        if(!$good_id) return error_out("", MsgLogic::PARAM_MSG);
-        foreach ($data as $key => $val) {
-            if (empty($val)) unset($data[$key]);
-        }
-        $order = IntegralModel::getInstance()->integralGoodEdit($good_id, $data, $image);
-        if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
-        return success_out("", MsgLogic::SUCCESS);
-    }
-
-    // 添加
-    public function add(){
-        $data["title"]   = $this->request->post('title/s', "");
-        $data["number"]  = $this->request->post('number/d', 0);
-        $data["surplus_number"]= $this->request->post('surplus_number/d', 0);
-        $data["integral"] = $this->request->post('integral/s', "");
-        $image = $this->request->post('image/a', []);
-        if(!$data["title"] || !$data["number"] || !$data["surplus_number"] || !$data["integral"]) return error_out("", MsgLogic::PARAM_MSG);
-        $order = IntegralModel::getInstance()->integralGoodAdd($data, $image);
-        if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
-        return success_out("", MsgLogic::SUCCESS);
-    }
-
-    // 删除
-    public function del(){
-        $id = $this->request->post('good_id/s', "");
-        if(!$id) return error_out("", MsgLogic::PARAM_MSG);
-        $result = IntegralModel::getInstance()->integralEdit(["id"=>$id], ["is_del"=>1]);
-        if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
-        return success_out("", MsgLogic::SUCCESS);
-    }
-
-
 
 
 
