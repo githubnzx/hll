@@ -46,7 +46,7 @@ class Evaluate extends Base
         $driver_id= request()->post('driver_id/d', 0);
         $type     = request()->post('type/s', "");
         if (!$driver_id || !$type) return error_out("", MsgLogic::PARAM_MSG);
-        $result = EvaluateModel::getInstance()->evaluateDriverCount(["id"=>$driver_id], ["status"=>$this->statusType[$type]]);
+        $result = EvaluateModel::getInstance()->evaluateEdit(["id"=>$driver_id], ["status"=>$this->statusType[$type]]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
