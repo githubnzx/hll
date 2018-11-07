@@ -123,8 +123,12 @@ class Order extends Base
         $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: "";
         // 总评分
         $evaluateScore = OrderModel::getInstance()->evaluateColumn(["driver_id"=>$orderInfo["driver_id"]], "star_level");
-        $totalNumber = count($evaluateScore);
-        $totalScore = bcdiv(array_sum($evaluateScore), $totalNumber, 1);
+        if ($evaluateScore) {
+            $totalNumber = count($evaluateScore);
+            $totalScore = bcdiv(array_sum($evaluateScore), $totalNumber, 1);
+        } else {
+            $totalScore = 0;
+        }
         // 评论
         $driverInfo["truck_img"]  = $truck_img;
         $orderInfo["driver_name"] = $driverInfo["name"];
