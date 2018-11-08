@@ -83,15 +83,42 @@ class Order extends Base
         return success_out("", MsgLogic::SUCCESS);
     }
 
+    // 计算总价格
+    public function price()
+    {
+        $user_id = UserLogic::getInstance()->checkToken();
+        $truck_id = $this->request->post('truck_id/d', 0);
+        $fee_price   = strtotime($this->request->post('fee_price/s', ""));   // 小费
+        $kilometers  = $this->request->post('kilometers/s', 0);    // 公里数
+        if (!$truck_id || !$kilometers) return error_out("", MsgLogic::PARAM_MSG);
+        // 查询货车是否存在
+        $trucInfo = TruckModel::getInstance()->truckFind(["id"=>$truck_id], "id, type");
+        if(!$trucInfo) return error_out("", OrderMsgLogic::TRUCK_IS_EXISTS);
+        // 费用计算
+        $price = OrderLogic::getInstance()->imputedPrice($kilometers, $trucInfo["type"], $fee_price);
+        return success_out(["total_price"=>$price], MsgLogic::SUCCESS);
+    }
+
     // 历史订单
     public function lst(){
         $user_id = UserLogic::getInstance()->checkToken();
+        $orderInfo = $orderList = $list = [];
         $field = "id, truck_id, status, order_time, send_good_addr, collect_good_addr";
-        $list = OrderModel::getInstance()->orderList(["user_id"=>$user_id,"status"=>["in", [0,1,2,3]]], $field, "`status` ASC, order_time DESC");
-        foreach ($list as $key => &$value) {
+        $orderInfo = OrderModel::getInstance()->orderFind(["user_id"=>$user_id,"status"=>["in", [0,1]]], $field) ?: [];
+        if ($orderInfo) { // 当前订单
+            $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
+            $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
+            $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
+            array_push($list, $orderInfo);
+        }
+        $whereAll["user_id"] = $user_id;
+        $whereAll["id"] = ["<>", $orderInfo["id"]];
+        $orderList = OrderModel::getInstance()->orderList($whereAll, $field, "order_time DESC") ?: [];
+        foreach ($orderList as $key => &$value) {
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
             $value["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $value["order_time"] = $this->handl_order_date($value["order_time"]);//$this->week[$value["type"]];
+            array_push($list, $value);
         }
         return success_out($list ?: []);
     }
@@ -187,6 +214,12 @@ class Order extends Base
         return success_out($data);
     }
 
+    public function isExistOrder(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
+        $status = $isExistsOrder ? 1 : 0;
+        return success_out(["status"=>$status]);
+    }
 
 
 

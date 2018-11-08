@@ -187,6 +187,8 @@ class DriverModel extends BaseModel
                 $_cart["main_id"] = $user_id;
                 $_cart["img"]  = $photo["id_card"]["just"];
                 $_cart["type"] = DriverModel::CARD_JUST;
+                $_cart["create_time"] = CURR_TIME;
+                $_cart["update_time"] = CURR_TIME;
                 $cart[] = $_cart;
             }
             // 身份证 反面
@@ -194,6 +196,8 @@ class DriverModel extends BaseModel
                 $_cart["main_id"] = $user_id;
                 $_cart["img"]  = $photo["id_card"]["back"];
                 $_cart["type"] = DriverModel::CARD_BACK;
+                $_cart["create_time"] = CURR_TIME;
+                $_cart["update_time"] = CURR_TIME;
                 $cart[] = $_cart;
             }
             // 驾驶证
@@ -201,6 +205,8 @@ class DriverModel extends BaseModel
                 $_cart["main_id"] = $user_id;
                 $_cart["img"]  = $photo["js_cert"];
                 $_cart["type"] = DriverModel::JS_CARD;
+                $_cart["create_time"] = CURR_TIME;
+                $_cart["update_time"] = CURR_TIME;
                 $cart[] = $_cart;
             }
             // 行驶证
@@ -208,14 +214,19 @@ class DriverModel extends BaseModel
                 $_cart["main_id"] = $user_id;
                 $_cart["img"]  = $photo["xs_cert"];
                 $_cart["type"] = DriverModel::XS_CARD;
+                $_cart["create_time"] = CURR_TIME;
+                $_cart["update_time"] = CURR_TIME;
                 $cart[] = $_cart;
             }
             // 行驶证
             if(isset($photo["car"]) && $photo["car"]){
-                foreach ($photo["car"] as $key => $val) {
+                $car = explode(",", $photo["car"]);
+                foreach ($car as $key => $val) {
                     $_cart["main_id"] = $user_id;
                     $_cart["img"] = $val;
                     $_cart["type"] = DriverModel::DRIVER_CAR;
+                    $_cart["create_time"] = CURR_TIME;
+                    $_cart["update_time"] = CURR_TIME;
                     $cart[] = $_cart;
                 }
             }

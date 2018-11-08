@@ -147,16 +147,33 @@ class Order extends Base
     // 历史订单
     public function lst(){
         $user_id = DriverLogic::getInstance()->checkToken();
+        $orderInfo = $orderList = $list = [];
         $field = "id, truck_id, status, order_time, send_good_addr, collect_good_addr";
-        $list = OrderModel::getInstance()->orderList(["driver_id"=>$user_id, "status"=>["in", [0,1,2,3]]], $field, "`status` ASC, order_time DESC");
-        foreach ($list as $key => &$value) {
+        $orderInfo = OrderModel::getInstance()->orderFind(["driver_id"=>$user_id,"status"=>["in", [0,1]]], $field) ?: [];
+        if ($orderInfo) { // 当前订单
+            $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
+            $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
+            $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
+            array_push($list, $orderInfo);
+        }
+        $whereAll["driver_id"] = $user_id;
+        $whereAll["id"] = ["<>", $orderInfo["id"]];
+        $orderList = OrderModel::getInstance()->orderList($whereAll, $field, "`status` ASC, order_time DESC");
+        foreach ($orderList as $key => &$value) {
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
             $value["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $value["order_time"] = $this->handl_order_date($value["order_time"]);//$this->week[$value["type"]];
+            array_push($list, $value);
         }
         return success_out($list ?: []);
     }
-
+    // 检测订单
+    public function isExistOrder(){
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $isExistsOrder = OrderModel::getInstance()->orderFind(["driver_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
+        $status = $isExistsOrder ? 1 : 0;
+        return success_out(["status"=>$status]);
+    }
 
     /*/ 订单详情
     public function infos(){
