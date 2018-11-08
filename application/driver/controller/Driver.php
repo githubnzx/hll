@@ -140,7 +140,7 @@ class driver extends Base
         $data["car_number"]= $carNumber;
         $data["car_type"]  = $carType;
         $data["contacts_name"] = $contactsName;
-        $data["contacts_phone"]= $contactsPhone;
+        $data["contacts_phone"]= $contactsPhone; 
         $data["is_register"]= 1;
         $result = DriverModel::getInstance()->userPerfectInfoEdit($user_id, $data, $photo);
         if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
