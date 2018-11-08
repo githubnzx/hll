@@ -109,10 +109,10 @@ class Order extends Base
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
             $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
+            $whereAll["id"] = ["<>", $orderInfo["id"]];
             array_push($list, $orderInfo);
         }
         $whereAll["user_id"] = $user_id;
-        $whereAll["id"] = ["<>", $orderInfo["id"]];
         $orderList = OrderModel::getInstance()->orderList($whereAll, $field, "order_time DESC") ?: [];
         foreach ($orderList as $key => &$value) {
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
