@@ -29,6 +29,8 @@ class UserLogic extends BaseLogic
     const PHONE_EXISTED  = "此手机号已注册，请重新输入";
     const USER_NOT_EXISTS= "用户不存在";
 
+    const QQ_CODE        = "QQ凭证不能为空";
+
 
 
 

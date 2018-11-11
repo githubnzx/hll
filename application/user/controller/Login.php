@@ -1,6 +1,7 @@
 <?php
 namespace app\user\controller;
 
+use app\user\logic\QqLogic;
 use app\user\logic\UserLogic;
 use app\user\model\UsersModel;
 use app\user\Logic\WechatLogic;
@@ -191,6 +192,65 @@ class Login extends Base
         }
         return success_out($result , MsgLogic::SUCCESS);
     }
+
+
+    // QQ登录
+    public function qq()
+    {
+        $code = request()->post('code' , '');
+        if (!$code) return error_out('', UserLogic::QQ_CODE);
+        $QQToken = QqLogic::getInstance()->getToken("");
+        if (isset($wx_token['errcode'])) {
+            return error_out('', $QQToken['errmsg']);
+        }
+        $access_token= $QQToken['access_token']; // access_token
+        // 获取openid
+        $openID = QqLogic::getInstance()->getOpenID($access_token);
+        $openid = $openID["openid"]; // 用户openid
+        /*******************************************************************/
+
+        //$refresh_token= $QQToken['refresh_token'];
+        //$openid = $QQToken['openid'];
+        //$unionid = isset($wx_token['unionid']) ? $QQToken['unionid'] : '';
+        //验证openid是否已存在
+        $user = UsersModel::getInstance()->userFind(["openid"=>$openid], "id, phone");
+        if ($user) { //已存在
+            if ($user['is_del'] != UsersModel::STATUS_DEL) return error_out('', UserLogic::USER_STATUS);
+            $user_token = UserLogic::getInstance()->getToken($user['id']);
+            $result['user_token'] = $user_token;
+            $result['phone'] = $user['phone'];
+            $result['wechat_id'] = 0;
+            $result['status'] = $user['phone'] ? 1 : 0;  // 是否绑定手机号 1 已绑定  0 未绑定
+        }else{
+            //获取微信信息
+            $user_info = QqLogic::getInstance()->getUserInfo($QQToken['access_token'], $QQToken['openid']);
+            if (isset($user_info['errcode'])){
+                return error_out((object)array() , $user_info['errmsg']);
+            }
+            $wechat_info = UsersModel::getInstance()->wechatFind(["openid"=>$QQToken['openid']], "id, openid, unionid");
+            $data['access_token'] =$access_token;
+            $data['unionid'] = $unionid;
+            $data['openid']  = $openid;
+            $data['headimgurl'] = WechatLogic::getInstance()->downloadAvar($user_info['headimgurl']);
+            $data['nickname'] = $user_info['nickname'];
+            if (!$wechat_info){
+                $wechat_id = UsersModel::getInstance()->wxInsert($data);
+                if (!$wechat_id) return error_out('', MsgLogic::SERVER_EXCEPTION);
+            }else{
+                $wechat_id = $wechat_info['id'];
+                $update_result = UsersModel::getInstance()->wechatUpdate(["id"=>$wechat_info['id']], $data);
+                if (!$update_result) return error_out('', MsgLogic::SERVER_EXCEPTION);
+            }
+            $result = [
+                'token' => '',
+                'phone' => '',
+                'wechat_id' =>(int) $wechat_id,
+                'status' => 0
+            ];
+        }
+        return success_out($result , MsgLogic::SUCCESS);
+    }
+
 
     // 微信登陆绑定手机号
     public function bindingPhone()
