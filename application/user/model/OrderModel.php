@@ -79,7 +79,7 @@ class OrderModel extends BaseModel
             $order["id"] = $order_id;
             Cache::store('driver')->set("RobOrderData:" . $order_id, json_encode($order));
             Db::commit();
-            return true;
+            return $order_id;
         } catch (\Exception $e) {
             Db::rollback();
             return false;

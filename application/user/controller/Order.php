@@ -78,9 +78,9 @@ class Order extends Base
             "order_time" => $order_time ?: CURR_TIME
         ];
         // 下单
-        $result = OrderModel::getInstance()->orderInsert($order);
-        if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
-        return success_out("", MsgLogic::SUCCESS);
+        $order_id = OrderModel::getInstance()->orderInsert($order);
+        if($order_id === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out(["order_id"=>$order_id], MsgLogic::SUCCESS);
     }
 
     // 计算总价格
@@ -110,6 +110,7 @@ class Order extends Base
             $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
             $whereAll["id"] = ["<>", $orderInfo["id"]];
+            $orderInfo["current_order_status"] = 1;
             array_push($list, $orderInfo);
         }
         $whereAll["user_id"] = $user_id;
@@ -118,6 +119,7 @@ class Order extends Base
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
             $value["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $value["order_time"] = $this->handl_order_date($value["order_time"]);//$this->week[$value["type"]];
+            $value["current_order_status"] = 0;
             array_push($list, $value);
         }
         return success_out($list ?: []);
@@ -164,6 +166,7 @@ class Order extends Base
         $orderInfo["driver_car_number"]= $driverInfo["car_number"];
         $orderInfo["total_score"] = $totalScore;
         $orderInfo["truck_type"]  = DriverConfig::getInstance()->truckTypeNameId($truckType);
+        $orderInfo["current_order_status"] = in_array($orderInfo["status"], [0,1]) ? 1 : 0;
         return success_out($orderInfo ?: []);
     }
 
@@ -218,7 +221,9 @@ class Order extends Base
         $user_id = UserLogic::getInstance()->checkToken();
         $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
         $status = $isExistsOrder ? 1 : 0;
-        return success_out(["status"=>$status]);
+        $data["order_id"] = $isExistsOrder;
+        $data["status"]   = $status;
+        return success_out($data);
     }
 
 
