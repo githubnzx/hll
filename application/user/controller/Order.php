@@ -72,6 +72,7 @@ class Order extends Base
             "fee"     => $fee_price,
             "contacts"=> $contacts,
             "phone"   => $phone,
+            "status"  => 0,
             "remarks" => $remarks,
             "date"    => strtotime(CURR_DATE),
             "is_place_order" => $order_time ? 1 : 0,

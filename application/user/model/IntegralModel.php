@@ -53,9 +53,9 @@ class IntegralModel extends BaseModel
             // 添加用户和积分商品关联数据
             $this->userIntegralGoodAdd(["user_id"=>$data["user_id"],"goods_id"=>$data["goods_id"], "user_type"=>UsersModel::USER_TYPE_USER]);
             // redis 减去一个商品
-            Cache::store('integral')->dec('goods_id:' . $data["goods_id"]);
+            if (Cache::store('integral')->has('goods_id:' . $data["goods_id"])) Cache::store('integral')->dec('goods_id:' . $data["goods_id"]);
             // 删除积分商城表中的剩余数量
-            Db::table($this->integralGoodsTable)->setDec("surplus_number");
+            Db::table($this->integralGoodsTable)->where('id', $data["goods_id"])->setDec("surplus_number", 1);
             Db::commit();
             return true;
         } catch (\Exception $e) {

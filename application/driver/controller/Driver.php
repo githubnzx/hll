@@ -161,7 +161,7 @@ class driver extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $price = request()->post('price/f' , 0);
         $password = request()->post('password/s' , "");
-        //$payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
+        $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
         if(!$price || !$password) return error_out('', MsgLogic::PARAM_MSG);
         // 判断是否微信授权
         $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
@@ -178,7 +178,7 @@ class driver extends Base
         if(!$result || bccomp($result['balance'], $price, 2) < 0) return error_out('', DriverMsgLogic::DRIVER_PRICE_LESS);
         // 教练余额
         $balance_total = bcsub($result['balance'], $price, 2);
-        $balance_res = DriverModel::getInstance()->addBillAndTxBalance($user_id, $result['id'], $balance_total, $price, DriverModel::TYPE_OUT, 1, '提现', 1);
+        $balance_res = DriverModel::getInstance()->addBillAndTxBalance($user_id, $result['id'], $balance_total, $price, DriverModel::TYPE_OUT, $payType, '提现', 1);
         if($balance_res){
             // 发送消息
             //$msg['name'] = $coach['title'];

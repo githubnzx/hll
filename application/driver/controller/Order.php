@@ -62,19 +62,39 @@ class Order extends Base
         foreach ($orderList as $key => $value) {
             $orderInfo = json_decode($value, true);
             $orderTime = $orderInfo["order_time"];
-            $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
-            $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
-            $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
             $order_time = (int) bcadd($orderTime, $order_time);
             if (CURR_TIME >= $order_time) {
+                // 货车信息
+                $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
+                $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
+                $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
+                // 用户信息
+                $userInfo = UsersModel::getInstance()->userFind(["id"=>$orderInfo["user_id"]], "name, phone, icon, sex");
+                if ($userInfo) { // 处理名称
+                    $userName = handleUserName($userInfo["name"]);
+                    $nameType = DriverConfig::getInstance()->userNameTypeId($userInfo["sex"]);
+                    $order["user_name"]  = $nameType ? $userName.$nameType : $nameType;
+                    $order["user_phone"] = $userInfo["phone"];
+                    $order["user_icon"]  = $userInfo["icon"];
+                } else {
+                    $order["user_name"]  = "未知";
+                    $order["user_phone"] = "";
+                    $order["user_icon"]  = "";
+                }
+                // 订单信息
                 $order["order_id"] = $orderInfo["id"];
                 $order["truck_id"] = $orderInfo["truck_id"];
                 $order["order_time"] = $orderInfo["order_time"];
-                $order["driver_ids"] = $orderInfo["driver_ids"];
+                $order["send_good_lon"] = $orderInfo["send_good_lon"];
+                $order["send_good_lat"] = $orderInfo["send_good_lat"];
+                $order["collect_good_lon"] = $orderInfo["collect_good_lon"];
+                $order["collect_good_lat"] = $orderInfo["collect_good_lat"];
                 $order["send_good_addr"] = $orderInfo["send_good_addr"];
                 $order["collect_good_addr"] = $orderInfo["collect_good_addr"];
                 $order["is_receivables"] = $orderInfo["is_receivables"];
                 $order["remarks"] = $orderInfo["remarks"];
+                $order["status"] = isset($orderInfo["status"]) ? $orderInfo["status"] : 0;
+                $order["price"] = $orderInfo["price"];
                 $order["truck_name"] = $orderInfo["truck_name"];
                 $data[] = $order;
             }
@@ -117,7 +137,7 @@ class Order extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
-        $field = "id, user_id, driver_id, status, total_price, send_good_lon, send_good_lat, collect_good_lon, collect_good_lat, send_good_addr, collect_good_addr, order_time";
+        $field = "id order_id, user_id, driver_id, truck_id, status, total_price price, send_good_lon, send_good_lat, collect_good_lon, collect_good_lat, send_good_addr, collect_good_addr, order_time, is_receivables, remarks";
         $orderInfo = OrderModel::getInstance()->orderFind(["id"=>$order_id], $field);
         if(!$orderInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
         // driver_id 不存在说明是未抢订单 存在如果和当前司机不一致 说明已被其他司机预约
@@ -125,23 +145,18 @@ class Order extends Base
         // 获取用户信息
         $userInfo = UsersModel::getInstance()->userFind(["id"=>$orderInfo["user_id"]], "name, phone, icon, sex");
         if(!$userInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
+        // 货车信息
+        $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
+        $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
         // 处理名称
         $userName = handleUserName($userInfo["name"]);
         $nameType = DriverConfig::getInstance()->userNameTypeId($userInfo["sex"]);
-        $data["user_name"] = $nameType ? $userName.$nameType : $nameType;
-        $data["user_phone"] = $userInfo["phone"];
-        $data["user_icon"] = $userInfo["icon"];
-        // 订单数据
-        $data["status"] = $orderInfo["status"];
-        $data["price"]  = $orderInfo["total_price"];
-        $data["send_good_lon"] = $orderInfo["send_good_lon"];
-        $data["send_good_lat"] = $orderInfo["send_good_lat"];
-        $data["collect_good_lon"] = $orderInfo["collect_good_lon"];
-        $data["collect_good_lat"] = $orderInfo["collect_good_lat"];
-        $data["send_good_addr"]   = $orderInfo["send_good_addr"];
-        $data["collect_good_addr"]= $orderInfo["collect_good_addr"];
-        $data["order_time"] = date("H:i", $orderInfo["order_time"]);
-        return success_out($data);
+        $orderInfo["user_name"] = $nameType ? $userName.$nameType : $nameType;
+        $orderInfo["user_phone"] = $userInfo["phone"];
+        $orderInfo["user_icon"] = $userInfo["icon"];
+        $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);
+        unset($orderInfo["driver_id"], $orderInfo["user_id"]);
+        return success_out($orderInfo);
     }
 
     // 历史订单
@@ -155,6 +170,7 @@ class Order extends Base
             $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
             $whereAll["id"] = ["<>", $orderInfo["id"]];
+            $orderInfo["current_order_status"] = 1;
             array_push($list, $orderInfo);
         }
         $whereAll["driver_id"] = $user_id;
@@ -163,6 +179,7 @@ class Order extends Base
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
             $value["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $value["order_time"] = $this->handl_order_date($value["order_time"]);//$this->week[$value["type"]];
+            $value["current_order_status"] = 0;
             array_push($list, $value);
         }
         return success_out($list ?: []);
@@ -172,7 +189,9 @@ class Order extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $isExistsOrder = OrderModel::getInstance()->orderFind(["driver_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
         $status = $isExistsOrder ? 1 : 0;
-        return success_out(["status"=>$status]);
+        $data["order_id"] = $isExistsOrder;
+        $data["status"]   = $status;
+        return success_out($data);
     }
 
     /*/ 订单详情
