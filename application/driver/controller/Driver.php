@@ -1,5 +1,6 @@
 <?php
 namespace app\driver\controller;
+use app\common\config\DriverConfig;
 use app\common\logic\MsgLogic;
 use app\driver\logic\MsgLogic as DriverMsgLogic;
 use app\driver\model\IntegralModel;
@@ -221,6 +222,27 @@ class driver extends Base
 
         }
         return success_out($data);
+    }
+
+    // 车辆颜色
+    public function truckColor() {
+        $truckList = DriverConfig::getInstance()->carColorList();
+        foreach ($truckList as $key => &$value) {
+            if($key == 0) {
+                $value["title"] = "请选择";
+            }
+        }
+        return success_out($truckList, MsgLogic::SUCCESS);
+    }
+    // 车辆类型
+    public function truckType() {
+        $truckList = DriverConfig::getInstance()->truckTypeName();
+        foreach ($truckList as $key => &$value) {
+            if($key == 0) {
+                $value["title"] = "请选择";
+            }
+        }
+        return success_out($truckList, MsgLogic::SUCCESS);
     }
 
 
