@@ -11,8 +11,8 @@ use think\Request;
 
 class QqLogic extends BaseLogic
 {
-    protected $app_id = 'wx72aa412d243f6cda';
-    protected $app_secret = '04e910edf2d8c0edad3c6952d4ffb53a';
+    protected $app_id = '1107883195';
+    protected $app_secret = 'xwMAZvrG7zcCIIlq';
 
     private $tokenErrorMsg = "第三方登录失败";
 
@@ -21,8 +21,9 @@ class QqLogic extends BaseLogic
         //state参数用于防止CSRF攻击，成功授权后回调时会原样带回
         $_SESSION['state'] = md5(uniqid(rand(), TRUE));
         $url = "https://graph.qq.com/oauth2.0/authorize?";
-        $data = "response_type=code&client_id=".$this->app_id."&client_secret=".$this->app_secret."&state=" . $_SESSION['state'] . "&redirect_uri=" . Config::set("qq.redirect_uri");
+        $data = "response_type=code&client_id=".$this->app_id."&client_secret=".$this->app_secret."&state=" . $_SESSION['state'] . "&redirect_uri=" . urlencode(Config::get("qq.redirect_uri"));
         $full_url = $url . $data;
+        //var_dump($full_url);die;
         return $this->send($full_url);
     }
     // 获取 Access Token
@@ -83,11 +84,13 @@ class QqLogic extends BaseLogic
 
     private function send($url)
     {
+        var_dump($url);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_URL, $url);
         $json = curl_exec($ch);
+        var_dump($json);;die;
         curl_close($ch);
         return json_decode($json, true);
     }

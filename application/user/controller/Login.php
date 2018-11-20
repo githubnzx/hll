@@ -197,6 +197,11 @@ class Login extends Base
     // QQ登录
     public function qq()
     {
+        $code = QqLogic::getInstance()->getAuthCode();
+        var_dump($code);die;
+
+
+        die;
         $code = request()->post('code' , '');
         if (!$code) return error_out('', UserLogic::QQ_CODE);
         $QQToken = QqLogic::getInstance()->getToken("");

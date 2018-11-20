@@ -30,6 +30,7 @@ class MsgLogic extends BaseLogic
     const ORDER_NOT_EXISTS   = "订单有误";
     const ORDER_BERESERVED_EXISTS   = "订单已被预约";
     const ORDER_UPPER_LIMIT  = "抢单已达上限";
+    const ORDER_NOT_PAY      = "订单不可支付";
 
     // 货车
     const TRUCK_IS_EXISTS    = "货车不存在";

@@ -34,7 +34,7 @@ class UsersModel extends BaseModel
 
     public function userFind($where, $fields = '*'){
         $result = Db::table($this->tableUser)->field($fields)->where($where)->find();
-        $result["icon"] = $result["icon"] != "null" && $result["icon"] != "" ? handleImgPath($result["icon"]) : "";
+        $result["icon"] = isset($result["icon"]) ? handleImgPath($result["icon"]) : "";
         return $result;
     }
 

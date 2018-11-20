@@ -202,9 +202,9 @@ class Order extends Base
         $status = $this->request->post('status/d', 0); // 是否取消支付 0否 1是
         $pay_type = $this->request->post('pay_type/d', 0); // 1 微信 2支付宝
         if (!$order_id || !$pay_type) return error_out("", MsgLogic::PARAM_MSG);
-        $order = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, code, truck_id, driver_id, is_confirm_cancel, price, fee, total_price");
+        $order = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, code, truck_id, driver_id, is_confirm_cancel, price, fee, total_price, status");
         if (!$order) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
-        //var_dump($order);die;
+        if ($order["status"] != 1) return error_out("", OrderMsgLogic::ORDER_NOT_PAY);
         if ($status === 1) {
             $actualPrice = bcdiv($order["price"], 10, 1);
         } else {
@@ -218,6 +218,7 @@ class Order extends Base
         return success_out($data);
     }
 
+    // 检测订单
     public function isExistOrder(){
         $user_id = UserLogic::getInstance()->checkToken();
         $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
@@ -226,6 +227,41 @@ class Order extends Base
         $data["status"]   = $status;
         return success_out($data);
     }
+
+    // 到达
+    public function arriveDestinat(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $order_id = $this->request->post('order_id/d', 0);
+        if (!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        $orderid = OrderModel::getInstance()->orderFind(["id"=>$order_id], "id")["id"] ?: 0;
+        if (!$orderid) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
+        $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=> 1]);
+        if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
+    }
+
+    // 取消代收款
+    public function cancelDsk(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $order_id = $this->request->post('order_id/d', 0);
+        if (!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        $orderid = OrderModel::getInstance()->orderFind(["id"=>$order_id], "id")["id"] ?: 0;
+        if (!$orderid) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
+        $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["is_receivables"=> 0]);
+        if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
+    }
+
+    public function checkOrder(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $order_id = $this->request->post('order_id/d', 0);
+        if (!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        $order = OrderModel::getInstance()->orderFind(["id"=>$order_id], "id, driver_id");
+        if (!$order) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
+        $data["status"] = $order["driver_id"] ? 1 : 0;
+        return success_out($data, MsgLogic::SUCCESS);
+    }
+
 
 
 
