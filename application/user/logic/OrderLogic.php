@@ -25,7 +25,7 @@ class OrderLogic extends BaseLogic
     {
         $price = 0.01;
         $times = CURR_TIME;
-        //Loader::import('wxpay.user.lib.WxPay#Api');
+        Loader::import('wxpay.lib.WxPay#Api');
         $inputObj = new \WxPayUnifiedOrder();
         $inputObj->SetOut_trade_no($code);
         $inputObj->SetBody('hll');
@@ -34,19 +34,18 @@ class OrderLogic extends BaseLogic
         $inputObj->SetTrade_type("APP");
         $config = new WxPayUserConfig();
         $order = WxPayApi::unifiedOrder($config, $inputObj);
-        var_dump($order);die;
-        if ($order['return_code'] != 'SUCCESS' || $order['result_codes'] != 'SUCCESS') {
+        if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
             return false;
         }
-        $inputObj->values = [];
+        //$inputObj->values = [];
         $data['appid'] = $order['appid'];
         $data['partnerid'] = $order['mch_id'];
         $data['prepayid'] = $order['prepay_id'];
-        $data['packageValue'] = "Sign=WXPay";
+        $data['package'] = "Sign=WXPay";
         $data['noncestr'] = \WxPayApi::getNonceStr();
         $data['timestamp'] = (string)time();
-        $inputObj->values = $data;
-        $data['sign'] = $inputObj->SetSign();
+        //$inputObj->values = $data;
+        $data['sign'] = $inputObj->SetSign($config);
         return $data;
     }
 

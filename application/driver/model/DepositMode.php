@@ -1,5 +1,5 @@
 <?php
-namespace app\user\model;
+namespace app\driver\model;
 
 use think\Db;
 use think\Log;

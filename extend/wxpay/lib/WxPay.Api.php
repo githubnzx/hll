@@ -57,12 +57,12 @@ class WxPayApi
 		//签名
 		$inputObj->SetSign($config);
 		$xml = $inputObj->ToXml();
-		
+
 		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($config, $xml, $url, false, $timeOut);
 		$result = WxPayResults::Init($config, $response);
 		self::reportCostTime($config, $url, $startTimeStamp, $result);//上报请求花费时间
-		
+
 		return $result;
 	}
 	
@@ -558,8 +558,18 @@ class WxPayApi
 			curl_setopt($ch,CURLOPT_PROXYPORT, $proxyPort);
 		}
 		curl_setopt($ch,CURLOPT_URL, $url);
-		curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,TRUE);
-		curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,2);//严格校验
+        /* ---------------- 20181028 添加判断 https status --------------------- */
+        if(strpos($url, "https://") !== false){
+            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,FALSE);
+            curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,FALSE);//严格校验
+        } else {
+            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,TRUE);
+            curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,2);//严格校验
+        }
+        /* ---------------- 20180912 添加判断 https end --------------------- */
+
+        //curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,TRUE);
+		//curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,2);//严格校验
 		curl_setopt($ch,CURLOPT_USERAGENT, $ua); 
 		//设置header
 		curl_setopt($ch, CURLOPT_HEADER, FALSE);

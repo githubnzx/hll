@@ -2,6 +2,7 @@
 
 namespace app\driver\logic;
 
+use app\common\config\WxPayUserConfig;
 use app\user\model\OrderModel;
 use app\common\config\WxPayDriverConfig;
 use app\driver\model\DriverModel;
@@ -35,21 +36,20 @@ class OrderLogic extends BaseLogic
         $inputObj->SetTrade_type("APP");
         $inputObj->SetTime_start($time_start);
         $inputObj->SetTime_expire($time_expire);
-        $config = new WxPayDriverConfig();
+        $config = new WxPayUserConfig();
         $order = \WxPayApi::unifiedOrder($config, $inputObj);
-        var_dump($order);die;
         if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
             return false;
         }
-        $inputObj->values = [];
+        //$inputObj->values = [];
         $data['appid'] = $order['appid'];
         $data['partnerid'] = $order['mch_id'];
         $data['prepayid'] = $order['prepay_id'];
         $data['package'] = "Sign=WXPay";
         $data['noncestr'] = \WxPayApi::getNonceStr();
         $data['timestamp'] = (string)time();
-        $inputObj->values = $data;
-        $data['sign'] = $inputObj->SetSign();
+        //$inputObj->values = $data;
+        $data['sign'] = $inputObj->SetSign($config);
         return $data;
     }
 

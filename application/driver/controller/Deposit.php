@@ -1,13 +1,10 @@
 <?php
-namespace app\user\controller;
+namespace app\driver\controller;
 use app\common\logic\MsgLogic;
-use app\user\model\DepositMode;
-use app\user\model\IntegralModel;
-use app\user\model\UsersModel;
-use app\user\logic\UserLogic;
-use app\user\logic\OrderLogic;
-use app\user\logic\MsgLogic as UserMsgLogic;
-use app\user\model\MyModel;
+use app\driver\model\DepositMode;
+use app\driver\logic\MsgLogic as DriverMsgLogic;
+use app\driver\logic\DriverLogic;
+use app\driver\logic\OrderLogic;
 use app\common\logic\PageLogic;
 use app\common\push\Push;
 use think\Cache;
@@ -17,7 +14,7 @@ use think\Config;
 class Deposit extends Base
 {
     public function payDeposit(){
-        $user_id = UserLogic::getInstance()->checkToken();
+        $user_id = DriverLogic::getInstance()->checkToken();
         $price   = $this->request->param('price/s', "500");
         $pay_type = $this->request->param('pay_type/d', 0); // 1微信 2支付宝
         if(!$price || !$pay_type) return error_out('', MsgLogic::PARAM_MSG);

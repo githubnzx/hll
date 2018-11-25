@@ -84,7 +84,7 @@ class WxPayUserConfig extends WxPayConfigInterface
     }
     public function GetAppSecret()
     {
-        return '04e910edf2d8c0edad3c6952d4ffb53a';
+        return 'fe5e5c5ac57c1d837a24764275612020';
     }
 
 
