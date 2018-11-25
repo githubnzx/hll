@@ -195,7 +195,7 @@ class driver extends Base
     public function recharge() {
         error_reporting(0);
         $user_id = DriverLogic::getInstance()->checkToken();
-        $price   = request()->post('price/f' , 0);
+        $price   = request()->post('price/f', 0);
         $password= request()->post('pay_pwd/s' , "");
         $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
         if(!$price || !$password || !$payType) return error_out('', MsgLogic::PARAM_MSG);
@@ -207,19 +207,24 @@ class driver extends Base
         if (bccomp($price, intval($price), 2) !== 0 || intval($price) % 10 !== 0) {
             return error_out('', DriverMsgLogic::PRICE_MISTAKEN);
         }
-        $data["user_id"]   = $user_id;
-        $data["user_type"] = DriverModel::USER_TYPE_USER;
-        $data["price"]     = $price;
-        $data["code"]      = OrderLogic::getInstance()->makeCode();
-        $data["pay_type"]  = $payType;
-        $data["status"]    = DriverModel::STAY_PAY;
-        $order_id = DriverModel::getInstance()->rechargeOrderInsert($data);
-        var_dump($order_id);die;
+        // 验证支付密码
+        $payPwd = DriverModel::getInstance()->userFind(["id"=>$user_id], "pay_pwd")["pay_pwd"] ?: "";
+        if ($payPwd !== md5($password)) {
+            return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
+        }
+        // 数据
+        $order["user_id"]   = $user_id;
+        $order["user_type"] = DriverModel::USER_TYPE_USER;
+        $order["price"]     = $price;
+        $order["code"]      = OrderLogic::getInstance()->makeCode();
+        $order["pay_type"]  = $payType;
+        $order["status"]    = DriverModel::STAY_PAY;
+        $order_id = DriverModel::getInstance()->rechargeOrderInsert($order);
         if ($order_id === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         if ($payType === 1) { // 微信支付
-            $data["wxData"] = OrderLogic::getInstance()->payWx($data['code'], $data['price'], url('Driver/pay/notifyWxRecharge', '', true, true), "APP");//亟亟城运会员购买
+            $data["wxData"] = OrderLogic::getInstance()->payWx($order['code'], $order['price'], url('Driver/pay/notifyWxRecharge', '', true, true), "亟亟城运司机充值");
         } else {  // 支付宝支付
-
+            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $order['price'], url('user/pay/notifyZfbRecharge', '', true, true), "亟亟城运司机充值");
         }
         return success_out($data);
     }

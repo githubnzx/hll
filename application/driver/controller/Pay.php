@@ -1,6 +1,7 @@
 <?php
 namespace app\driver\controller;
 
+use app\driver\model\DepositMode;
 use app\driver\model\DriverModel;
 use app\user\logic\OrderLogic;
 use app\driver\model\OrderModel;
@@ -143,7 +144,7 @@ class Pay extends Base
         return $result;
     }
 
-    // 会员卡场地微信支付
+    /*/ 会员卡场地微信支付
     public function notifyMyMemberWx()
     {
         $result = $this->wechatNotifyHandel(function ($code) {
@@ -190,8 +191,33 @@ class Pay extends Base
         // 处理账户
         $result = MemberModel::getInstance()->discountPaySuccess($order, $pay_type);
         return $result;
-    }
+    }*/
 
+    //
+    // 微信 司机交付押金 500
+    public function notifyWxDepositPay()
+    {
+        $result = $this->wechatNotifyHandel(function ($code) {
+            return $this->updateDepositOrder($code, OrderModel::ORDER_PAY_WX);
+        });
+        exit($result);
+    }
+    // 司机交付押金 500
+    public function updateDepositOrder($code, $pay_type){
+        $order =  DepositMode::getInstance()->depositOrderFind(["code"=>$code]);
+        if ($order['status'] != 1) return false;
+        // 处理账户
+        $result = DepositMode::getInstance()->depositOrderEdit($order, $pay_type);
+        return $result;
+    }
+    // 支付宝 司机交付押金 500
+    public function notifyZfbDepositPay()
+    {
+        $result = $this->zfbNotifyHandel(function ($code) {
+            return $this->updateDepositOrder($code, OrderModel::ORDER_PAY_ZFB);
+        });
+        exit($result);
+    }
 
 
 
