@@ -7,6 +7,7 @@ use app\user\model\OrderModel;
 use app\user\model\UsersModel;
 use app\common\config\WxPayUserConfig;
 use app\common\sms\UserSms;
+use app\user\logic\MapLogic;
 use think\exception\HttpException;
 use think\Loader;
 use think\Log;
@@ -170,5 +171,31 @@ class OrderLogic extends BaseLogic
         $price = bcadd($actualKilometerPrice, $fee_price); // 总公里价 + 小费
         return $price;
     }
+
+    // 获取公里
+    public function obtainKilometre($send_lon="", $send_lat="", $collect_lon="", $collect_lat=""){
+//        if (!$send_lon || !$send_lat || !$collect_lon || !$collect_lat) return 0;
+//        $longitude = $send_lon . "," . $send_lat;
+//        $dimension = $collect_lon . "," . $collect_lat;
+        $longitude = "40.01116,116.339303";
+        $dimension ="39.936404,116.452562";
+        $result = MapLogic::getInstance()->driveKilometre($longitude, $dimension);
+        var_dump($result);die;
+        //$longitude="40.01116,116.339303", $dimension="39.936404,116.452562"
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

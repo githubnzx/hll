@@ -50,11 +50,12 @@ class DriverConfig extends BaseConfig
     public function truckPrice()
     {
         return [
-            ['id' => 1, 'starting_price' => "35", "excess_fee" => "3"],
-            ['id' => 2, 'starting_price' => "49", "excess_fee" => "4"],
-            ['id' => 3, 'starting_price' => "48", "excess_fee" => "4"],
-            ['id' => 4, 'starting_price' => "95", "excess_fee" => "5"],
-            ['id' => 5, 'starting_price' => "95", "excess_fee" => "5"],
+            ['id' => 1, 'starting_price' => "35", "excess_fee" => "3"], // 小型面包车
+            ['id' => 2, 'starting_price' => "49", "excess_fee" => "4"], // 小型平板车
+            ['id' => 3, 'starting_price' => "49", "excess_fee" => "4"], // 小型厢式货车
+            ['id' => 4, 'starting_price' => "95", "excess_fee" => "5"], // 中型厢式货车
+            ['id' => 5, 'starting_price' => "95", "excess_fee" => "5"], // 中型平板车
+            ['id' => 6, 'starting_price' => "95", "excess_fee" => "5"], // 中型高栏
         ];
     }
 
@@ -77,6 +78,7 @@ class DriverConfig extends BaseConfig
             ['id' => 3, 'title' => "小型厢式货车"],
             ['id' => 4, 'title' => "中型厢式货车"],
             ['id' => 5, 'title' => "中型平板车"],
+            ['id' => 6, 'title' => "中型高栏车"],
         ];
     }
 
