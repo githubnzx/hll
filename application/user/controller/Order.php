@@ -21,8 +21,6 @@ class Order extends Base
     // 下单
     public function index()
     {
-        OrderLogic::getInstance()->obtainKilometre();die;
-
         $user_id = UserLogic::getInstance()->checkToken();
         $truck_id = $this->request->post('truck_id/d', 0);
         $send_lon = $this->request->post('send_lon/s', "");
@@ -39,7 +37,7 @@ class Order extends Base
         $isReceivables= $this->request->post('is_receivables/d', 0); // 是否预约
         $order_time  = strtotime($this->request->post('order_time/s', ""));  // 预约时间
         $fee_price   = strtotime($this->request->post('fee_price/s', ""));   // 小费
-        $kilometers  = $this->request->post('kilometers/d', 0);    // 公里数
+        //$kilometers  = $this->request->post('kilometers/d', 0);    // 公里数
         if (!$truck_id || !$send_lon || !$send_lat || !$collect_lon || !$collect_lat || !$send_addr || !$collect_addr) {
             return error_out("", MsgLogic::PARAM_MSG);
         }
@@ -55,8 +53,9 @@ class Order extends Base
         $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
         if($isExistsOrder) return error_out("", OrderMsgLogic::ORDER_IS_EXISTS);
         // 费用计算
-        OrderLogic::getInstance()->obtainKilometers($send_lon, $send_lat, $collect_lon, $collect_lat);
-        $price = OrderLogic::getInstance()->imputedPrice($kilometers, $trucInfo["type"], $fee_price);
+        $result = OrderLogic::getInstance()->obtainKilometre($send_lon, $send_lat, $collect_lon, $collect_lat);
+        if ($result === false) return error_out("", MsgLogic::PARAM_MSG);
+        $price = OrderLogic::getInstance()->imputedPrice($result["result"]["routes"][0]["distance"], $trucInfo["type"], $fee_price);
         $order = [
             "code"          => OrderLogic::getInstance()->makeCode(),
             "user_id"       => $user_id,
