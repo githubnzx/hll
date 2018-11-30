@@ -107,6 +107,9 @@ class Order extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        // 判断是否缴纳押金
+        $deposit = DriverModel::getInstance()->userFind(["id"=>$user_id], "deposit_status, deposit_number");
+        if (!$deposit || $deposit["deposit_number"] >= 3) return error_out("", OrderMsgLogic::DEPOSIT_STATUS_NOT);
         // 查询是否是会员
         $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
         $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数

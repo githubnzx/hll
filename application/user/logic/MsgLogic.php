@@ -32,6 +32,8 @@ class MsgLogic extends BaseLogic
     const ORDER_UPPER_LIMIT  = "抢单已达上限";
     const ORDER_NOT_PAY      = "订单不可支付";
 
+    const DEPOSIT_STATUS_NOT = "请缴纳押金";
+
     // 货车
     const TRUCK_IS_EXISTS    = "货车不存在";
     // 评论

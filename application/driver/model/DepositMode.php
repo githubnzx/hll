@@ -36,8 +36,9 @@ class DepositMode extends BaseModel
                 }
             } else { // 支付宝
                 $order = OrderLogic::getInstance()->refundZfb($order['code'], $order['price'], "押金退款");
-
             }
+            // 修改用户数据
+            DriverModel::getInstance()->userEdit(["id"=>$order["user_id"]], ["deposit_status"=>0, "deposit_price"=>"0.00", "deposit_number"=>0, "deposit_pay_type"=>0]);
             Db::commit();
             return true;
         } catch (\Exception $e) {
