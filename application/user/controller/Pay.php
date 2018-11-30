@@ -1,9 +1,12 @@
 <?php
 namespace app\user\controller;
 
+use app\user\model\DepositMode;
 use app\user\model\UsersModel;
 use app\user\logic\OrderLogic;
 use app\user\model\OrderModel;
+use app\user\model\MemberModel;
+use app\user\model\DepositModel;
 use think\Loader;
 
 
@@ -25,6 +28,25 @@ class Pay extends Base
             return $this->updateRechargeOrder($code, OrderModel::ORDER_PAY_WX);
         });
         exit($result);
+    }
+
+    // 微信-押金
+    public function notifyWxDeposit()
+    {
+        $result = $this->wechatNotifyHandel(function ($code) {
+            return $this->updateOrderDeposit($code, OrderModel::ORDER_PAY_WX);
+        });
+        exit($result);
+    }
+
+    // 押金
+    public function updateOrderDeposit($code, $pay_type)
+    {
+        $order =  DepositModel::getInstance()->depositOrderFind(["code"=>$code]);
+        if ($order['status'] != 1) return false;
+        // 处理账户
+        $result = DepositModel::getInstance()->orderPaySuccess($order, $pay_type);
+        return $result;
     }
 
     private function wechatNotifyHandel($callback)

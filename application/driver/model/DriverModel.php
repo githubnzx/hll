@@ -44,6 +44,8 @@ class DriverModel extends BaseModel
     const JS_CARD   = 6;
     const XS_CARD   = 7;
     const DRIVER_CAR  = 8;
+    const DEPOSIT_OPERATE_TYPE = 1;
+    const RETREAT_OPERATE_TYPE = 2;
 
 
     public function userFind($where, $fields = '*'){

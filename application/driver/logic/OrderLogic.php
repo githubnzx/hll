@@ -69,6 +69,7 @@ class OrderLogic extends BaseLogic
         return $order;
     }
 
+    // 微信提现
     public function transferWx($code, $openid, $price, $check_name = 'FORCE_CHECK', $user_name = '')
     {
         $price = 0.01;
@@ -88,6 +89,7 @@ class OrderLogic extends BaseLogic
         return true;
     }
 
+    // 支付宝退款
     public function refundZfb($code, $price, $desc)
     {
         $price = 0.01;

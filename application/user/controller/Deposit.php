@@ -16,7 +16,7 @@ use think\Config;
 
 class Deposit extends Base
 {
-    public function payDeposit(){
+    public function pay(){
         $user_id = UserLogic::getInstance()->checkToken();
         $price   = $this->request->param('price/s', "500");
         $pay_type = $this->request->param('pay_type/d', 0); // 1微信 2支付宝
@@ -30,12 +30,13 @@ class Deposit extends Base
         $order_id = DepositMode::getInstance()->depositOrderAddGetId($order);
         if($order_id === false) return error_out('', MsgLogic::SERVER_EXCEPTION);
         if ($pay_type === 1) { // 微信支付
-            $data["wxData"] = OrderLogic::getInstance()->payWx($order['code'], $order['price'], url('user/pay/notifyWx', '', true, true), "APP");//亟亟城运会员购买
+            $data["wxData"] = OrderLogic::getInstance()->payWx($order['code'], $order['price'], url('user/pay/notifyWxDeposit', '', true, true), "APP");//亟亟城运会员购买
         } else {  // 支付宝支付
-
+            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $order['price'], url('user/pay/notifyZfb', '', true, true));
         }
         return success_out($data);
     }
+
 
 
 }
