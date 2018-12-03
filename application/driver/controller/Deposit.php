@@ -38,7 +38,7 @@ class Deposit extends Base
 
 
 
-    //
+    // 退款押金
     public function retreat(){
         $coach_id  = DriverModel::getInstance()->checkToken();
         $userInfo = DriverModel::getInstance()->userFind(["id"=>$coach_id], "name, openid, deposit_status, deposit_price, deposit_pay_type deposit_number");
