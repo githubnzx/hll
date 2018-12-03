@@ -30,6 +30,8 @@ class Member extends Base
         $memberList = MemberModel::getInstance()->memberList([], "id, title, style, recommend, rights, notes") ?: [];
         foreach ($memberList as $key => &$val) {
             $val["style"] = handleImgPath($val["style"]);
+            $memberSpecsList = MemberModel::getInstance()->memberSpecsList(["member_id"=>$val["id"]], "id, validity_day, give_day, origin_price, price") ?: [];
+            $val["specs"] = $memberSpecsList;
         }
         return success_out($memberList);
     }
