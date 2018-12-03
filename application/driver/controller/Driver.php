@@ -155,7 +155,7 @@ class driver extends Base
         return success_out($driverInfo);
     }
 
-    // 体现
+    // 提现
     public function transfer(){
         error_reporting(0);
         $tx_status = false;

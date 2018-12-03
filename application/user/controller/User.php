@@ -138,6 +138,41 @@ class User extends Base
         return success_out($data);
     }
 
+    // 提现
+        public function transfer(){
+        error_reporting(0);
+        $tx_status = false;
+        $user_id = UserLogic::getInstance()->checkToken();
+        $price = request()->post('price/f' , 0);
+        $password = request()->post('password/s' , "");
+        $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
+        if(!$price || !$password) return error_out('', MsgLogic::PARAM_MSG);
+        // 判断是否微信授权
+        $driver = UsersModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
+        // 判断用户支付密码
+        if($driver["pay_pwd"] !== md5($password)) return error_out('', UserMsgLogic::USER_PAY_PWD);
+        if(!is_array($driver) || empty($driver['openid'])){
+            return error_out('', UserMsgLogic::TRANSFER_WX_AUTH);
+        }
+        if (bccomp($price, 100.00, 2) < 0) {
+            return error_out('', UserMsgLogic::TRANSFER_WX_MIN_PRICE);
+        }
+        // 查询余额是否满足体现金额
+        $result = UsersModel::getInstance()->balanceInfoById($user_id);
+        if(!$result || bccomp($result['balance'], $price, 2) < 0) return error_out('', UserMsgLogic::USER_PRICE_LESS);
+        // 教练余额
+        $balance_total = bcsub($result['balance'], $price, 2);
+        $balance_res = UsersModel::getInstance()->addBillAndTxBalance($user_id, $result['id'], $balance_total, $price, UsersModel::TYPE_OUT, $payType, '提现', 1);
+        if($balance_res){
+            // 发送消息
+            //$msg['name'] = $coach['title'];
+            //$msg['money']= $price;
+            //CoachSms::withdrawal($coach['phone'], $msg);
+            return success_out('', '已处理');
+        } else {
+            return error_out('', MsgLogic::SERVER_EXCEPTION);
+        }
+    }
 
 
 
