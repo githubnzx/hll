@@ -32,5 +32,12 @@ class DriverModel extends BaseModel
         return Db::table($this->driver)->where($where)->count();
     }
 
+    public function driverEdit($where, $param){
+        if (!isset($param["update_time"])) {
+            $param["update_time"] = CURR_TIME;
+        }
+        return Db::table($this->driver)->where($where)->update($param);
+    }
+
 
 }

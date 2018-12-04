@@ -97,9 +97,16 @@ class Integral extends Base
         // 验证用户订单
         $orderStatus = IntegralModel::getInstance()->integralOrderFind(["user_id"=>$user_id, "id"=>$order_id], "status")["status"] ?: 0;
         if($orderStatus !== 1) return error_out("", MsgLogic::INTEGRAL_RECEIPT_MSG);
-        $order = IntegralModel::getInstance()->integralOrderEdit(["id"=>$order_id], ["status"=>2]);
+        $order = IntegralModel::getInstance()->integralOrderEdit(["id"=>$order_id], ["status"=>3]);
         if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
+    }
+
+    // 查询物流
+    public function logistics(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $order_id= $this->request->post('order_id/d', 0);
+        $order_id= $this->request->post('order_id/d', 0);
     }
 
 

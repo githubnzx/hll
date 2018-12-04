@@ -10,9 +10,10 @@ use think\Cache;
 use think\Config;
 
 
-class Driver extends Base
+class Driver //extends Base
 {
     private $statusType = ["show"=>0, "hide"=>1];
+        private $auditStatus = ["adopt"=>2, "nopass"=>3];
     // 列表
     public function lst()
     {
@@ -54,6 +55,15 @@ class Driver extends Base
         $type     = request()->post('type/s', "");
         if (!$driver_id || !$type) return error_out("", MsgLogic::PARAM_MSG);
         $result = EvaluateModel::getInstance()->evaluateDriverCount(["id"=>$driver_id], ["status"=>$this->statusType[$type]]);
+        if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
+    }
+
+    public function examine(){
+        $driver_id= request()->post('driver_id/d', 0);
+        $status   = request()->post('status/s', "");
+        if (!$driver_id || !$status) return error_out("", MsgLogic::PARAM_MSG);
+        $result = DriverModel::getInstance()->driverEdit(["id"=>$driver_id], ["audit_status"=>$this->auditStatus[$status]]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
