@@ -28,17 +28,17 @@ class Login extends Controller
     {
         $userName = input("param.user_name");
         $password = input("param.password");
-        $code = input("param.code");
+        //$code = input("param.code");
 
-        $result = $this->validate(compact('userName', 'password', "code"), 'AdminValidate');
+        $result = $this->validate(compact('userName', 'password'), 'AdminValidate');
         if(true !== $result){
             return json(msg(-1, '', $result));
         }
 
-        $verify = new Verify();
+        /*$verify = new Verify();
         if (!$verify->check($code)) {
             return json(msg(-2, '', '验证码错误'));
-        }
+        }*/
 
         $userModel = new UserModel();
         $hasUser = $userModel->checkUser($userName);
