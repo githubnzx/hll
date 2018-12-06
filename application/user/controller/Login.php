@@ -52,6 +52,7 @@ class Login extends Base
         if ($cache_result !== true) return error_out('',UserLogic::USER_SMS_FAIL);
         $templateParam  = ['code'=>$code];
         $response = UserSms::code($phone , $templateParam);
+        var_dump($response);die;
         if ($response->Code == 'OK') {
             Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
             return success_out('', '发送成功');

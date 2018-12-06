@@ -111,9 +111,9 @@ class User extends Base
         error_reporting(0);
         $user_id = UserLogic::getInstance()->checkToken();
         $price   = request()->post('price/f' , 0);
-        $password= request()->post('pay_pwd/s' , "");
+        //$password= request()->post('pay_pwd/s' , "");
         $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
-        if(!$price || !$password || !$payType) return error_out('', MsgLogic::PARAM_MSG);
+        if(!$price || !$payType) return error_out('', MsgLogic::PARAM_MSG);
         // 验证金额
         if (bccomp($price, 10.00, 2) < 0) {
             return error_out('', UserMsgLogic::RECHARGE_MIN_PRICE);
@@ -144,13 +144,13 @@ class User extends Base
         $tx_status = false;
         $user_id = UserLogic::getInstance()->checkToken();
         $price = request()->post('price/f' , 0);
-        $password = request()->post('password/s' , "");
+        //$password = request()->post('password/s' , "");
         $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
-        if(!$price || !$password) return error_out('', MsgLogic::PARAM_MSG);
+        if(!$price) return error_out('', MsgLogic::PARAM_MSG);
         // 判断是否微信授权
         $driver = UsersModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
         // 判断用户支付密码
-        if($driver["pay_pwd"] !== md5($password)) return error_out('', UserMsgLogic::USER_PAY_PWD);
+        //if($driver["pay_pwd"] !== md5($password)) return error_out('', UserMsgLogic::USER_PAY_PWD);
         if(!is_array($driver) || empty($driver['openid'])){
             return error_out('', UserMsgLogic::TRANSFER_WX_AUTH);
         }

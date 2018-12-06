@@ -161,13 +161,13 @@ class driver extends Base
         $tx_status = false;
         $user_id = DriverLogic::getInstance()->checkToken();
         $price = request()->post('price/f' , 0);
-        $password = request()->post('password/s' , "");
+        //$password = request()->post('password/s' , "");
         $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
-        if(!$price || !$password) return error_out('', MsgLogic::PARAM_MSG);
+        if(!$price) return error_out('', MsgLogic::PARAM_MSG);
         // 判断是否微信授权
         $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
         // 判断用户支付密码
-        if($driver["pay_pwd"] !== md5($password)) return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
+        //if($driver["pay_pwd"] !== md5($password)) return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
         if(!is_array($driver) || empty($driver['openid'])){
             return error_out('', DriverMsgLogic::TRANSFER_WX_AUTH);
         }
@@ -196,9 +196,9 @@ class driver extends Base
         error_reporting(0);
         $user_id = DriverLogic::getInstance()->checkToken();
         $price   = request()->post('price/f', 0);
-        $password= request()->post('pay_pwd/s' , "");
+        //$password= request()->post('pay_pwd/s' , "");
         $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
-        if(!$price || !$password || !$payType) return error_out('', MsgLogic::PARAM_MSG);
+        if(!$price || !$payType) return error_out('', MsgLogic::PARAM_MSG);
         // 验证金额
         if (bccomp($price, 10.00, 2) < 0) {
             return error_out('', DriverMsgLogic::RECHARGE_MIN_PRICE);
@@ -208,10 +208,8 @@ class driver extends Base
             return error_out('', DriverMsgLogic::PRICE_MISTAKEN);
         }
         // 验证支付密码
-        $payPwd = DriverModel::getInstance()->userFind(["id"=>$user_id], "pay_pwd")["pay_pwd"] ?: "";
-        if ($payPwd !== md5($password)) {
-            return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
-        }
+        //$payPwd = DriverModel::getInstance()->userFind(["id"=>$user_id], "pay_pwd")["pay_pwd"] ?: "";
+        //if ($payPwd !== md5($password)) return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
         // 数据
         $order["user_id"]   = $user_id;
         $order["user_type"] = DriverModel::USER_TYPE_USER;
