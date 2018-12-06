@@ -11,4 +11,5 @@ public/admin.php
 public/user.php
 application/config.php
 application/database.php
+public/driver.php
 
