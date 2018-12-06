@@ -6,6 +6,7 @@ use app\user\logic\UserLogic;
 use app\user\model\UsersModel;
 use app\user\Logic\WechatLogic;
 use app\common\logic\MsgLogic;
+use app\common\sms\UserSms;
 use app\user\logic\MsgLogic as UserMsgLogic;
 
 use think\Cache;
@@ -42,10 +43,10 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-        $code = 111111; 
-        Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
-        return success_out('', '发送成功');
-        /*
+//        $code = 111111;
+//        Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
+//        return success_out('', '发送成功');
+
         $code = rand(100000 , 999999);
         $cache_result = Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
         if ($cache_result !== true) return error_out('',UserLogic::USER_SMS_FAIL);
@@ -58,7 +59,7 @@ class Login extends Base
             return error_out('', '当前账户频率操作过快 请稍后重试');
         } else {
             return error_out('', '服务器异常');
-        }*/
+        }
     }
     // 忘记 密码
     public function forgetPwd(){
