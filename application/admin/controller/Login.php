@@ -28,28 +28,28 @@ class Login extends Controller
     {
         $userName = input("param.user_name");
         $password = input("param.password");
-        $code = input("param.code");
+        //$code = input("param.code");
 
-        $result = $this->validate(compact('userName', 'password', "code"), 'AdminValidate');
+        $result = $this->validate(compact('userName', 'password'), 'AdminValidate');
         if(true !== $result){
             return json(msg(-1, '', $result));
         }
 
-        $verify = new Verify();
+        /*$verify = new Verify();
         if (!$verify->check($code)) {
             return json(msg(-2, '', '验证码错误'));
-        }
+        }*/
 
         $userModel = new UserModel();
         $hasUser = $userModel->checkUser($userName);
 
-        if(empty($hasUser)){
+        if(empty($hasUser) || $hasUser['is_del'] == DEL_STATUS){
             return json(msg(-3, '', '管理员不存在'));
         }
 
         if(md5($password . config('salt')) != $hasUser['password']){
             return json(msg(-4, '', '密码错误'));
-        }
+         }
 
         if(1 != $hasUser['status']){
             return json(msg(-5, '', '该账号被禁用'));
@@ -57,7 +57,7 @@ class Login extends Controller
 
         session('username', $hasUser['user_name']);
         session('id', $hasUser['id']);
-        session('head', $hasUser['head']);
+        //session('head', $hasUser['head']);
         session('role', $hasUser['role_name']);  // 角色名
         session('role_id', $hasUser['role_id']);
         session('rule', $hasUser['rule']);
@@ -74,7 +74,7 @@ class Login extends Controller
             return json(msg(-6, '', $res['msg']));
         }
         // ['code' => 1, 'data' => url('index/index'), 'msg' => '登录成功']
-        return json(msg(1, url('index/index'), '登录成功'));
+        return json(msg(1, "", '登录成功'));
     }
 
     // 验证码
@@ -86,7 +86,8 @@ class Login extends Controller
         $verify->length = 4;
         $verify->useNoise = false;
         $verify->fontSize = 14;
-        return $verify->entry();
+        $verify->entry();
+        var_dump($_SESSION);die;
     }
 
     // 退出操作
@@ -94,11 +95,24 @@ class Login extends Controller
     {
         session('username', null);
         session('id', null);
-        session('head', null);
+        //session('head', null);
         session('role', null);  // 角色名
         session('role_id', null);
         session('rule', null);
+        return json(msg(1, '', '退出成功'));
+        //$this->redirect(url('index'));
+    }
 
-        $this->redirect(url('index'));
+    // 注册操作
+    public function register()
+    {
+        session('username', null);
+        session('id', null);
+        //session('head', null);
+        session('role', null);  // 角色名
+        session('role_id', null);
+        session('rule', null);
+        return json(msg(1, '', '退出成功'));
+        //$this->redirect(url('index'));
     }
 }

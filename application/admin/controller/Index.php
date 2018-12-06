@@ -10,19 +10,26 @@
 // +----------------------------------------------------------------------
 namespace app\admin\controller;
 use app\admin\model\NodeModel;
+use think\Error;
+use think\exception\HttpException;
+use think\Request;
 
 class Index extends Base
 {
+
     public function index()
     {
         // 获取权限菜单
         $node = new NodeModel();
 
-        $this->assign([
+        /*$this->assign([
             'menu' => $node->getMenu(session('rule'))
-        ]);
-
-        return $this->fetch('/index');
+        ]);*/
+        /*if($this->msg){
+            return error_out("", $this->msg);
+        }*/
+        return success_out("", "成功");
+        //return $this->fetch('/index');
     }
 
     /**

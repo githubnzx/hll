@@ -17,16 +17,10 @@ class Node extends Base
     // 节点列表
     public function index()
     {
-        if(request()->isAjax()){
-
-            $node = new NodeModel();
-            $nodes = $node->getNodeList();
-
-            $nodes = getTree(objToArray($nodes), false);
-            return json(msg(1, $nodes, 'ok'));
-        }
-
-        return $this->fetch();
+        $node = new NodeModel();
+        $nodes = $node->getNodeList();
+        $nodes = getTree(objToArray($nodes), false);
+        return json(msg(1, $nodes, '节点列表'));
     }
 
     // 添加节点

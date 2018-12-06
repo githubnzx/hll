@@ -15,7 +15,8 @@ use think\Model;
 class UserModel extends Model
 {
     // 确定链接表名
-    protected $name = 'user';
+    protected $name = 'admin_user';
+    protected $adminRoleName = 'admin_role';
 
     /**
      * 根据搜索条件获取用户列表信息
@@ -26,7 +27,7 @@ class UserModel extends Model
     public function getUsersByWhere($where, $offset, $limit)
     {
         return $this->alias('user')->field( 'user.*,role_name')
-            ->join('role rol', 'user.role_id = ' . 'rol.id')
+            ->join("$this->adminRoleName rol", 'user.role_id = ' . 'rol.id')
             ->where($where)->limit($offset, $limit)->order('id desc')->select();
     }
 
@@ -139,7 +140,7 @@ class UserModel extends Model
      */
     public function checkUser($userName)
     {
-        return $this->alias('u')->join('role r', 'u.role_id = r.id')
+        return $this->alias('u')->join("$this->adminRoleName r", 'u.role_id = r.id')
                 ->where('u.user_name', $userName)
                 ->find();
     }

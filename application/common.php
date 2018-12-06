@@ -9,6 +9,7 @@
 // | Author: 流年 <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
+
 // 应用公共文件
 function makeUniqueCode()
 {
@@ -25,12 +26,9 @@ function makeLoginToken($sub = '' , $prefix = '')
 define('CURR_TIME', time());
 define('CURR_DATE', date('Y-m-d'));
 define('HOUR', 3600);
-//可排期时间 9:00 -21:00
-//排期或者预约最小时间段[9:00 - 9:30]
-define('MIN_TIMENODE', 18);
-//排期可用最大时间段[20:30 - 21:00]
-define("MAX_TIMENODE", 41);
-define("UNABLE_MIX_TIMENODE", 38);
+//定义删除状态
+define('DEL_STATUS', 1);
+define('NOT_DEL_STATUS', 0);
 /**
  * 统一返回信息
  * @param $code
@@ -48,11 +46,13 @@ function api_out($code, $data, $msg, $httpCode = 200)
 
 function success_out($data = '', $msg = '')
 {
+    $data = $data ?: null;
     return api_out(1, $data, $msg);
 }
 
-function error_out($data = '', $msg = '')
+function error_out($data = "", $msg = '')
 {
+    $data = $data ?: null;
     return api_out(0, $data, $msg);
 }
 
@@ -66,10 +66,15 @@ function birthdayAge($birthday)
     return $year_diff;
 }
 
+// 理解价格
+function handlePrice($price){
+    return (string) ceil($price);
+}
+
 
 if (!function_exists('handleImgPath')) {
     /**
-     * 当前日期零点时间戳
+     * 图片全路径
      * @param $date
      * @return int
      */
@@ -82,6 +87,26 @@ if (!function_exists('handleImgPath')) {
         return config('img.domain') . $image;
     }
 }
+
+if (!function_exists('statisticsContentRangeValid')) {
+    /**
+     * 统计内容数量
+     * @param $min 最小数量
+     * @param $max 最大数量
+     * @return true false
+     */
+    function statisticsContentRangeValid($content, $min = 10, $max = 200)
+    {
+        $count = mb_strlen($content, "utf-8");
+        if($count >= $min && $count <= $max){
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+}
+
 
 
 if (!function_exists('currZeroDateToTime')) {
@@ -107,6 +132,20 @@ if (!function_exists('dateFormatTimestamp')) {
     {
         $date = explode("-", $date);
         return mktime(0, 0, 0, $date[1], $date[2], $date[0]);
+    }
+}
+
+if (!function_exists('handleUserName')) {
+    /**
+     * 图片全路径
+     * @param $date
+     * @return int
+     */
+    function handleUserName($name, $start = 0, $length = 1, $encoding = "utf-8")
+    {
+        if (!$name) return "";
+        $nameStr = mb_substr($name, $start, $length, $encoding);
+        return $nameStr;
     }
 }
 

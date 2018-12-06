@@ -16,6 +16,25 @@ use app\admin\model\UserModel;
 
 class User extends Base
 {
+    // 用户列表
+    public function lst() {
+
+        $type = request()->post('type_id/d', '');
+        $sports_ids = request()->post('sports_ids/d', '');
+        if (!$type || !$sports_ids) return error_out([], '参数错误');
+        $list = LableModel::priceList($type,$sports_ids);
+        foreach ($list as $k=>&$v){
+            $v['user_max_salary']=$v['max_salary']+$v['accumu_salary'];
+            $v['user_min_salary']=$v['min_salary']+$v['accumu_salary'];
+            $v['type_id'] = CourseModel::typeName($v['type_id']);
+            $v['level_id'] = CourseModel::levelName($v['level_id']);
+        }
+
+        return json(['list' => $list, 'msg' => '']);
+    }
+
+
+
     //用户列表
     public function index()
     {
