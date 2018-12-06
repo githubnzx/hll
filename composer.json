@@ -18,7 +18,9 @@
     "require": {
         "php": ">=5.4.0",
         "topthink/framework": "*",
-        "topthink/think-image": "dev-master"
+        "topthink/think-image": "dev-master",
+        "endroid/qrcode": "2.x-dev",
+        "endroid/qr-code": "2.x-dev"
     },
     "extra": {
         "think-path": "thinkphp"

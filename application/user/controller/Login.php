@@ -198,13 +198,9 @@ class Login extends Base
     public function qq()
     {
         $code = QqLogic::getInstance()->getAuthCode();
-        var_dump($code);die;
-
-
-        die;
         $code = request()->post('code' , '');
         if (!$code) return error_out('', UserLogic::QQ_CODE);
-        $QQToken = QqLogic::getInstance()->getToken("");
+        $QQToken = QqLogic::getInstance()->getToken($code);
         if (isset($wx_token['errcode'])) {
             return error_out('', $QQToken['errmsg']);
         }
