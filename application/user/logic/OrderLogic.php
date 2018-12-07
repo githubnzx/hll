@@ -8,6 +8,7 @@ use app\user\model\UsersModel;
 use app\common\config\WxPayUserConfig;
 use app\common\sms\UserSms;
 use app\common\logic\MapLogic;
+use app\common\logic\PayLogic;
 use think\exception\HttpException;
 use think\Loader;
 use think\Log;
@@ -24,7 +25,7 @@ class OrderLogic extends BaseLogic
 
     public function payWx($code, $price, $notifyUrl)
     {
-        $price = 0.01;
+        $price = PayLogic::getInstance()->handlePayPrice($price);
         $times = CURR_TIME;
         Loader::import('wxpay.lib.WxPay#Api');
         $inputObj = new \WxPayUnifiedOrder();
@@ -52,7 +53,7 @@ class OrderLogic extends BaseLogic
 
     public function refundWx($code, $price)
     {
-        $price = 0.01;
+        $price = PayLogic::getInstance()->handlePayPrice($price);
         Loader::import('wxpay.user.lib.WxPay#Api');
         $inputObj = new \WxPayRefund();
         $inputObj->SetOut_trade_no($code);
@@ -68,7 +69,7 @@ class OrderLogic extends BaseLogic
 
     public function transferWx($code, $openid, $price, $check_name = 'FORCE_CHECK', $user_name = '')
     {
-        $price = 0.01;
+        $price = PayLogic::getInstance()->handlePayPrice($price);
         Loader::import('wxpay.user.lib.WxPay#Api');
         $inputObj = new \WxTransOrder();
         $inputObj->SetPartner_trade_no($code);
@@ -87,7 +88,7 @@ class OrderLogic extends BaseLogic
 
     public function refundZfb($code, $price, $desc)
     {
-        $price = 0.01;
+        $price = PayLogic::getInstance()->handlePayPrice($price);
         try {
             Loader::import('alipay.Alipay');
             $alipay = new \Alipay();
@@ -100,7 +101,7 @@ class OrderLogic extends BaseLogic
 
     public function payZfb($code, $price, $notifyUrl)
     {
-        $price = 0.01;
+        $price = PayLogic::getInstance()->handlePayPrice($price);
         Loader::import('alipay.user.Alipay');
         $alipay = new \Alipay();
         $param['body'] = '亟亟城运';
