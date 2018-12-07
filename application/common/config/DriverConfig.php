@@ -73,12 +73,12 @@ class DriverConfig extends BaseConfig
     {
         return [
             ['id' => 0, 'title' => "未知"],
-            ['id' => 1, 'title' => "小型面包车"],
-            ['id' => 2, 'title' => "小型平板车"],
-            ['id' => 3, 'title' => "小型厢式货车"],
-            ['id' => 4, 'title' => "中型厢式货车"],
-            ['id' => 5, 'title' => "中型平板车"],
-            ['id' => 6, 'title' => "中型高栏车"],
+            ['id' => 1, 'title' => "小型面包"],
+            ['id' => 2, 'title' => "小型平板"],
+            ['id' => 3, 'title' => "小型箱货"],
+            ['id' => 4, 'title' => "中型平板"],
+            ['id' => 5, 'title' => "中型箱货"],
+            ['id' => 6, 'title' => "中型高栏"],
         ];
     }
 

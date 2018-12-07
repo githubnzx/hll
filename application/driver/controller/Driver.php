@@ -220,9 +220,9 @@ class driver extends Base
         $order_id = DriverModel::getInstance()->rechargeOrderInsert($order);
         if ($order_id === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         if ($payType === 1) { // 微信支付
-            $data["wxData"] = OrderLogic::getInstance()->payWx($order['code'], $order['price'], url('Driver/pay/notifyWxRecharge', '', true, true), "亟亟城运司机充值");
+            $data["wxData"] = OrderLogic::getInstance()->payWx($order['code'], $order['price'], url('driver/pay/notifyWxRecharge', '', true, true), "亟亟城运司机充值");
         } else {  // 支付宝支付
-            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $order['price'], url('user/pay/notifyZfbRecharge', '', true, true), "亟亟城运司机充值");
+            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $order['price'], url('driver/pay/notifyZfbRecharge', '', true, true), "亟亟城运司机充值");
         }
         return success_out($data);
     }

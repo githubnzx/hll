@@ -37,8 +37,10 @@ class Order extends Base
         $isReceivables= $this->request->post('is_receivables/d', 0); // 是否预约
         $order_time  = strtotime($this->request->post('order_time/s', ""));  // 预约时间
         $fee_price   = strtotime($this->request->post('fee_price/s', ""));   // 小费
+        $consignee_phone   = $this->request->post('consignee_phone/s', "");
+        $consignee_addr   = $this->request->post('consignee_addr/s', "");
         //$kilometers  = $this->request->post('kilometers/d', 0);    // 公里数
-        if (!$truck_id || !$send_lon || !$send_lat || !$collect_lon || !$collect_lat || !$send_addr || !$collect_addr) {
+        if (!$truck_id || !$send_lon || !$send_lat || !$collect_lon || !$collect_lat || !$send_addr || !$collect_addr || !$consignee_phone || !$consignee_addr) {
             return error_out("", MsgLogic::PARAM_MSG);
         }
         // 查询货车是否存在
@@ -54,7 +56,7 @@ class Order extends Base
         if($isExistsOrder) return error_out("", OrderMsgLogic::ORDER_IS_EXISTS);
         // 费用计算
         $result = OrderLogic::getInstance()->obtainKilometre($send_lon, $send_lat, $collect_lon, $collect_lat);
-        if ($result === false) return error_out("", MsgLogic::PARAM_MSG);
+        if (!$result) return error_out("", MsgLogic::PARAM_MSG);
         $price = OrderLogic::getInstance()->imputedPrice($result["result"]["routes"][0]["distance"], $trucInfo["type"], $fee_price);
         $order = [
             "code"          => OrderLogic::getInstance()->makeCode(),
@@ -69,17 +71,21 @@ class Order extends Base
             "collect_good_lat" => $collect_lat,
             "send_good_addr"   => $send_addr,
             "collect_good_addr"=> $collect_addr,
+            "collect_good_addr"=> $collect_addr,
             "price"   => bcsub($price, $fee_price),
             "total_price" => $price,
             "fee"     => $fee_price,
             "contacts"=> $contacts,
             "phone"   => $phone,
+            "consignee_phone" => $consignee_phone,
+            "consignee_addr"  => $consignee_addr,
             "status"  => 0,
             "remarks" => $remarks,
             "date"    => strtotime(CURR_DATE),
             "is_place_order" => $order_time ? 1 : 0,
             "order_time" => $order_time ?: CURR_TIME
         ];
+        var_dump($order);die;
         // 下单
         $order_id = OrderModel::getInstance()->orderInsert($order);
         if($order_id === false) return error_out("", MsgLogic::SERVER_EXCEPTION);

@@ -28,9 +28,9 @@ class Deposit extends Base
         $order_id = DepositMode::getInstance()->depositOrderAddGetId($order);
         if($order_id === false) return error_out('', MsgLogic::SERVER_EXCEPTION);
         if ($pay_type === 1) { // 微信支付
-            $data["wxData"] = OrderLogic::getInstance()->payWx($order['code'], $order['price'], url('user/pay/notifyWxDepositPay', '', true, true), "亟亟城运司机端交付押金");//亟亟城运会员购买
+            $data["wxData"] = OrderLogic::getInstance()->payWx($order['code'], $order['price'], url('driver/pay/notifyWxDepositPay', '', true, true), "亟亟城运司机端交付押金");//亟亟城运会员购买
         } else {  // 支付宝支付
-            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $order['price'], url('user/pay/notifyZfbDepositPay', '', true, true), "亟亟城运司机端交付押金");
+            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $order['price'], url('driver/pay/notifyZfbDepositPay', '', true, true), "亟亟城运司机端交付押金");
         }
         return success_out($data);
     }
