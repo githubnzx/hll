@@ -176,8 +176,8 @@ class OrderLogic extends BaseLogic
     // 获取公里
     public function obtainKilometre($send_lon = "", $send_lat = "", $collect_lon = "", $collect_lat = ""){
         if (!$send_lon || !$send_lat || !$collect_lon || !$collect_lat) return 0;
-        $longitude = $send_lon . "," . $send_lat;
-        $dimension = $collect_lon . "," . $collect_lat;
+        $longitude = $send_lat . "," . $send_lon;
+        $dimension = $collect_lat . "," . $collect_lon;
         //$longitude = "40.01116,116.339303";
         //$dimension ="39.936404,116.452562";
         $result = MapLogic::getInstance()->driveKilometre($longitude, $dimension);
