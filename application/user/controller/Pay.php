@@ -12,16 +12,17 @@ use think\Loader;
 
 class Pay extends Base
 {
-    // 微信
-    public function notifyWx()
-    {
-        $result = $this->wechatNotifyHandel(function ($code) {
-            return $this->updateMemberOrder($code, OrderModel::ORDER_PAY_WX);
-        });
-        exit($result);
-    }
+//    // 微信
+//    public function notifyWx()
+//    {
+//        $result = $this->wechatNotifyHandel(function ($code) {
+//            return $this->updateMemberOrder($code, OrderModel::ORDER_PAY_WX);
+//        });
+//        exit($result);
+//    }
 
-    // 微信充值
+    /**************************************  用户充值 *******************************************************/
+    // 微信 用户充值
     public function notifyWxRecharge()
     {
         $result = $this->wechatNotifyHandel(function ($code) {
@@ -29,26 +30,45 @@ class Pay extends Base
         });
         exit($result);
     }
-
-    // 微信-押金
-    public function notifyWxDeposit()
+    // 用户充值 回调
+    public function updateRechargeOrder($code, $pay_type)
     {
-        $result = $this->wechatNotifyHandel(function ($code) {
-            return $this->updateOrderDeposit($code, OrderModel::ORDER_PAY_WX);
+        $order =  UsersModel::getInstance()->rechargeOrderFind(["code"=>$code]);
+        if ($order['status'] != 1) return false;
+        // 处理账户
+        $result = UsersModel::getInstance()->payDriverRechargeSuccess($order, $pay_type);
+        return $result;
+    }
+    // 支付宝 用户充值
+    public function notifyZfbRecharge()
+    {
+        $result = $this->zfbNotifyHandel(function ($code) {
+            return $this->updateRechargeOrder($code, OrderModel::ORDER_PAY_ZFB);
         });
         exit($result);
     }
+    /****************************************************************************************************/
 
-    // 押金
-    public function updateOrderDeposit($code, $pay_type)
-    {
-        $order =  DepositModel::getInstance()->depositOrderFind(["code"=>$code]);
-        if ($order['status'] != 1) return false;
-        // 处理账户
-        $result = DepositModel::getInstance()->orderPaySuccess($order, $pay_type);
-        return $result;
-    }
+//    // 微信-押金
+//    public function notifyWxDeposit()
+//    {
+//        $result = $this->wechatNotifyHandel(function ($code) {
+//            return $this->updateOrderDeposit($code, OrderModel::ORDER_PAY_WX);
+//        });
+//        exit($result);
+//    }
 
+//    // 押金
+//    public function updateOrderDeposit($code, $pay_type)
+//    {
+//        $order =  DepositModel::getInstance()->depositOrderFind(["code"=>$code]);
+//        if ($order['status'] != 1) return false;
+//        // 处理账户
+//        $result = DepositModel::getInstance()->orderPaySuccess($order, $pay_type);
+//        return $result;
+//    }
+
+    // 微信 回调签名验证
     private function wechatNotifyHandel($callback)
     {
         Loader::import('wxpay.lib.WxPay#Api');
@@ -70,34 +90,28 @@ class Pay extends Base
         $notifyReply->SetReturn_msg($msg);
         return $notifyReply->ToXml();
     }
-    // 支付宝
-    public function notifyZfb()
-    {
-        $result = $this->zfbNotifyHandel(function ($code) {
-            return $this->updateOrder($code, OrderModel::ORDER_PAY_ZFB);
-        });
-        exit($result);
-    }
-
-    // 支付宝充值
-    public function notifyZfbRecharge()
-    {
-        $result = $this->zfbNotifyHandel(function ($code) {
-            return $this->updateZfbRechargeOrder($code, OrderModel::ORDER_PAY_ZFB);
-        });
-        exit($result);
-    }
 
 
-    // 司机会员充值回调(支付宝)
-    public function updateZfbRechargeOrder($code, $pay_type)
-    {
-        $order =  UsersModel::getInstance()->rechargeOrderFind(["code"=>$code]);
-        if ($order['status'] != 1) return false;
-        // 处理账户
-        $result = UsersModel::getInstance()->payDriverRechargeSuccess($order, $pay_type);
-        return $result;
-    }
+
+
+//    // 支付宝
+//    public function notifyZfb()
+//    {
+//        $result = $this->zfbNotifyHandel(function ($code) {
+//            return $this->updateOrder($code, OrderModel::ORDER_PAY_ZFB);
+//        });
+//        exit($result);
+//    }
+
+//    // 司机会员充值回调(支付宝)
+//    public function updateZfbRechargeOrder($code, $pay_type)
+//    {
+//        $order =  UsersModel::getInstance()->rechargeOrderFind(["code"=>$code]);
+//        if ($order['status'] != 1) return false;
+//        // 处理账户
+//        $result = UsersModel::getInstance()->payDriverRechargeSuccess($order, $pay_type);
+//        return $result;
+//    }
 
     /*public function notifySalaryZfb()
     {
@@ -107,6 +121,7 @@ class Pay extends Base
         exit($result);
     }*/
 
+    // 支付宝 回调签名验证
     private function zfbNotifyHandel($callback)
     {
         Loader::import('alipay.user.Alipay');
@@ -127,20 +142,7 @@ class Pay extends Base
         return $msg;
     }
 
-    /*public function updateSalary($code, $pay_type)
-    {
-        $extend = SalaryModel::getInstance()->extendInfoByCode($code, 'status, user_id, code, pay_price, order_id');
-        if ($extend['status'] != 1) { //不是待支付状态
-            return false;
-        }
 
-        $result = SalaryModel::getInstance()->payFinish($extend, $pay_type);
-        $syncParam['order_id'] = $extend['order_id'];
-        $syncParam['user_id'] = $extend['user_id'];
-        $syncParam['service_id'] = $extend['service_id'];
-        AsyncLogic::getInstance()->fsockopenGet(url('job.salary/paySuccess?', $syncParam, true, true));
-        return $result;
-    }*/
 
     public function updateOrder($code, $pay_type)
     {
@@ -174,15 +176,7 @@ class Pay extends Base
         return $result;
     }
 
-    // 司机会员充值回调
-    public function updateRechargeOrder($code, $pay_type)
-    {
-        $order =  UsersModel::getInstance()->rechargeOrderFind(["code"=>$code]);
-        if ($order['status'] != 1) return false;
-        // 处理账户
-        $result = UsersModel::getInstance()->payDriverRechargeSuccess($order, $pay_type);
-        return $result;
-    }
+
 
     // 会员卡场地微信支付
     public function notifyMyMemberWx()
