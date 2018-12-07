@@ -85,7 +85,6 @@ class Order extends Base
             "is_place_order" => $order_time ? 1 : 0,
             "order_time" => $order_time ?: CURR_TIME
         ];
-        var_dump($order);die;
         // 下单
         $order_id = OrderModel::getInstance()->orderInsert($order);
         if($order_id === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
