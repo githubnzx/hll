@@ -156,7 +156,6 @@ class Login extends Base
         $code = request()->post('code' , '');
         if (!$code) return error_out('', DriverLogic::WECHAT_CODE);
         $wx_token = WechatLogic::getInstance()->getToken($code);
-        var_dump($wx_token);die;
         if (isset($wx_token['errcode'])) {
             return error_out('', $wx_token['errmsg']);
         }
