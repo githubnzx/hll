@@ -168,7 +168,7 @@ class driver extends Base
         $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
         // 判断用户支付密码
         //if($driver["pay_pwd"] !== md5($password)) return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
-        if(!is_array($driver) || empty($driver['openid'])){
+        if($payType == 1 && (!is_array($driver) || empty($driver['openid']))){
             return error_out('', DriverMsgLogic::TRANSFER_WX_AUTH);
         }
         if (bccomp($price, 100.00, 2) < 0) {

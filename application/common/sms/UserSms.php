@@ -24,7 +24,7 @@ namespace app\common\sms;
  */
 class UserSms
 {
-    static private $sign = '亟亟城运';
+    static private $sign = '河北泰乐网络科技有限公司';
 
     /**
      * 电子秘书全民健身 - 验证码短信
@@ -34,6 +34,6 @@ class UserSms
      */
     static public function code($phone, $message)
     {
-        return Sms::sendSms($phone, self::$sign, 'SMS_152283220', $message);
+        return Sms::sendSms($phone, self::$sign, 'SMS_152510162', $message);
     }
 }

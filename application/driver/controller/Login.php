@@ -7,7 +7,9 @@ use app\driver\logic\WechatLogic;
 use app\user\logic\UserLogic;
 use app\driver\logic\DriverLogic;
 use app\common\logic\MsgLogic;
+use app\common\sms\UserSms;
 
+use app\user\model\DownloadModel;
 use think\Cache;
 use think\Db;
 use think\Exception;
@@ -42,23 +44,25 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-        $code = 111111;
-        Cache::store('driver')->set('mobile_code:' . $phone, $code, 300);
-        return success_out('', '发送成功');
-        /*
-        $code = rand(100000 , 999999);
-        $cache_result = Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
-        if ($cache_result !== true) return error_out('',UserLogic::USER_SMS_FAIL);
-        $templateParam  = ['code'=>$code];
-        $response = UserSms::code($phone , $templateParam);
-        if ($response->Code == 'OK') {
-            Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
-            return success_out('', '发送成功');
-        } elseif ($response->Code == 'isv.BUSINESS_LIMIT_CONTROL') {
-            return error_out('', '当前账户频率操作过快 请稍后重试');
+        if (config("sms_verify_code") === true) {
+            $code = rand(100000 , 999999);
+            $cache_result = Cache::store('driver')->set('mobile_code:' . $phone, $code, 300);
+            if ($cache_result !== true) return error_out('', DriverLogic::USER_SMS_FAIL);
+            $templateParam  = ['code'=>$code];
+            $response = UserSms::code($phone , $templateParam);
+            if ($response->Code == 'OK') {
+                Cache::store('driver')->set('mobile_code:' . $phone, $code, 300);
+                return success_out('', '发送成功');
+            } elseif ($response->Code == 'isv.BUSINESS_LIMIT_CONTROL') {
+                return error_out('', '当前账户频率操作过快 请稍后重试');
+            } else {
+                return error_out('', '服务器异常');
+            }
         } else {
-            return error_out('', '服务器异常');
-        }*/
+            $code = 111111;
+            Cache::store('driver')->set('mobile_code:' . $phone, $code, 300);
+            return success_out('', '发送成功');
+        }
     }
     // 忘记 密码
     public function forgetPwd(){
@@ -152,6 +156,7 @@ class Login extends Base
         $code = request()->post('code' , '');
         if (!$code) return error_out('', DriverLogic::WECHAT_CODE);
         $wx_token = WechatLogic::getInstance()->getToken($code);
+        var_dump($wx_token);die;
         if (isset($wx_token['errcode'])) {
             return error_out('', $wx_token['errmsg']);
         }

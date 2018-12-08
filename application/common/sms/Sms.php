@@ -15,8 +15,8 @@ class Sms
 {
     protected static $acsClient = null;
     //此处需要替换成开发者自己的AK (https://ak-console.aliyun.com/)
-    static private $accessKeyId = 'LTAI6Zevg5Pyh6e4';
-    static private $accessKeySecret = 'ANMT44jSmCPIDT9nhB7qioy4Y7HFJj';
+    static private $accessKeyId = 'LTAIBtoQsGWQ3EIB';
+    static private $accessKeySecret = 'DLNZumYcViDo0hPpgfYVkvpD6lpayC';
 
     /**
      * 取得AcsClient
