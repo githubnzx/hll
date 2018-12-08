@@ -6,9 +6,9 @@
  * Time: 15:29
  */
 
-namespace app\coach\controller;
+namespace app\driver\controller;
 
-use app\coach\model\VersionModel;
+use app\driver\model\VersionModel;
 
 class Version extends Base
 {
