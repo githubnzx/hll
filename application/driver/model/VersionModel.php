@@ -6,7 +6,7 @@
  * Time: 14:42
  */
 
-namespace app\coach\model;
+namespace app\driver\model;
 
 
 use think\Db;
