@@ -43,24 +43,27 @@ class Login extends Base
         if (!UserLogic::getInstance()->check_mobile($phone)) {
             return error_out('', UserLogic::USER_SMS_SEND);
         }
-//        $code = 111111;
-//        Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
-//        return success_out('', '发送成功');
-
-        $code = rand(100000 , 999999);
-        $cache_result = Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
-        if ($cache_result !== true) return error_out('',UserLogic::USER_SMS_FAIL);
-        $templateParam  = ['code'=>$code];
-        $response = UserSms::code($phone , $templateParam);
-        var_dump($response);die;
-        if ($response->Code == 'OK') {
+        // 发送短信
+        if (config("sms_verify_code") === true) {
+            $code = rand(100000 , 999999);
+            $cache_result = Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
+            if ($cache_result !== true) return error_out('',UserLogic::USER_SMS_FAIL);
+            $templateParam  = ['code'=>$code];
+            $response = UserSms::code($phone , $templateParam);
+            if ($response->Code == 'OK') {
+                Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
+                return success_out('', '发送成功');
+            } elseif ($response->Code == 'isv.BUSINESS_LIMIT_CONTROL') {
+                return error_out('', '当前账户频率操作过快 请稍后重试');
+            } else {
+                return error_out('', '服务器异常');
+            }
+        } else {
+            $code = 111111;
             Cache::store('user')->set('mobile_code:' . $phone, $code, 300);
             return success_out('', '发送成功');
-        } elseif ($response->Code == 'isv.BUSINESS_LIMIT_CONTROL') {
-            return error_out('', '当前账户频率操作过快 请稍后重试');
-        } else {
-            return error_out('', '服务器异常');
         }
+
     }
     // 忘记 密码
     public function forgetPwd(){
