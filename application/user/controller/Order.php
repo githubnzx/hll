@@ -97,13 +97,20 @@ class Order extends Base
         $user_id = UserLogic::getInstance()->checkToken();
         $truck_id = $this->request->post('truck_id/d', 0);
         $fee_price   = strtotime($this->request->post('fee_price/s', ""));   // 小费
-        $kilometers  = $this->request->post('kilometers/s', 0);    // 公里数
-        if (!$truck_id || !$kilometers) return error_out("", MsgLogic::PARAM_MSG);
+        $send_lon = $this->request->post('send_lon/s', "");
+        $send_lat = $this->request->post('send_lat/s', "");
+        $collect_lon = $this->request->post('collect_lon/s', "");
+        $collect_lat = $this->request->post('collect_lat/s', "");
+        //$kilometers  = $this->request->post('kilometers/s', 0);    // 公里数
+        if (!$truck_id || !$send_lon || !$send_lat || !$collect_lon || !$collect_lat) return error_out("", MsgLogic::PARAM_MSG);
         // 查询货车是否存在
         $trucInfo = TruckModel::getInstance()->truckFind(["id"=>$truck_id], "id, type");
         if(!$trucInfo) return error_out("", OrderMsgLogic::TRUCK_IS_EXISTS);
         // 费用计算
-        $price = OrderLogic::getInstance()->imputedPrice($kilometers, $trucInfo["type"], $fee_price);
+        $result = OrderLogic::getInstance()->obtainKilometre($send_lon, $send_lat, $collect_lon, $collect_lat);
+        if (!$result) return error_out("", MsgLogic::PARAM_MSG);
+        // 费用计算
+        $price = OrderLogic::getInstance()->imputedPrice($result["result"]["routes"][0]["distance"], $trucInfo["type"], $fee_price);
         return success_out(["total_price"=>$price], MsgLogic::SUCCESS);
     }
 
