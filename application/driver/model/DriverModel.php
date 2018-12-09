@@ -10,6 +10,7 @@
 // +----------------------------------------------------------------------
 namespace app\driver\model;
 
+use app\common\sms\DriverSms;
 use app\driver\logic\OrderLogic;
 use app\user\logic\UserLogic;
 use app\user\model\TruckModel;
@@ -178,7 +179,7 @@ class DriverModel extends BaseModel
     }
 
     // 完善信息
-    public function userPerfectInfoEdit($user_id, $data, $photo){
+    public function userPerfectInfoEdit($user_id, $data, $photo, $phone){
         Db::startTrans();
         try {
             $cart = [];
@@ -233,6 +234,13 @@ class DriverModel extends BaseModel
                 }
             }
             if($cart) $this->addCert($cart);
+            // 发短信
+            if ($phone) {
+                $response = DriverSms::auditNotice($phone);
+                if ($response->Code != 'OK') {
+                    return false;
+                }
+            }
             Db::commit();
             return $user_id;
         } catch (\Exception $e) {

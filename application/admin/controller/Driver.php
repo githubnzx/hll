@@ -6,6 +6,7 @@ use app\common\logic\MsgLogic;
 use app\admin\model\EvaluateModel;
 use app\common\model\CourseModel;
 use app\common\push\Push;
+use app\driver\logic\DriverLogic;
 use think\Cache;
 use think\Config;
 
@@ -63,7 +64,9 @@ class Driver //extends Base
         $driver_id= request()->post('driver_id/d', 0);
         $status   = request()->post('status/s', "");
         if (!$driver_id || !$status) return error_out("", MsgLogic::PARAM_MSG);
-        $result = DriverModel::getInstance()->driverEdit(["id"=>$driver_id], ["audit_status"=>$this->auditStatus[$status]]);
+        $driverInfo = DriverModel::getInstance()->driverFind(["id"=>$driver_id], "id, phone");
+        if (!$driverInfo) return error_out("", DriverLogic::DRIVER_NOT_EXISTS);
+        $result = DriverModel::getInstance()->driverAuditEdit($driver_id, $this->auditStatus[$status], $driverInfo["phone"]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
