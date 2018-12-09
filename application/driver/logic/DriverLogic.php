@@ -27,6 +27,7 @@ class DriverLogic extends BaseLogic
     const WX_BIND_SUCCESS= "绑定手机号成功";
     const LOGIN_SUCCESS  = "登录成功";
     const PHONE_EXISTED  = "此手机号已注册，请重新输入";
+    const DRIVER_NOT_EXISTS = "此用户不存在";
 
     const USER_NAME      = "用户名称格式错误";
     const USER_ID_CARD   = "用户身份证错误";

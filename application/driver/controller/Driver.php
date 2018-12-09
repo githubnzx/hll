@@ -1,7 +1,9 @@
 <?php
 namespace app\driver\controller;
+use app\admin\model\UserModel;
 use app\common\config\DriverConfig;
 use app\common\logic\MsgLogic;
+use app\common\sms\UserSms;
 use app\driver\logic\MsgLogic as DriverMsgLogic;
 use app\driver\model\IntegralModel;
 use app\driver\model\DriverModel;
@@ -135,6 +137,9 @@ class driver extends Base
         if(!isset($photo["js_cert"]) || empty($photo["js_cert"])) return error_out("", DriverLogic::USER_JS_CERT); // 驾驶证 验证
         if(!isset($photo["xs_cert"]) || empty($photo["xs_cert"])) return error_out("", DriverLogic::USER_XS_CERT); // 行驶证 验证
         if(!isset($photo["car"]) || empty($photo["car"])) return error_out("", DriverLogic::USER_XS_CERT);          // 车辆照片 验证
+        // 判断用户是否存在
+        $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "id,phone");
+        if (!$driverInfo) return error_out("", DriverLogic::DRIVER_NOT_EXISTS);
         $data["city_code"] = $cityCode;
         $data["id_number"] = $id_card;
         $data["car_color"] = $carColor;
@@ -143,7 +148,7 @@ class driver extends Base
         $data["contacts_name"] = $contactsName;
         $data["contacts_phone"]= $contactsPhone;
         $data["is_register"]= 1;
-        $result = DriverModel::getInstance()->userPerfectInfoEdit($user_id, $data, $photo);
+        $result = DriverModel::getInstance()->userPerfectInfoEdit($user_id, $data, $photo, $driverInfo["phone"]);
         if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
