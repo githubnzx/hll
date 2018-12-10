@@ -20,7 +20,17 @@ class VersionModel extends BaseModel
 
     public function versionFind($where, $field='*'){
         $where["is_del"] = self::IS_DEL;
-        return Db::table($this->table)->field($field)->where($where)->find();
+        $info = Db::table($this->table)->field($field)->where($where)->find();
+        $path = config('apk.path') . $info['path'];
+        if (is_file($path)) {
+            $info['encryption'] = md5_file($path);
+            $info['file_size'] = filesize($path);
+        } else {
+            $info['encryption'] = '';
+            $info['file_size'] = '';
+        }
+        unset($info['path']);
+        return $info;
     }
 }
 
