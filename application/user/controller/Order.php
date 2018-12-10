@@ -96,7 +96,7 @@ class Order extends Base
     {
         $user_id = UserLogic::getInstance()->checkToken();
         $truck_id = $this->request->post('truck_id/d', 0);
-        $fee_price   = strtotime($this->request->post('fee_price/s', ""));   // 小费
+        $fee_price   = $this->request->post('fee_price/s', "");   // 小费
         $send_lon = $this->request->post('send_lon/s', "");
         $send_lat = $this->request->post('send_lat/s', "");
         $collect_lon = $this->request->post('collect_lon/s', "");
