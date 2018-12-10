@@ -15,7 +15,7 @@ class Version extends Base
     // 版本
     public function index()
     {
-        $info = VersionModel::getInstance()->versionFind(["type"=>VersionModel::VERSION_TYPE], "title, number, version_url, describe, status, encryption");
+        $info = VersionModel::getInstance()->versionFind(["type"=>VersionModel::VERSION_TYPE], "title, number, version_url, describe, status, path");
         return success_out($info ?: []);
     }
 }
