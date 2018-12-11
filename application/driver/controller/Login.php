@@ -7,7 +7,7 @@ use app\driver\logic\WechatLogic;
 use app\user\logic\UserLogic;
 use app\driver\logic\DriverLogic;
 use app\common\logic\MsgLogic;
-use app\common\sms\UserSms;
+use app\common\sms\DriverSms;
 
 use app\user\model\DownloadModel;
 use think\Cache;
@@ -49,7 +49,7 @@ class Login extends Base
             $cache_result = Cache::store('driver')->set('mobile_code:' . $phone, $code, 300);
             if ($cache_result !== true) return error_out('', DriverLogic::USER_SMS_FAIL);
             $templateParam  = ['code'=>$code];
-            $response = UserSms::code($phone , $templateParam);
+            $response = DriverSms::code($phone , $templateParam);
             if ($response->Code == 'OK') {
                 Cache::store('driver')->set('mobile_code:' . $phone, $code, 300);
                 return success_out('', '发送成功');
