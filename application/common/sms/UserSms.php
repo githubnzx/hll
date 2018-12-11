@@ -8,20 +8,7 @@
 
 namespace app\common\sms;
 
-/**
- * Class UserSms
- * @package app\common\sms
- * 总的参数说明:
- *
-    [
-        'name'			=>'',				//上课用户名称
-        'date' 			=>'2018年04月28日',	//上课时间日期
-        'timeNode'		=>'10:30-11:30',	//上课时间节点
-        'serviceType'	=>'陪打'				//上课类型
- *      'startDate'     => '2018年04月28日' //团课开始日期
- *      'endDate'       => '2018年04月28日' //团课结束时间
-    ]
- */
+
 class UserSms
 {
     static private $sign = '河北泰乐网络科技有限公司';
@@ -34,7 +21,7 @@ class UserSms
      */
     static public function code($phone, $message)
     {
-        return Sms::sendSms($phone, self::$sign, 'SMS_152510162', $message);
+        return Sms::sendSms($phone, self::$sign, 'SMS_152165006', $message);
     }
 
     /**

@@ -34,7 +34,7 @@ class DriverSms
      */
     static public function code($phone, $message)
     {
-        return Sms::sendSms($phone, self::$sign, 'SMS_152510162', $message);
+        return Sms::sendSms($phone, self::$sign, 'SMS_152165006', $message);
     }
 
     /**
