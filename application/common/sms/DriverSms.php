@@ -27,6 +27,17 @@ class DriverSms
     static private $sign = '河北泰乐网络科技有限公司';
 
     /**
+     *  注册 - 验证码短信
+     * 模版内容: 您正在申请手机注册，验证码为：${code}，5分钟内有效！
+     * @param $phone
+     * @param $message
+     */
+    static public function code($phone, $message)
+    {
+        return Sms::sendSms($phone, self::$sign, 'SMS_152165006', $message);
+    }
+
+    /**
      *  亟亟诚运 - 司机提交审核通知
      * 模版内容: 感谢您对亟亟城运的支持，我行将尽快审核您的申请，您可拨打客服热线0310-6030906查询申请进度。
      * @param $phone

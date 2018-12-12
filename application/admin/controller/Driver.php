@@ -11,7 +11,7 @@ use think\Cache;
 use think\Config;
 
 
-class Driver //extends Base
+class Driver extends Base
 {
     private $statusType = ["show"=>0, "hide"=>1];
         private $auditStatus = ["adopt"=>2, "nopass"=>3];

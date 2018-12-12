@@ -266,6 +266,7 @@ class Order extends Base
         return success_out("", MsgLogic::SUCCESS);
     }
 
+    // 检测订单是否被预约
     public function checkOrder(){
         $user_id = UserLogic::getInstance()->checkToken();
         $order_id = $this->request->post('order_id/d', 0);
