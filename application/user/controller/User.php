@@ -154,7 +154,7 @@ class User extends Base
         if($payType == 1 && (!is_array($driver) || empty($driver['openid']))){
             return error_out('', UserMsgLogic::TRANSFER_WX_AUTH);
         }
-        if (bccomp($price, 100.00, 2) < 0) {
+        if (bccomp($price, 2.00, 2) < 0) {
             return error_out('', UserMsgLogic::TRANSFER_WX_MIN_PRICE);
         }
         // 查询余额是否满足体现金额

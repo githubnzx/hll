@@ -168,7 +168,7 @@ class driver extends Base
         $price = request()->post('price/f' , 0);
         //$password = request()->post('password/s' , "");
         $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
-        if(!$price) return error_out('', MsgLogic::PARAM_MSG);
+        if(!$price || !$payType) return error_out('', MsgLogic::PARAM_MSG);
         // 判断是否微信授权
         $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
         // 判断用户支付密码
@@ -176,7 +176,7 @@ class driver extends Base
         if($payType == 1 && (!is_array($driver) || empty($driver['openid']))){
             return error_out('', DriverMsgLogic::TRANSFER_WX_AUTH);
         }
-        if (bccomp($price, 100.00, 2) < 0) {
+        if (bccomp($price, 2.00, 2) < 0) {
             return error_out('', DriverMsgLogic::TRANSFER_WX_MIN_PRICE);
         }
         // 查询余额是否满足体现金额

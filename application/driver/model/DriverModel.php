@@ -144,7 +144,6 @@ class DriverModel extends BaseModel
     }
 
     public function wechatFind($where, $field = "*"){
-        $where["is_del"] = DriverModel::USER_TYPE_USER;
         return Db::table($this->wechatTable)->field($field)->where($where)->find();
     }
 

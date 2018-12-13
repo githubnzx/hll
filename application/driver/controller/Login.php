@@ -156,6 +156,14 @@ class Login extends Base
         $code = request()->post('code' , '');
         if (!$code) return error_out('', DriverLogic::WECHAT_CODE);
         $wx_token = WechatLogic::getInstance()->getToken($code);
+
+//        $wx_token["access_token"] = "16_NsrGS3GC5o9A0ZNKImLrxk4SWvBVMLGo6GmFhWllHgg7tClU4KsdeXAE2SbY5UzENddImnYJOl7oZkUy0Pkm277Wxhn1OeNZcqY7YthdqZs";
+//        $wx_token["expires_in"] = 7200;
+//        $wx_token["refresh_token"] = "16_mkORWIJkxdVFSgfqzxy81E5LM93_ytbKesBBRLiD1lbxAqax-lGZ0V1k4p01KJvsFJgFDNODD2CKQ1mq-XyqpxXZRSLm6fggR3kRPBMbRtY";
+//        $wx_token["openid"] = "oLnON5hbziox7zW4Am5SJr5ZC57E";
+//        $wx_token["scope"] = "snsapi_userinfo";
+//        $wx_token["unionid"] = "onxbd54zDp2zaYCvy7Jb25G5ytzw";
+
         if (isset($wx_token['errcode'])) {
             return error_out('', $wx_token['errmsg']);
         }
