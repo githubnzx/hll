@@ -166,7 +166,6 @@ class UsersModel extends BaseModel
     }
 
     public function wechatFind($where, $field = "*"){
-        $where["is_del"] = UsersModel::USER_TYPE_USER;
         return Db::table($this->wechatTable)->field($field)->where($where)->find();
     }
 

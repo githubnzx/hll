@@ -10,6 +10,9 @@ use think\Config;
 
 class Integral extends Base
 {
+    private $statusAr = ["pass"=>2, "refuse"=>4];
+
+
     // 列表
     public function lst(){
         $goodTitle = request()->post('title/s', '');
@@ -78,6 +81,33 @@ class Integral extends Base
         $id = $this->request->post('good_id/s', "");
         if(!$id) return error_out("", MsgLogic::PARAM_MSG);
         $result = IntegralModel::getInstance()->integralEdit(["id"=>$id], ["is_del"=>1]);
+        if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
+    }
+
+    // 列表
+    public function orderLst(){
+        //$goodTitle = request()->post('title/s', '');
+        //$integral  = request()->post('integral/s', '');
+        $pageNumber= request()->post('pageNumber/d', 1);
+        $pageSize  = request()->post('pageSize/d', 10);
+        $pages = $pageNumber . ', ' . $pageSize;
+        //if (!$goodTitle || !$integral) return error_out("", MsgLogic::PARAM_MSG);
+        $where = [];
+        //if ($goodTitle) $where["title"] = ["like", "%". $goodTitle ."%"];
+        //if ($integral) $where["integral"] = $integral;
+        $list = IntegralModel::getInstance()->integralOrderSelect($where, "*", $pages) ?: [];
+        $total = IntegralModel::getInstance()->integralTotal($where);
+        return json(['total' => $total, 'list' => $list, 'msg' => MsgLogic::SUCCESS]);
+    }
+
+    // 是否通过
+    public function status(){
+        $order_id = request()->post('order_id/d', 0);
+        $type  = request()->post('type/s', ""); // refuse 拒绝 pass 通过
+        if (!status || !$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        if (!isset($this->statusAr[$type])) return error_out("", MsgLogic::PARAM_MSG);
+        $result = IntegralModel::getInstance()->integralOrderEdit(["id"=>$order_id], ["status"=>$this->statusAr[$type]]);
         if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }

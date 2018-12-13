@@ -117,9 +117,15 @@ class Order extends Base
     public function lst(){
         $user_id = UserLogic::getInstance()->checkToken();
         $orderInfo = $orderList = $list = [];
-        $field = "id, truck_id, status, order_time, send_good_addr, collect_good_addr";
+        $field = "id, driver_id, truck_id, status, order_time, send_good_addr, collect_good_addr";
         $orderInfo = OrderModel::getInstance()->orderFind(["user_id"=>$user_id,"status"=>["in", [0,1]]], $field) ?: [];
+        $is_booked = 1;
         if ($orderInfo) { // 当前订单
+            if ($orderInfo["driver_id"] === 0) {
+                $orderInfo["is_booked"] = 0;
+            } else {
+                $orderInfo["is_booked"] = $is_booked;
+            }
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
             $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
@@ -130,6 +136,7 @@ class Order extends Base
         $whereAll["user_id"] = $user_id;
         $orderList = OrderModel::getInstance()->orderList($whereAll, $field, "order_time DESC") ?: [];
         foreach ($orderList as $key => &$value) {
+            $value["is_booked"] = $is_booked;
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
             $value["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
             $value["order_time"] = $this->handl_order_date($value["order_time"]);//$this->week[$value["type"]];
@@ -153,6 +160,7 @@ class Order extends Base
         $field = "id, truck_id, driver_id, status, price, is_evaluates";
         $orderInfo = OrderModel::getInstance()->orderFind(["id"=>$order_id], $field);
         //$truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
+
         // 获取司机信息
         $driverInfo = DriverModel::getInstance()->userFind(["id"=>$orderInfo["driver_id"]], "id, name, phone, car_number, car_color");
         if(!$driverInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
@@ -234,9 +242,13 @@ class Order extends Base
     // 检测订单
     public function isExistOrder(){
         $user_id = UserLogic::getInstance()->checkToken();
-        $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
-        $status = $isExistsOrder ? 1 : 0;
-        $data["order_id"] = $isExistsOrder;
+        $order = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id, driver_id");
+        $order_id = $status = 0;
+        if ($order) {
+            $order_id = $order["id"];
+            $status = $order["driver_id"] ? 2 : 1;
+        }
+        $data["order_id"] = $order_id;
         $data["status"]   = $status;
         return success_out($data);
     }

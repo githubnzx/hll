@@ -21,7 +21,7 @@ class MsgLogic extends BaseLogic
     const USER_REPEAT_PWD    = "两次密码不一致";
 
     const TRANSFER_WX_AUTH   = "请微信授权";
-    const TRANSFER_WX_MIN_PRICE = "提现金额不得少于100元";
+    const TRANSFER_WX_MIN_PRICE = "提现金额不得少于2元";
     const USER_PRICE_LESS    = "余额不足";
     const TRANSFER_NO        = "不可提现";
 
