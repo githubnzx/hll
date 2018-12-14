@@ -22,6 +22,7 @@ class DriverLogic extends BaseLogic
     const REDIS_CODE_MSG = "验证码已过期，请重新获取验证码";
     const USER_OUT       = "退出成功";
     const WECHAT_CODE    = "微信凭证不能为空";
+    const WECHAT_CODE_EXISTS = "此账号已绑定微信";
     const USER_IS_DEL    = "用户已被禁用";
     const WECHAT_BINDINGS= "此手机号已绑定过微信";
     const WX_BIND_SUCCESS= "绑定手机号成功";

@@ -50,10 +50,10 @@ function success_out($data = '', $msg = '')
     return api_out(1, $data, $msg);
 }
 
-function error_out($data = "", $msg = '')
+function error_out($data = "", $msg = '', $code = 0)
 {
     $data = $data ?: null;
-    return api_out(0, $data, $msg);
+    return api_out($code, $data, $msg);
 }
 
 function birthdayAge($birthday)

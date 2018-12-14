@@ -152,7 +152,7 @@ class User extends Base
         // 判断用户支付密码
         //if($driver["pay_pwd"] !== md5($password)) return error_out('', UserMsgLogic::USER_PAY_PWD);
         if($payType == 1 && (!is_array($driver) || empty($driver['openid']))){
-            return error_out('', UserMsgLogic::TRANSFER_WX_AUTH);
+            return error_out('', UserMsgLogic::TRANSFER_WX_AUTH, -2);
         }
         if (bccomp($price, 2.00, 2) < 0) {
             return error_out('', UserMsgLogic::TRANSFER_WX_MIN_PRICE);

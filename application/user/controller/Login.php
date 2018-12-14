@@ -329,4 +329,34 @@ class Login extends Base
         }
     }
 
+    // 微信授权
+    public function wechatAuth()
+    {
+        $user_id = UserLogic::getInstance()->checkToken();
+        $code = $this->request->post('code/s', "");
+        if (!$code) return error_out('', UserLogic::WECHAT_CODE);
+
+//        $access_result["access_token"] = "16_NsrGS3GC5o9A0ZNKImLrxk4SWvBVMLGo6GmFhWllHgg7tClU4KsdeXAE2SbY5UzENddImnYJOl7oZkUy0Pkm277Wxhn1OeNZcqY7YthdqZs";
+//        $access_result["expires_in"] = 7200;
+//        $access_result["refresh_token"] = "16_mkORWIJkxdVFSgfqzxy81E5LM93_ytbKesBBRLiD1lbxAqax-lGZ0V1k4p01KJvsFJgFDNODD2CKQ1mq-XyqpxXZRSLm6fggR3kRPBMbRtY";
+//        $access_result["openid"] = "oLnON5hbziox7zW4Am5SJr5ZC57E";
+//        $access_result["scope"] = "snsapi_userinfo";
+//        $access_result["unionid"] = "onxbd54zDp2zaYCvy7Jb25G5ytzw";
+
+        $userInfo = UsersModel::getInstance()->userFind(["id"=>$user_id], "openid");
+        if (!empty($userInfo['openid'])){
+            return error_out("", UserLogic::WECHAT_CODE_EXISTS);
+        }
+        $access_result = WechatLogic::getInstance()->getToken($code);
+        if (isset($access_result['errcode'])){
+            return error_out("", $access_result['errmsg']);
+        }
+        $result = UsersModel::getInstance()->wechatAuth($user_id, $access_result);
+        if ($result === true){
+            return success_out('','绑定微信成功');
+        }else{
+            return error_out('','绑定微信失败');
+        }
+    }
+
 }
