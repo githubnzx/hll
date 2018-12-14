@@ -1,6 +1,7 @@
 <?php
 
 namespace app\admin\logic;
+use app\common\config\WxPayUserConfig;
 use think\Exception;
 use think\exception\HttpException;
 use think\Request;
@@ -20,7 +21,7 @@ class TransferLogic extends BaseLogic
         return date("YmdHis") . rand(100000, 999999);
     }
 
-    public function transferWx($code, $openid, $price, $user_name = '', $check_name = 'NO_CHECK')
+    public function transferWx($code, $openid, $price, $user_type, $user_name = '', $check_name = 'NO_CHECK')
     {
         $price = 1;
         Loader::import('wxpay.lib.WxPay#Api');
@@ -31,11 +32,13 @@ class TransferLogic extends BaseLogic
         $inputObj->SetRe_user_name($user_name);
         $inputObj->SetAmount(intval($price * 100));
         $inputObj->SetDesc('提现'); //var_dump($inputObj);die;
-        $order = \WxPayApi::transfer($inputObj);
-        if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
-            Log::error('微信提现失败:' . $code . '=>' . $order['err_code_des']);
-            //return false;
-        }
+        $config = new WxPayUserConfig();
+        $order = \WxPayApi::transfer($config, $inputObj);
+        var_dump($order);die;
+//        if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
+//            Log::error('微信提现失败:' . $code . '=>' . $order['err_code_des']);
+//            //return false;
+//        }
         //return true;
         return $order;
     }

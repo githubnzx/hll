@@ -38,32 +38,31 @@ class Order extends Base
         if ($phone) { // reids 判断当前司机是否是用户选的熟人订单
             $orderIds = $redis->mget($redis->keys("RobOrder:".$phone."*"));
         }
-        if ($orderIds) { // 去掉选择熟人的订单
-            $orderWhere["id"] = ["not in", $orderIds];
+        $order_time = 0;
+        if (!$orderIds) { // 去掉选择熟人的订单
+            // 查询是否是会员
+            $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
+            if ($memberInfo) { // 有会员卡
+                $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
+                // 会员类型
+                if ($memberInfo["type"] === 1) { // 有限制
+                    $order_time = $orderCount ? $memberInfo["limit_second"] : $order_time;
+                }
+            } else {
+                $order_time = MemberModel::MEMBER_DEFAULT_TIME;
+            }
         }
         //$orderWhere["driver_id"] = 0;
         //$orderWhere["status"]    = 0;
         //$field = "id order_id, truck_id, order_time, driver_ids, send_good_addr, collect_good_addr, is_receivables, remarks";
         //$orderInfo = OrderModel::getInstance()->orderList($orderWhere, $field);
-        // 查询是否是会员
-        $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
-        if ($memberInfo) { // 有会员卡
-            $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
-            // 会员类型
-            $order_time = 0;
-            if ($memberInfo["type"] === 1) { // 有限制
-                $order_time = $orderCount ? $memberInfo["limit_second"] : 0;
-            }
-        } else {
-            $order_time = MemberModel::MEMBER_DEFAULT_TIME;
-        }
         // redis中取订单数据
         $orderList = $redis->mget($redis->keys("RobOrderData:*")) ?: [];
         foreach ($orderList as $key => $value) {
             $orderInfo = json_decode($value, true);
             $orderTime = $orderInfo["order_time"];
-            $order_time = (int) bcadd($orderTime, $order_time);
-            if (CURR_TIME >= $order_time) {
+            $day_order_time = (int) bcadd($orderTime, $order_time);
+            if (CURR_TIME >= $day_order_time) {
                 // 货车信息
                 $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
                 $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
