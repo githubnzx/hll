@@ -50,11 +50,45 @@ class DriverModel extends BaseModel
 
 
     public function userFind($where, $fields = '*'){
+        $where["is_del"] = self::STATUS_DEL;
         $result = Db::table($this->tableUser)->field($fields)->where($where)->find();
         if(isset($result["icon"]) && $result["icon"]){
             $result["icon"] = handleImgPath($result["icon"]);
         }
         return $result;
+    }
+
+    //提现绑定微信
+    public function wechatAuth($user_id, $access_result)
+    {
+        $param['access_token'] = $access_result['access_token'];
+        $param['refresh_token']= $access_result['refresh_token'];
+        $param['openid'] = $update['openid'] = $access_result['openid'];
+        if (isset($access_result['unionid']) && $access_result['unionid']){
+            $param['unionid'] = $update['unionid'] = $access_result['unionid'];
+        }
+        $wechat_info = $this->wechatFind(["openid"=>$access_result['openid'], "type"=>self::USER_TYPE_USER], "id, openid");
+        if ($wechat_info){
+            try{
+                $this->wechatUpdate(["id"=>$wechat_info['id']],$param);
+                $this->userEdit(["id"=>$user_id], $update);
+                Db::commit();
+            }catch (Exception $e){
+                Db::rollback();
+                return error_out('',$e->getMessage());
+            }
+        }else{
+            try{
+                $param['user_id'] = $user_id;
+                $this->userEdit(["id"=>$user_id], $update);
+                $this->wxInsert($param);
+                Db::commit();
+            }catch (Exception $e){
+                Db::rollback();
+                return error_out('',$e->getMessage());
+            }
+        }
+        return true;
     }
 
     public function userBindAll($where, $fields = '*'){
