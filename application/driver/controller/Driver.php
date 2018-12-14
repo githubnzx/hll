@@ -253,6 +253,16 @@ class driver extends Base
         return success_out($truckList, MsgLogic::SUCCESS);
     }
 
+    // 是否授权
+    public function isWxAuth(){
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $openid = DriverModel::getInstance()->userFind(['id'=>$user_id], 'openid')['openid'];
+        if(!$openid){
+            return error_out('', '请先微信授权');
+        }
+        return success_out("", MsgLogic::SUCCESS);
+    }
+
 
 
 

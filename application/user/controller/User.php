@@ -174,6 +174,16 @@ class User extends Base
         }
     }
 
+    // 是否授权
+    public function isWxAuth(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $openid = UsersModel::getInstance()->userFind(['id'=>$user_id], 'openid')['openid'];
+        if(!$openid){
+            return error_out('', '请先微信授权');
+        }
+        return success_out("", MsgLogic::SUCCESS);
+    }
+
 
 
 
