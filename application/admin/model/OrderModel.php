@@ -48,6 +48,14 @@ class OrderModel extends BaseModel
         $order = isset($data["order"]) && !empty($data["order"]) ? $data["order"] : "";
         return $this->orderTable()->where($where)->field($field)->order($order)->page($pages)->select();
     }
+    // 订单列表和相关数据 详情
+    public function ordersInfo($data){
+        $where = isset($data["where"]) && !empty($data["where"]) ? $data["where"] : [];
+        $field = isset($data["field"]) && !empty($data["field"]) ? $data["field"] : "*";
+        //$pages = isset($data["page"])  && !empty($data["page"])  ? $data["page"] : "";
+        $order = isset($data["order"]) && !empty($data["order"]) ? $data["order"] : "";
+        return $this->orderTable()->where($where)->field($field)->order($order)->find();
+    }
 
     public function ordersTotal($data){
         $where = isset($data["where"]) && !empty($data["where"]) ?: [];

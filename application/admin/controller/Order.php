@@ -43,6 +43,23 @@ class Order extends Base
         $total = OrderModel::getInstance()->ordersTotal($data["where"]);
         return json(['total' => $total, 'list' => $list, 'msg' => '']);
     }
+
+    // 详情
+    public function info(){
+        $order_id  = request()->post('order_id/d', 0);
+        $data["where"] = ["o.id"=>$order_id];
+        $data["field"] = "o.id, o.order_time, o.status, o.send_good_addr, o.collect_good_addr, o.total_price, o.contacts, o.phone contact_number, o.remarks, u.name user_name, u.phone user_phone, u.addr_info user_addr_info, d.name driver_name, d.phone driver_phone, t.type";
+        $info = OrderModel::getInstance()->ordersInfo($data) ?: [];
+        if ($info) {
+            $info["total_price"] = handlePrice($info["total_price"]);
+            $info["order_time"] = date("Y-m-d H:i:s", $info["order_time"]);
+            $info["status"]= OrderLogic::getInstance()->handleStatus($info["status"]);
+            $info["type"]  = DriverConfig::getInstance()->truckTypeNameId($info["type"]);
+        }
+        $total = OrderModel::getInstance()->ordersTotal($data["where"]);
+        return json(['total' => $total, 'list' => $info, 'msg' => '']);
+    }
+
     // 拒绝
     public function refuse(){
         $id = request()->post('id/d', 0);

@@ -1,6 +1,7 @@
 <?php
 namespace app\admin\controller;
 use app\admin\model\TransferModel;
+use app\admin\logic\TransferLogic;
 use app\common\logic\MsgLogic;
 use app\common\logic\PageLogic;
 use app\admin\model\TruckModel;
@@ -10,7 +11,7 @@ use think\Config;
 use think\Session;
 
 
-class Transfer extends Base
+class Transfer //extends Base
 {
     // 列表
     public function lst(){
@@ -48,18 +49,26 @@ class Transfer extends Base
         return success_out("", MsgLogic::SUCCESS);
     }
     // 通过
-    public static function transfer(){
+    public function transfer(){
         $id = request()->post('id/d', 0);
-        if(!$id) return error_out([], MsgLogic::PARAM_MSG);
+        $pay_type = request()->post('pay_type/d', 0);
+        $user_type = request()->post('user_type/d', 0);
+        if(!$id || !$pay_type || !$user_type) return error_out([], MsgLogic::PARAM_MSG);
         $bill = TransferModel::getInstance()->showBillWFind(['b.id'=>$id], 'b.id, b.driver_id, b.price, w.code');
         if(!$bill || !$bill['driver_id'] || !$bill['price'] ||! $bill['code']) return error_out([], '提现失败');
         $driver = TransferModel::getInstance()->showDriverFind($bill['driver_id'], 'name, openid');
         if(!$driver || !$driver['name'] || !$driver['openid']) return error_out([], '提现失败');
         //$result = WithdrawalModel::transferWx($id, $bill['code'], $coach['openid'], $bill['price']);
-        $order = TransferLogic::getInstance()->transferWx($bill['code'], $driver['openid'], $bill['price']);
-        if($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS'){
-            return error_out('', $order['err_code_des']);
+        if ($pay_type == 1) {
+            $order = TransferLogic::getInstance()->transferWx($bill['code'], $driver['openid'], $bill['price'], $user_type);
+            if($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS'){
+                Log::error('微信提现失败:' . $bill['code'] . '=>' . $order['err_code_des']);
+                return error_out('', $order['err_code_des']);
+            }
+        } else {
+
         }
+
         $bill['id'] = $id;
         $bill['status'] = 2;
         $bill['tag'] = '完成';
