@@ -4,7 +4,7 @@ namespace app\user\controller;
 use app\user\logic\QqLogic;
 use app\user\logic\UserLogic;
 use app\user\model\UsersModel;
-use app\user\Logic\WechatLogic;
+use app\user\logic\WechatLogic;
 use app\common\logic\MsgLogic;
 use app\common\sms\UserSms;
 use app\user\logic\MsgLogic as UserMsgLogic;
