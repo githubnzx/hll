@@ -12,6 +12,7 @@ namespace app\user\model;
 
 use app\admin\model\UserModel;
 use app\user\logic\UserLogic;
+use app\user\logic\OrderLogic;
 use im\Easemob;
 use think\Db;
 use think\Log;
@@ -22,6 +23,8 @@ class UsersModel extends BaseModel
     protected $tableUser = 'users';
     protected $wechatTable = 'wechat';
     protected $balance = 'balance';
+    protected $bill_table = 'bill';
+    protected $billWithdraw = 'bill_withdraw';
     protected $rechargeOrder = 'recharge_order';
 
     const STATUS_DEL = 0;

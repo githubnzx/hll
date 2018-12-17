@@ -31,10 +31,10 @@ class TransferLogic extends BaseLogic
         $inputObj->SetCheck_name($check_name);
         $inputObj->SetRe_user_name($user_name);
         $inputObj->SetAmount(intval($price * 100));
-        $inputObj->SetDesc('提现'); //var_dump($inputObj);die;
+        $inputObj->SetDesc('asdfasdf'); //var_dump($inputObj);die;
         $config = new WxPayUserConfig();
         $order = \WxPayApi::transfer($config, $inputObj);
-        var_dump($order);die;
+        //var_dump($order);die;
 //        if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
 //            Log::error('微信提现失败:' . $code . '=>' . $order['err_code_des']);
 //            //return false;
