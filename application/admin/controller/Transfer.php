@@ -49,26 +49,24 @@ class Transfer //extends Base
         return success_out("", MsgLogic::SUCCESS);
     }
     // 通过
-    public function transfer(){
+    public static function transfer(){
         $id = request()->post('id/d', 0);
-        $pay_type = request()->post('pay_type/d', 0);
-        $user_type = request()->post('user_type/d', 0);
-        if(!$id || !$pay_type || !$user_type) return error_out([], MsgLogic::PARAM_MSG);
+        $pay_type = request()->post('pay_type/d', 0); // 1 微信 2 支付宝
+        if(!$id || !$pay_type) return error_out([], MsgLogic::PARAM_MSG);
         $bill = TransferModel::getInstance()->showBillWFind(['b.id'=>$id], 'b.id, b.driver_id, b.price, w.code');
         if(!$bill || !$bill['driver_id'] || !$bill['price'] ||! $bill['code']) return error_out([], '提现失败');
         $driver = TransferModel::getInstance()->showDriverFind($bill['driver_id'], 'name, openid');
         if(!$driver || !$driver['name'] || !$driver['openid']) return error_out([], '提现失败');
         //$result = WithdrawalModel::transferWx($id, $bill['code'], $coach['openid'], $bill['price']);
-        if ($pay_type == 1) {
-            $order = TransferLogic::getInstance()->transferWx($bill['code'], $driver['openid'], $bill['price'], $user_type);
+        if ($pay_type === 1) {  // 微信
+            $order = TransferLogic::getInstance()->transferWx($bill['code'], $driver['openid'], $bill['price'], $pay_type);
             if($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS'){
                 Log::error('微信提现失败:' . $bill['code'] . '=>' . $order['err_code_des']);
                 return error_out('', $order['err_code_des']);
             }
-        } else {
+        } else {  // 支付宝
 
         }
-
         $bill['id'] = $id;
         $bill['status'] = 2;
         $bill['tag'] = '完成';
