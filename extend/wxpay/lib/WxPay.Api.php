@@ -48,7 +48,6 @@ class WxPayApi
 		if(!$inputObj->IsNotify_urlSet() && $config->GetNotifyUrl() != ""){
 			$inputObj->SetNotify_url($config->GetNotifyUrl());//异步通知url
 		}
-		
 		$inputObj->SetAppid($config->GetAppId());//公众账号ID
 		$inputObj->SetMch_id($config->GetMerchantId());//商户号
 		$inputObj->SetSpbill_create_ip($_SERVER['REMOTE_ADDR']);//终端ip	   	    
@@ -65,6 +64,55 @@ class WxPayApi
 
 		return $result;
 	}
+
+    /**
+     *
+     * 企业向微信用户个人付款，WxPayUnifiedOrder中out_trade_no、body、total_fee、trade_type必填
+     * appid、mchid、spbill_create_ip、nonce_str不需要填入
+     * @param WxPayUnifiedOrder $inputObj
+     * @param int $timeOut
+     * @throws WxPayException
+     * @return 成功时返回，其他抛异常
+     */
+    public static function transfer($config, $inputObj, $timeOut = 6)
+    {
+        $url = "https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers";
+        //检测必填参数
+        if(!$inputObj->IsPartner_trade_noSet()) {
+            throw new WxPayException("缺少统一企业付款到零钱接口必填参数partner_trade_no！");
+        }else if(!$inputObj->IsOpen_idSet()){
+            throw new WxPayException("缺少统一企业付款到零钱接口必填参数openid！");
+        }else if(!$inputObj->IsCheck_nameSet()) {
+            throw new WxPayException("缺少统一企业付款到零钱接口必填参数check_name！");
+        }else if($inputObj->GetCheck_name() === 'FORCE_CHECK' && !$inputObj->IsRe_user_nameSet()) {
+            throw new WxPayException("缺少统一企业付款到零钱接口必填参数re_user_name！");
+        }else if(!$inputObj->IsAmountSet()){
+            throw new WxPayException("缺少统一企业付款到零钱接口必填参数amount！");
+        }else if(!$inputObj->IsDescSet()){
+            throw new WxPayException("缺少统一企业付款到零钱接口必填参数desc！");
+        }
+        $inputObj->SetMch_appid($config->GetAppId());//公众账号ID
+        $inputObj->SetMch_id($config->GetMerchantId());//商户号
+        $inputObj->SetSpbill_create_ip($_SERVER['REMOTE_ADDR']);//终端ip
+        $inputObj->SetNonce_str(self::getNonceStr());//随机字符串
+
+//        $inputObj->SetAppid($config->GetAppId());//公众账号ID
+//        $inputObj->SetMch_id($config->GetMerchantId());//商户号
+//        $inputObj->SetSpbill_create_ip($_SERVER['REMOTE_ADDR']);//终端ip
+//        $inputObj->SetNonce_str(self::getNonceStr());//随机字符串
+        //签名
+        $inputObj->SetSign($config);
+        //var_dump($inputObj);die;
+        $xml = $inputObj->ToXml();
+        //var_dump($xml);die;
+        $startTimeStamp = self::getMillisecond();//请求开始时间
+        $response = self::postXmlCurl($config, $xml, $url, true, $timeOut);
+        //var_dump($response);die;
+        $result = WxPayResults::Init($config, $response);
+        //var_dump($result);die;
+        self::reportCostTime($config, $url, $startTimeStamp, $result);//上报请求花费时间
+        return $result;
+    }
 	
 	/**
 	 * 
@@ -540,7 +588,7 @@ class WxPayApi
 	 * @throws WxPayException
 	 */
 	private static function postXmlCurl($config, $xml, $url, $useCert = false, $second = 30)
-	{		
+	{
 		$ch = curl_init();
 		$curlVersion = curl_version();
 		$ua = "WXPaySDK/3.0.9 (".PHP_OS.") PHP/".PHP_VERSION." CURL/".$curlVersion['version']." "
@@ -583,7 +631,7 @@ class WxPayApi
 			$sslCertPath = "";
 			$sslKeyPath = "";
 			$config->GetSSLCertPath($sslCertPath, $sslKeyPath);
-			curl_setopt($ch,CURLOPT_SSLCERTTYPE,'PEM');
+            curl_setopt($ch,CURLOPT_SSLCERTTYPE,'PEM');
 			curl_setopt($ch,CURLOPT_SSLCERT, $sslCertPath);
 			curl_setopt($ch,CURLOPT_SSLKEYTYPE,'PEM');
 			curl_setopt($ch,CURLOPT_SSLKEY, $sslKeyPath);
@@ -597,7 +645,7 @@ class WxPayApi
 		if($data){
 			curl_close($ch);
 			return $data;
-		} else { 
+		} else {
 			$error = curl_errno($ch);
 			curl_close($ch);
 			throw new WxPayException("curl出错，错误码:$error");
