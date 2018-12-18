@@ -35,6 +35,9 @@ class MsgLogic extends BaseLogic
     const DRIVER_PRICE_LESS  = "余额不足";
     const TRANSFER_NO        = "不可提现";
 
+    const TRANSFER_ZFB_AUTH   = "请支付宝授权";
+
+
 
 
 

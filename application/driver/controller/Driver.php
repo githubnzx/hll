@@ -170,11 +170,17 @@ class driver extends Base
         $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
         if(!$price || !$payType) return error_out('', MsgLogic::PARAM_MSG);
         // 判断是否微信授权
-        $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
+        $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, zfb_unique_id, phone, pay_pwd');
         // 判断用户支付密码
         //if($driver["pay_pwd"] !== md5($password)) return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
-        if($payType == 1 && (!is_array($driver) || empty($driver['openid']))){
-            return error_out('', DriverMsgLogic::TRANSFER_WX_AUTH, -2);
+        if($payType == 1){
+            if ((!is_array($driver) || empty($driver['openid']))){
+                return error_out('', DriverMsgLogic::TRANSFER_WX_AUTH, -2);
+            }
+        } elseif ($payType == 2) {
+            if ((!is_array($driver) || empty($driver['zfb_unique_id']))){
+                return error_out('', DriverMsgLogic::TRANSFER_ZFB_AUTH, -2);
+            }
         }
         if (bccomp($price, 2.00, 2) < 0) {
             return error_out('', DriverMsgLogic::TRANSFER_WX_MIN_PRICE);

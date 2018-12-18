@@ -25,6 +25,8 @@ class MsgLogic extends BaseLogic
     const USER_PRICE_LESS    = "余额不足";
     const TRANSFER_NO        = "不可提现";
 
+    const TRANSFER_ZFB_AUTH = "请支付宝授权";
+
     const PRICE_MISTAKEN     = "充值金额有误";
     const RECHARGE_MIN_PRICE = "充值金额不得少于10元";
 

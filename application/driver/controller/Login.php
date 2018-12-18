@@ -192,6 +192,7 @@ class Login extends Base
             $data['openid']  = $openid;
             $data['headimgurl'] = WechatLogic::getInstance()->downloadAvar($user_info['headimgurl']);
             $data['nickname'] = $user_info['nickname'];
+            $data['third_party_type'] = DriverModel::WX_THIRD_PARTY_TYPE;
             if (!$wechat_info){
                 $wechat_id = DriverModel::getInstance()->wxInsert($data);
                 if (!$wechat_id) return error_out('', MsgLogic::SERVER_EXCEPTION);

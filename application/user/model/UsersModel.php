@@ -35,6 +35,11 @@ class UsersModel extends BaseModel
 
     const STAY_PAY = 1;
 
+    const WX_THIRD_PARTY_TYPE = 1;
+    const ZFB_THIRD_PARTY_TYPE= 2;
+    const QQ_THIRD_PARTY_TYPE = 3;
+
+
     public function userFind($where, $fields = '*'){
         $result = Db::table($this->tableUser)->field($fields)->where($where)->find();
         if(isset($result["icon"]) && $result["icon"]){
