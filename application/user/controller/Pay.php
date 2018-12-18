@@ -124,7 +124,7 @@ class Pay extends Base
     // 支付宝 回调签名验证
     private function zfbNotifyHandel($callback)
     {
-        Loader::import('alipay.user.Alipay');
+        Loader::import('alipay.UserAlipay');
         $alipay = new \Alipay();
         $data = input('post.');
         $is_true = $alipay->checkSign($data);

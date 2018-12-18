@@ -54,7 +54,7 @@ class OrderLogic extends BaseLogic
     public function refundWx($code, $price)
     {
         $price = PayLogic::getInstance()->handlePayPrice($price);
-        Loader::import('wxpay.user.lib.WxPay#Api');
+        Loader::import('wxpay.lib.WxPay#Api');
         $inputObj = new \WxPayRefund();
         $inputObj->SetOut_trade_no($code);
         $inputObj->SetOut_refund_no($code);
@@ -70,7 +70,7 @@ class OrderLogic extends BaseLogic
     public function transferWx($code, $openid, $price, $check_name = 'FORCE_CHECK', $user_name = '')
     {
         $price = PayLogic::getInstance()->handlePayPrice($price);
-        Loader::import('wxpay.user.lib.WxPay#Api');
+        Loader::import('wxpay.lib.WxPay#Api');
         $inputObj = new \WxTransOrder();
         $inputObj->SetPartner_trade_no($code);
         $inputObj->SetOpen_id($openid);
@@ -90,7 +90,7 @@ class OrderLogic extends BaseLogic
     {
         $price = PayLogic::getInstance()->handlePayPrice($price);
         try {
-            Loader::import('alipay.Alipay');
+            Loader::import('alipay.UserAlipay');
             $alipay = new \Alipay();
             return $alipay->refund($code, $price, $desc);
         } catch (\Exception $e) {
@@ -102,7 +102,7 @@ class OrderLogic extends BaseLogic
     public function payZfb($code, $price, $notifyUrl)
     {
         $price = PayLogic::getInstance()->handlePayPrice($price);
-        Loader::import('alipay.user.Alipay');
+        Loader::import('alipay.UserAlipay');
         $alipay = new \Alipay();
         $param['body'] = '亟亟城运';
         $param['subject'] = '亟亟城运';

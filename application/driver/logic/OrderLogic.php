@@ -54,60 +54,10 @@ class OrderLogic extends BaseLogic
         return $data;
     }
 
-    public function refundWx($code, $price)
-    {
-        $price = PayLogic::getInstance()->handlePayPrice($price);
-        Loader::import('wxpay.user.lib.WxPay#Api');
-        $inputObj = new \WxPayRefund();
-        $inputObj->SetOut_trade_no($code);
-        $inputObj->SetOut_refund_no($code);
-        $inputObj->SetTotal_fee(intval($price * 100));
-        $inputObj->SetRefund_fee(intval($price * 100));
-        $order = \WxPayApi::refund($inputObj);
-        if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
-            Log::error('微信退款失败:' . $code . '=>' . $order['err_code_des']);
-        }
-        return $order;
-    }
-
-    // 微信提现
-    public function transferWx($code, $openid, $price, $check_name = 'FORCE_CHECK', $user_name = '')
-    {
-        $price = PayLogic::getInstance()->handlePayPrice($price);
-        Loader::import('wxpay.user.lib.WxPay#Api');
-        $inputObj = new \WxTransOrder();
-        $inputObj->SetPartner_trade_no($code);
-        $inputObj->SetOpen_id($openid);
-        $inputObj->SetCheck_name($check_name);
-        $inputObj->SetRe_user_name($user_name);
-        $inputObj->SetAmount(intval($price * 100));
-        $inputObj->SetDesc('提现');
-        $order = \WxPayApi::transfer($inputObj);
-        if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
-            Log::error('微信提现失败:' . $code . '=>' . $order['err_code_des']);
-            return false;
-        }
-        return true;
-    }
-
-    // 支付宝退款
-    public function refundZfb($code, $price, $desc)
-    {
-        $price = PayLogic::getInstance()->handlePayPrice($price);
-        try {
-            Loader::import('alipay.Alipay');
-            $alipay = new \Alipay();
-            return $alipay->refund($code, $price, $desc);
-        } catch (\Exception $e) {
-            Log::error('支付宝退款失败:' . $code . '=>' . $e->getMessage());
-            return false;
-        }
-    }
-
     public function payZfb($code, $price, $notifyUrl, $body = "亟亟城运司机支付")
     {
         $price = PayLogic::getInstance()->handlePayPrice($price);
-        Loader::import('alipay.driver.Alipay');
+        Loader::import('alipay.DriverAlipay');
         $alipay = new \Alipay();
         $param['body'] = $body;
         $param['subject'] = '亟亟城运';

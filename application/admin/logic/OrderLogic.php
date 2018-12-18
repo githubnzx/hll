@@ -28,4 +28,19 @@ class OrderLogic extends BaseLogic
                 return "未知状态"; break;
         }
     }
+
+    // 提现
+    public function alipayTransfer($order_no, $price, $desc)
+    {
+        $price = 0.01;
+
+        try {
+            Loader::import('alipay.DriverAlipay');
+            $alipay = new \Alipay();
+            return $alipay->transfer($order_no, $price, $desc);
+        } catch (\Exception $e) {
+            Log::error('支付宝提现失败:' . $order_no . '=>' . $e->getMessage());
+            return false;
+        }
+    }
 }

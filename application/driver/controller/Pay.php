@@ -24,7 +24,7 @@ class Pay extends Base
 
     private function wechatNotifyHandel($callback)
     {
-        Loader::import('wxpay.user.lib.WxPay#Api');
+        Loader::import('wxpay.lib.WxPay#Api');
         $notifyReply = new \WxPayNotifyReply();
         $msg = "OK";
         //验证签名
@@ -55,7 +55,7 @@ class Pay extends Base
     //  支付宝 回调签名验证
     private function zfbNotifyHandel($callback)
     {
-        Loader::import('alipay.Alipay');
+        Loader::import('alipay.DriverAlipay');
         $alipay = new \Alipay();
         $data = input('post.');
         $is_true = $alipay->checkSign($data);
