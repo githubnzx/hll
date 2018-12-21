@@ -37,7 +37,9 @@ class DriverLogic extends BaseLogic
     const USER_ID_BACK   = "身份证反面照必填";
     const USER_JS_CERT   = "驾驶证件照必填";
     const USER_XS_CERT   = "行驶证件照必填";
-    const USER_CAR        = "车辆照片必填";
+    const USER_CAR       = "车辆照片必填";
+
+    const ZFB_AUTH_CODE  = "支付宝凭证不能为空";
 
 
 

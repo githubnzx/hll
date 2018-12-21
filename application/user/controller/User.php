@@ -186,12 +186,26 @@ class User extends Base
 
     // 是否授权
     public function isWxAuth(){
-        $user_id = UserLogic::getInstance()->checkToken();
-        $openid = UsersModel::getInstance()->userFind(['id'=>$user_id], 'openid')['openid'];
-        if(!$openid){
-            return error_out('', '请先微信授权');
+        $user_id= UserLogic::getInstance()->checkToken();
+        $type   = request()->post('type/d', 0);
+        if (!$type || !in_array($type, [1, 2])) return error_out('', MsgLogic::PARAM_MSG);
+        $userInfo = UsersModel::getInstance()->userFind(['id'=>$user_id], 'openid, zfb_unique_id');
+        $status = 0;
+        $authParam = "";
+        if($type === 1){ // 微信
+            if ($userInfo["openid"]) {
+                $status = 1;
+            }
+        } elseif ($type === 2) {
+            if ($userInfo["zfb_unique_id"]) {
+                $status = 1;
+            } else {
+                $authParam = ZfbLogic::getInstance()->loginAuth();
+            }//return error_out('', '请先支付宝授权');
         }
-        return success_out("", MsgLogic::SUCCESS);
+        $data["status"] = $status;
+        $data["authParam"] = $authParam;
+        return success_out($data, MsgLogic::SUCCESS);
     }
 
 

@@ -2,6 +2,7 @@
 namespace app\driver\controller;
 
 use app\admin\model\UserModel;
+use app\driver\logic\ZfbLogic;
 use app\driver\model\DriverModel;
 use app\driver\logic\WechatLogic;
 use app\user\logic\UserLogic;
@@ -309,6 +310,60 @@ class Login extends Base
         }else{
             return error_out('','绑定微信失败');
         }
+    }
+
+    // 支付宝授权
+    public function zfbAuth()
+    {
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $code = $this->request->post('code/s', "");
+        if (!$code) return error_out('', DriverLogic::WECHAT_CODE);
+
+//        $access_result["access_token"] = "16_NsrGS3GC5o9A0ZNKImLrxk4SWvBVMLGo6GmFhWllHgg7tClU4KsdeXAE2SbY5UzENddImnYJOl7oZkUy0Pkm277Wxhn1OeNZcqY7YthdqZs";
+//        $access_result["expires_in"] = 7200;
+//        $access_result["refresh_token"] = "16_mkORWIJkxdVFSgfqzxy81E5LM93_ytbKesBBRLiD1lbxAqax-lGZ0V1k4p01KJvsFJgFDNODD2CKQ1mq-XyqpxXZRSLm6fggR3kRPBMbRtY";
+//        $access_result["openid"] = "oLnON5hbziox7zW4Am5SJr5ZC57E";
+//        $access_result["scope"] = "snsapi_userinfo";
+//        $access_result["unionid"] = "onxbd54zDp2zaYCvy7Jb25G5ytzw";
+
+        $userInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "openid");
+        if (!empty($userInfo['openid'])){
+            return error_out("", DriverLogic::WECHAT_CODE_EXISTS);
+        }
+        $access_result = WechatLogic::getInstance()->getToken($code);
+        if (isset($access_result['errcode'])){
+            return error_out("", $access_result['errmsg']);
+        }
+        $result = DriverModel::getInstance()->wechatAuth($user_id, $access_result);
+        if ($result === true){
+            return success_out('','绑定微信成功');
+        }else{
+            return error_out('','绑定微信失败');
+        }
+    }
+
+    // 获取支付宝用户信息
+    public function authUserInfo(){
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $code = $this->request->post('code/s', "");
+        if (!$code) return error_out('', DriverLogic::ZFB_AUTH_CODE);
+        $access_token = ZfbLogic::getInstance()->alipayToken($code);
+        if ($access_token === false) return error_out("", "获取token失败");
+        $userInfo = ZfbLogic::getInstance()->alipayUserInfo($access_token);
+        if ($userInfo === false) return error_out("", "授权失败");
+        $userInfo["user_id"] = "2088102104794936";
+        $userInfo["avatar"] = "http://tfsimg.alipay.com/images/partner/T1uIxXXbpXXXXXXXX";
+        $userInfo["province"] = "安徽省";
+        $userInfo["city"] = "安庆";
+        $userInfo["nick_name"] = "支付宝小二";
+        $userInfo["is_student_certified"] = "T";
+        $userInfo["user_type"] = "1";
+        $userInfo["user_status"] = "T";
+        $userInfo["is_certified"] = "T";
+        $userInfo["gender"] = "F";
+        // 存入微信表和绑定用户表数据
+
+        var_dump($access_token);die;
     }
 
 }
