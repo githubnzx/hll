@@ -48,6 +48,10 @@ class DriverModel extends BaseModel
     const DEPOSIT_OPERATE_TYPE = 1;
     const RETREAT_OPERATE_TYPE = 2;
 
+    const WX_THIRD_PARTY_TYPE = 1;
+    const ZFB_THIRD_PARTY_TYPE= 2;
+    const QQ_THIRD_PARTY_TYPE = 3;
+
 
     public function userFind($where, $fields = '*'){
         $where["is_del"] = self::STATUS_DEL;

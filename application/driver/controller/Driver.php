@@ -5,6 +5,7 @@ use app\common\config\DriverConfig;
 use app\common\logic\MsgLogic;
 use app\common\sms\UserSms;
 use app\driver\logic\MsgLogic as DriverMsgLogic;
+use app\driver\logic\ZfbLogic;
 use app\driver\model\IntegralModel;
 use app\driver\model\DriverModel;
 use app\driver\logic\DriverLogic;
@@ -170,11 +171,17 @@ class driver extends Base
         $payType = request()->post('pay_type/d' , 0); // 1微信 2支付宝
         if(!$price || !$payType) return error_out('', MsgLogic::PARAM_MSG);
         // 判断是否微信授权
-        $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, phone, pay_pwd');
+        $driver = DriverModel::getInstance()->userFind(["id"=>$user_id], 'name, openid, zfb_unique_id, phone, pay_pwd');
         // 判断用户支付密码
         //if($driver["pay_pwd"] !== md5($password)) return error_out('', DriverMsgLogic::DRIVER_PAY_PWD);
-        if($payType == 1 && (!is_array($driver) || empty($driver['openid']))){
-            return error_out('', DriverMsgLogic::TRANSFER_WX_AUTH, -2);
+        if($payType == 1){
+            if ((!is_array($driver) || empty($driver['openid']))){
+                return error_out('', DriverMsgLogic::TRANSFER_WX_AUTH, -2);
+            }
+        } elseif ($payType == 2) {
+            if ((!is_array($driver) || empty($driver['zfb_unique_id']))){
+                return error_out('', DriverMsgLogic::TRANSFER_ZFB_AUTH, -2);
+            }
         }
         if (bccomp($price, 2.00, 2) < 0) {
             return error_out('', DriverMsgLogic::TRANSFER_WX_MIN_PRICE);
@@ -255,14 +262,27 @@ class driver extends Base
 
     // 是否授权
     public function isWxAuth(){
-        $user_id = DriverLogic::getInstance()->checkToken();
-        $openid = DriverModel::getInstance()->userFind(['id'=>$user_id], 'openid')['openid'];
-        if(!$openid){
-            return error_out('', '请先微信授权');
+        $user_id= DriverLogic::getInstance()->checkToken();
+        $type   = request()->post('type/d', 0);
+        if (!$type || !in_array($type, [1, 2])) return error_out('', MsgLogic::PARAM_MSG);
+        $userInfo = DriverModel::getInstance()->userFind(['id'=>$user_id], 'openid, zfb_unique_id');
+        $status = 0;
+        $authParam = "";
+        if($type === 1){ // 微信
+            if ($userInfo["openid"]) {
+                $status = 1;
+            }
+        } elseif ($type === 2) {
+            if ($userInfo["zfb_unique_id"]) {
+                $status = 1;
+            } else {
+                $authParam = ZfbLogic::getInstance()->loginAuth();
+            }//return error_out('', '请先支付宝授权');
         }
-        return success_out("", MsgLogic::SUCCESS);
+        $data["status"] = $status;
+        $data["authParam"] = $authParam;
+        return success_out($data, MsgLogic::SUCCESS);
     }
-
 
 
 
