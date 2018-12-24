@@ -261,6 +261,12 @@ class UsersModel extends BaseModel
         return Db::table($this->balance)->field($fields)->where($where)->find();
     }
 
+    // 获取账单
+    public function billList($where, $pages, $fields = '*'){
+        $where['is_del'] = self::STATUS_DEL;
+        return Db::table($this->bill_table)->field($fields)->where($where)->page($pages)->order('update_time desc')->select();
+    }
+
     // 用户支付充值回调
     public function payDriverRechargeSuccess($order, $pay_type){
         Db::startTrans();
