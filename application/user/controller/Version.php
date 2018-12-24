@@ -44,6 +44,7 @@ class Version extends Base
     // 版本
     public function index()
     {
+        ob_end_clean();
         $info = VersionModel::getInstance()->versionFind(["type"=>VersionModel::VERSION_TYPE], "title, number, version_url, describe, status, path");
         return success_out($info ?: []);
     }
