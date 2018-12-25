@@ -32,11 +32,12 @@ class Order extends Base
     public function robLst(){
         $user_id = DriverLogic::getInstance()->checkToken();
         $orderIds = $data = [];
-        // 获取司机手机号
-        $phone = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: 0;
+        $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone, is_register");
+        if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
+        // redis
         $redis = new Redis(\config("cache.driver"));
-        if ($phone) { // reids 判断当前司机是否是用户选的熟人订单
-            $orderIds = $redis->mget($redis->keys("RobOrder:".$phone."*"));
+        if ($driverInfo["phone"]) { // reids 判断当前司机是否是用户选的熟人订单
+            $orderIds = $redis->mget($redis->keys("RobOrder:".$driverInfo["phone"]."*"));
         }
         $order_time = 0;
         if (!$orderIds) { // 去掉选择熟人的订单
@@ -106,9 +107,11 @@ class Order extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
-        // 判断是否缴纳押金
-        $deposit = DriverModel::getInstance()->userFind(["id"=>$user_id], "deposit_status, deposit_number");
-        if (!$deposit || $deposit["deposit_number"] >= 3) return error_out("", OrderMsgLogic::DEPOSIT_STATUS_NOT);
+        // 判断是否完善信息和缴纳押金
+        $deposit = DriverModel::getInstance()->userFind(["id"=>$user_id], "is_register, deposit_status, deposit_number");
+        if (!$deposit) return error_out("", "失败");
+        if ($deposit["is_register"] === 0) return error_out("", "尽快上传资料");
+        if ($deposit["deposit_number"] >= 3) return error_out("", OrderMsgLogic::DEPOSIT_STATUS_NOT);
         // 查询是否是会员
         $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
         $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
