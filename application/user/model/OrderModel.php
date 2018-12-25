@@ -103,6 +103,19 @@ class OrderModel extends BaseModel
         }
     }
 
+    // 自动下单（针对预约订单）
+    public function orderSuccess($order, $pay_type){
+        Db::startTrans();
+        try {
+            $this->orderEdit(["id"=>$order["id"]], ["status"=>2]);
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
+
     // 评论
     public function evaluateInfo($where, $fields = "*"){
         $where["is_del"] = self::IS_SHOW;

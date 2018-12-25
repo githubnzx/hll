@@ -387,6 +387,22 @@ class DriverModel extends BaseModel
         return true;
     }
 
+    // 添加账单
+    public function billAdd($user_id, $order_id, $type, $pay_type, $price, $tag = "充值"){
+        $bill["user_id"]  = $user_id;
+        $bill["order_id"] = $order_id;
+        $bill["type"]     = $type;
+        $bill["pay_type"] = $pay_type;  // 1微信 2支付宝 3余额
+        $bill["user_type"]= self::USER_TYPE_USER;
+        $bill["tag"]    = $tag;
+        $bill["price"]  = $price;
+        $bill["status"] = 2;
+        $bill["date"]   = CURR_TIME;
+        $bill["create_time"] = CURR_TIME;
+        $bill["update_time"] = CURR_TIME;
+        return Db::table($this->bill_table)->insert($bill);
+    }
+
     // 司机支付充值回调
     public function payDriverRechargeSuccess($order, $pay_type){
         Db::startTrans();
@@ -403,6 +419,9 @@ class DriverModel extends BaseModel
                 $data["update_time"] = CURR_TIME;
                 Db::table($this->balance)->insert($data);
             }
+            // 添加账单
+            $this->billAdd($order["order_id"], $order["id"], 1, $pay_type, $order["price"]);
+
             $this->rechargeOrdeEdit(["id"=>$order["id"]], ["status"=>2]);
             Db::commit();
         } catch (\Exception $e) {
