@@ -24,7 +24,7 @@ class WxPayDriverConfig extends WxPayConfigInterface
     }
     public function GetMerchantId()
     {
-        return '1516674411';
+        return '1516673251';//'1516674411';
     }
 
     //=======【支付相关配置：支付成功回调地址/签名方式】===================================

@@ -37,7 +37,7 @@ class OrderLogic extends BaseLogic
         $inputObj->SetTrade_type("APP");
         $inputObj->SetTime_start($time_start);
         $inputObj->SetTime_expire($time_expire);
-        $config = new WxPayUserConfig();
+        $config = new WxPayDriverConfig();
         $order = \WxPayApi::unifiedOrder($config, $inputObj);
         if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
             return false;
