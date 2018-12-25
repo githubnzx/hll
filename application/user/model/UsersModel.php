@@ -139,6 +139,21 @@ class UsersModel extends BaseModel
         return Db::table($this->tableUser)->insertGetId($data);
     }
 
+    // 微信登录绑定用户表中不存在的手机号 注册
+    public function wechatRegisterAdd($data){
+        Db::startTrans();
+        try {
+            $user_id = $this->userInsert($data);
+            // 发送短信给用户 （默认注册密码）
+
+            Db::commit();
+            return $user_id;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
+
     // 查询预约
     public function balanceInfoById($driver_id)
     {

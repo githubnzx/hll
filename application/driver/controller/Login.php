@@ -263,6 +263,8 @@ class Login extends Base
             $parm['province'] = '';
             $parm['city_code']= '';
             $parm['ad_code']  = '';
+            $parm["id_number"]= '';
+            $parm["password"] = md5(config("user_login_prefix")."111111");
             $parm['register_status']  = 0;  // 0未注册
             $parm['create_time'] = CURR_TIME;
             $parm['update_time'] = CURR_TIME;

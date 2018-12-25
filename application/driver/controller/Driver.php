@@ -2,6 +2,7 @@
 namespace app\driver\controller;
 use app\admin\model\UserModel;
 use app\common\config\DriverConfig;
+use app\common\logic\MapLogic;
 use app\common\logic\MsgLogic;
 use app\common\sms\UserSms;
 use app\driver\logic\MsgLogic as DriverMsgLogic;
@@ -109,6 +110,15 @@ class driver extends Base
     public function hasLogin(){
         $user_id = DriverLogic::getInstance()->checkToken();
         return success_out();
+    }
+
+    // 检测是否完善信息
+    public function hasPerfectInfo(){
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "is_register");
+        if (!$driverInfo) return error_out('', '用户不存在');
+        $data["status"] = $driverInfo["is_register"];
+        return success_out($data, MsgLogic::SUCCESS);
     }
 
     // 完善信息
