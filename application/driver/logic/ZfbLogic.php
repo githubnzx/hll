@@ -51,7 +51,7 @@ class ZfbLogic extends BaseLogic
     public function loginAuth(){
         try {
             Loader::import('alipay.DriverAlipay');
-            $alipay = new \Alipay();
+            $alipay = new \DriverAlipay();
             return $alipay->loginAuth();
         } catch (\Exception $e) {
             Log::error('支付宝授权失败: =>' . $e->getMessage());
