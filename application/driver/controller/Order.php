@@ -33,7 +33,7 @@ class Order extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $orderIds = $data = [];
         $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone, is_register");
-        if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
+        //if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
         // redis
         $redis = new Redis(\config("cache.driver"));
         if ($driverInfo["phone"]) { // reids 判断当前司机是否是用户选的熟人订单
