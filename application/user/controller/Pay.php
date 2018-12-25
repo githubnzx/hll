@@ -12,14 +12,33 @@ use think\Loader;
 
 class Pay extends Base
 {
-//    // 微信
-//    public function notifyWx()
-//    {
-//        $result = $this->wechatNotifyHandel(function ($code) {
-//            return $this->updateMemberOrder($code, OrderModel::ORDER_PAY_WX);
-//        });
-//        exit($result);
-//    }
+    // 微信
+    public function notifyWx()
+    {
+        $result = $this->wechatNotifyHandel(function ($code) {
+            return $this->updateOrder($code, OrderModel::ORDER_PAY_WX);
+        });
+        exit($result);
+    }
+
+    // 支付宝
+    public function notifyZfb()
+    {
+        $result = $this->zfbNotifyHandel(function ($code) {
+            return $this->updateOrder($code, OrderModel::ORDER_PAY_ZFB);
+        });
+        exit($result);
+    }
+
+    // 用户订单 回调
+    public function updateOrder($code, $pay_type)
+    {
+        $order =  OrderModel::getInstance()->orderFind(["code"=>$code]);
+        if ($order['status'] != 1) return false;
+        // 处理账户
+        $result = OrderModel::getInstance()->orderSuccess($order, $pay_type);
+        return $result;
+    }
 
     /**************************************  用户充值 *******************************************************/
     // 微信 用户充值
@@ -94,14 +113,7 @@ class Pay extends Base
 
 
 
-//    // 支付宝
-//    public function notifyZfb()
-//    {
-//        $result = $this->zfbNotifyHandel(function ($code) {
-//            return $this->updateOrder($code, OrderModel::ORDER_PAY_ZFB);
-//        });
-//        exit($result);
-//    }
+
 
 //    // 司机会员充值回调(支付宝)
 //    public function updateZfbRechargeOrder($code, $pay_type)
@@ -144,19 +156,19 @@ class Pay extends Base
 
 
 
-    public function updateOrder($code, $pay_type)
-    {
-        $where['o.code'] = $code;
-        $orderModel = new OrderModel();
-        $fields = 'o.id, o.field_id, o.status, o.coach_id, o.pay_user_id, o.user_id, o.price, o.user_price, o.experien_status, o.schedule_id, o.field_type_id, o.course_id, o.type_id, od.date, od.time_nodes';
-        $order =  OrderModel::getInstance()->getOrderOne($where, $fields); //getOrderList getOrderByCode
-        if ($order['status'] != 1) { //不是待支付状态
-            return false;
-        }
-        // 处理账户
-        $result = $orderModel->paySuccess($order, $pay_type);
-        return $result;
-    }
+//    public function updateOrder($code, $pay_type)
+//    {
+//        $where['o.code'] = $code;
+//        $orderModel = new OrderModel();
+//        $fields = 'o.id, o.field_id, o.status, o.coach_id, o.pay_user_id, o.user_id, o.price, o.user_price, o.experien_status, o.schedule_id, o.field_type_id, o.course_id, o.type_id, od.date, od.time_nodes';
+//        $order =  OrderModel::getInstance()->getOrderOne($where, $fields); //getOrderList getOrderByCode
+//        if ($order['status'] != 1) { //不是待支付状态
+//            return false;
+//        }
+//        // 处理账户
+//        $result = $orderModel->paySuccess($order, $pay_type);
+//        return $result;
+//    }
 
     public function notifyMemberWx()
     {
