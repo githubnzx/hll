@@ -347,6 +347,7 @@ class Login extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $code = $this->request->post('code/s', "");
         if (!$code) return error_out('', DriverLogic::ZFB_AUTH_CODE);
+
         $access_token = ZfbLogic::getInstance()->alipayToken($code);
         if ($access_token === false) return error_out("", "获取token失败");
         $userInfo = ZfbLogic::getInstance()->alipayUserInfo($access_token);

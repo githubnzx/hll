@@ -91,7 +91,7 @@ class OrderLogic extends BaseLogic
         $price = PayLogic::getInstance()->handlePayPrice($price);
         try {
             Loader::import('alipay.UserAlipay');
-            $alipay = new \Alipay();
+            $alipay = new \UserAlipay();
             return $alipay->refund($code, $price, $desc);
         } catch (\Exception $e) {
             Log::error('支付宝退款失败:' . $code . '=>' . $e->getMessage());
@@ -103,7 +103,7 @@ class OrderLogic extends BaseLogic
     {
         $price = PayLogic::getInstance()->handlePayPrice($price);
         Loader::import('alipay.UserAlipay');
-        $alipay = new \Alipay();
+        $alipay = new \UserAlipay();
         $param['body'] = '亟亟城运';
         $param['subject'] = '亟亟城运';
         $param['out_trade_no'] = $code;

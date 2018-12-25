@@ -58,7 +58,7 @@ class OrderLogic extends BaseLogic
     {
         $price = PayLogic::getInstance()->handlePayPrice($price);
         Loader::import('alipay.DriverAlipay');
-        $alipay = new \Alipay();
+        $alipay = new \DriverAlipay();
         $param['body'] = $body;
         $param['subject'] = '亟亟城运';
         $param['out_trade_no'] = $code;
