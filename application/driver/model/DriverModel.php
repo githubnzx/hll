@@ -371,21 +371,21 @@ class DriverModel extends BaseModel
         return true;
     }
 
-    // 修改 账户余额
-    public function balanceUp($where, $param) {
-        Db::startTrans();
-        try {
-            // 账号增加金额
-
-
-            $this->rechargeOrdeEdit(["id"=>$order["id"]], ["status"=>2]);
-            Db::commit();
-        } catch (\Exception $e) {
-            Db::rollback();
-            return false;
-        }
-        return true;
-    }
+//    // 修改 账户余额
+//    public function balanceUp($where, $param) {
+//        Db::startTrans();
+//        try {
+//            // 账号增加金额
+//
+//
+//            $this->rechargeOrdeEdit(["id"=>$order["id"]], ["status"=>2]);
+//            Db::commit();
+//        } catch (\Exception $e) {
+//            Db::rollback();
+//            return false;
+//        }
+//        return true;
+//    }
 
     // 添加账单
     public function billAdd($user_id, $order_id, $type, $pay_type, $price, $tag = "充值"){
@@ -420,7 +420,7 @@ class DriverModel extends BaseModel
                 Db::table($this->balance)->insert($data);
             }
             // 添加账单
-            $this->billAdd($order["order_id"], $order["id"], 1, $pay_type, $order["price"]);
+            $this->billAdd($order["user_id"], $order["id"], 1, $pay_type, $order["price"]);
 
             $this->rechargeOrdeEdit(["id"=>$order["id"]], ["status"=>2]);
             Db::commit();

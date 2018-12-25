@@ -316,7 +316,7 @@ class UsersModel extends BaseModel
                 Db::table($this->balance)->insert($data);
             }
             // 添加账单
-            $this->billAdd($order["order_id"], $order["id"], 1, $pay_type, $order["price"]);
+            $this->billAdd($order["user_id"], $order["id"], 1, $pay_type, $order["price"]);
 
             $this->rechargeOrdeEdit(["id"=>$order["id"]], ["status"=>2]);
             Db::commit();
