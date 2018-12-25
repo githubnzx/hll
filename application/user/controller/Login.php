@@ -312,9 +312,10 @@ class Login extends Base
             $parm['city_code']= '';
             $parm['ad_code']  = '';
             $parm['register_status']  = 0;  // 0未注册
+            $parm["password"] = md5(config("user_login_prefix")."111111");
             $parm['create_time'] = CURR_TIME;
             $parm['update_time'] = CURR_TIME;
-            $user_id = UsersModel::getInstance()->userInsert($wechat_info["id"], $parm);
+            $user_id = UsersModel::getInstance()->wechatRegisterAdd($parm);
             if ($user_id) {
                 $user_token = UserLogic::getInstance()->getToken($user_id);
                 return success_out([
