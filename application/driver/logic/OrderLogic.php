@@ -25,9 +25,9 @@ class OrderLogic extends BaseLogic
     public function payWx($code, $price, $notifyUrl, $body = "	亟亟城运支付")
     {
         $price = PayLogic::getInstance()->handlePayPrice($price);
-        $times = CURR_TIME;
-        $time_start = date("YmdHis", $times);
-        $time_expire= date("YmdHis", $times + 90);
+        // = CURR_TIME;
+        //$time_start = date("YmdHis", $times);
+        //$time_expire= date("YmdHis", $times + 90);
         Loader::import('wxpay.lib.WxPay#Api');
         $inputObj = new \WxPayUnifiedOrder();
         $inputObj->SetOut_trade_no($code);
@@ -35,21 +35,21 @@ class OrderLogic extends BaseLogic
         $inputObj->SetNotify_url($notifyUrl);
         $inputObj->SetTotal_fee(intval($price * 100));
         $inputObj->SetTrade_type("APP");
-        $inputObj->SetTime_start($time_start);
-        $inputObj->SetTime_expire($time_expire);
+        //$inputObj->SetTime_start($time_start);
+        //$inputObj->SetTime_expire($time_expire);
         $config = new WxPayDriverConfig();
         $order = \WxPayApi::unifiedOrder($config, $inputObj);
         if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
             return false;
         }
-        //$inputObj->values = [];
+        $inputObj->values = [];
         $data['appid'] = $order['appid'];
         $data['partnerid'] = $order['mch_id'];
         $data['prepayid'] = $order['prepay_id'];
         $data['packageValue'] = "Sign=WXPay";
         $data['noncestr'] = \WxPayApi::getNonceStr();
         $data['timestamp'] = (string)time();
-        //$inputObj->values = $data;
+        $inputObj->values = $data;
         $data['sign'] = $inputObj->SetSign($config);
         return $data;
     }

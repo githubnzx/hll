@@ -14,7 +14,7 @@ require_once "WxPay.Exception.php";
  */
 class WxPayDataBase
 {
-	protected $values = array();
+    public $values = array();
 
 	/**
 	* 设置签名，详见签名生成算法类型
