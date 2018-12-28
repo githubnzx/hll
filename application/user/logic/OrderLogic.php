@@ -39,14 +39,14 @@ class OrderLogic extends BaseLogic
         if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
             return false;
         }
-        //$inputObj->values = [];
+        $inputObj->values = [];
         $data['appid'] = $order['appid'];
         $data['partnerid'] = $order['mch_id'];
         $data['prepayid'] = $order['prepay_id'];
         $data['packageValue'] = "Sign=WXPay";
         $data['noncestr'] = \WxPayApi::getNonceStr();
         $data['timestamp'] = (string)time();
-        //$inputObj->values = $data;
+        $inputObj->values = $data;
         $data['sign'] = $inputObj->SetSign($config);
         return $data;
     }
