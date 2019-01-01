@@ -13,6 +13,8 @@ namespace app\admin\controller;
 
 use app\admin\model\RoleModel;
 use app\admin\model\UserModel;
+use app\admin\model\OrderModel;
+use app\admin\model\DriverModel;
 
 class User extends Base
 {
@@ -163,4 +165,29 @@ class User extends Base
             ]
         ];
     }
+
+    // 用户统计
+    public function counts(){
+        $date_start= request()->post('date_start/d', '');
+        $date_end  = request()->post('date_end/d', '');
+        $where = [];
+        // 用户统计
+        $user = new UserModel();
+        if ($date_start && $date_end) {
+            $where["create_time"] = ["between", [$date_start, $date_end]]; // 用户条件
+        }
+        $userNumber = $user->getUsersCount($where);  // 用户总数量
+        $orderNumber= OrderModel::getInstance()->orderCount($where); // 订单总数量
+        $orderCompletedNumber= OrderModel::getInstance()->orderCount($where+["status"=>2]); // 已完成订单总数量
+        $orderPriceNumber= OrderModel::getInstance()->orderTotalPrice($where+["status"=>2]); // 订单总金额
+        $driverNmber = DriverModel::getInstance()->driverCount($where);
+
+        $data["user"]  = $userNumber;
+        $data["order"] = $orderNumber;
+        $data["orderCompleted"] = $orderCompletedNumber;
+        $data["orderPrice"] = $orderPriceNumber;
+        $data["driver"] = $driverNmber;
+        return json(['list' => $data, 'msg' => '']);
+    }
+
 }

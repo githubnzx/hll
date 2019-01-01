@@ -144,4 +144,16 @@ class UserModel extends Model
                 ->where('u.user_name', $userName)
                 ->find();
     }
+
+
+    /**
+     * 根据搜索条件获取用户总数据量
+     * @param $where
+     * @param $offset
+     * @param $limit
+     */
+    public function getUsersCount($where)
+    {
+        return $this->alias('user')->where($where)->count();
+    }
 }
