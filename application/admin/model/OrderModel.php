@@ -141,5 +141,15 @@ class OrderModel extends BaseModel
         return true;
     }
 
+    public function orderCount($where){
+        $where["is_del"] = self::STATUS_DEL;
+        return Db::table($this->order)->where($where)->count();
+    }
+
+    public function orderTotalPrice($where){
+        $where["is_del"] = self::STATUS_DEL;
+        return Db::table($this->order)->where($where)->sum("total_price");
+    }
+
 
 }
