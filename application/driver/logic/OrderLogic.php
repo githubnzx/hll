@@ -44,16 +44,15 @@ class OrderLogic extends BaseLogic
         }
         $inputObj->values = [];
         $data['appid'] = $order['appid'];
+        $data['noncestr'] = \WxPayApi::getNonceStr();
+        $data['package']  = "Sign=WXPay";
         $data['partnerid'] = $order['mch_id'];
         $data['prepayid'] = $order['prepay_id'];
-        $data['package']  = "Sign=WXPay";
-        $data['noncestr'] = \WxPayApi::getNonceStr();
         $data['timestamp'] = (string)time();
-        $inputObj->values = $data;
+        $inputObj->values = $data; 
         $data['sign'] = $inputObj->SetSign($config);
         unset($data['package']);
         $data['packageValue'] = "Sign=WXPay";
-
         return $data;
     }
 
