@@ -51,7 +51,8 @@ class OrderLogic extends BaseLogic
         $data['timestamp'] = (string)time();
         $inputObj->values = $data;
         $data['sign'] = $inputObj->SetSign($config);
-        $data['packageValue'] = "Sign=WXPay";
+        unset($data['package']);
+        $data['packagevalue'] = "Sign=WXPay";
 
         return $data;
     }
