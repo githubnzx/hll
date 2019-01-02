@@ -50,7 +50,7 @@ class OrderLogic extends BaseLogic
         $data['noncestr'] = \WxPayApi::getNonceStr();
         $data['timestamp'] = (string)time();
         $inputObj->values = $data;
-        $data['sign'] = $inputObj->SetSign($config, false);
+        $data['sign'] = $inputObj->MakeSign($config, false);
         unset($data['package']);
         $data['packageValue'] = "Sign=WXPay";
         return $data;
