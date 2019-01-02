@@ -52,7 +52,7 @@ class OrderLogic extends BaseLogic
         $inputObj->values = $data;
         $data['sign'] = $inputObj->SetSign($config);
         unset($data['package']);
-        $data['packagevalue'] = "Sign=WXPay";
+        $data['packageValue'] = "Sign=WXPay";
 
         return $data;
     }
