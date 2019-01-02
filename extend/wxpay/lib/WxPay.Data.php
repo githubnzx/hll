@@ -30,9 +30,9 @@ class WxPayDataBase
 	* 设置签名，详见签名生成算法
 	* @param string $value 
 	**/
-	public function SetSign($config)
+	public function SetSign($config, $needSignType = true)
 	{
-		$sign = $this->MakeSign($config);
+		$sign = $this->MakeSign($config, $needSignType);
 		$this->values['sign'] = $sign;
 		return $sign;
 	}
