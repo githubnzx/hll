@@ -163,6 +163,7 @@ class Login extends Base
         $user = UsersModel::getInstance()->userFind(["openid"=>$openid], "id, phone, is_del");
         if ($user) { //已存在
             if ($user['is_del'] != UsersModel::STATUS_DEL) return error_out('', UserLogic::USER_STATUS);
+            UserLogic::getInstance()->delToken($user['id']);
             $user_token = UserLogic::getInstance()->getToken($user['id'], true);
             $result['user_token'] = $user_token;
             $result['phone'] = $user['phone'];
