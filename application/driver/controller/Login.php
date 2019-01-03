@@ -173,7 +173,7 @@ class Login extends Base
         $openid = $wx_token['openid'];
         $unionid = isset($wx_token['unionid']) ? $wx_token['unionid'] : '';
         //验证openid是否已存在
-        $user = DriverModel::getInstance()->userFind(["openid"=>$openid], "id, phone");
+        $user = DriverModel::getInstance()->userFind(["openid"=>$openid], "id, phone, is_del");
         if ($user) { //已存在
             if ($user['is_del'] != DriverModel::STATUS_DEL) return error_out('', DriverLogic::USER_STATUS);
             $user_token = DriverLogic::getInstance()->getToken($user['id']);
