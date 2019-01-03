@@ -43,11 +43,11 @@ class OrderLogic extends BaseLogic
         $data['appid'] = $order['appid'];
         $data['partnerid'] = $order['mch_id'];
         $data['prepayid'] = $order['prepay_id'];
-        $data['package']  = "Sign=WXPay";
+        $data['package'] = "Sign=WXPay";
         $data['noncestr'] = \WxPayApi::getNonceStr();
         $data['timestamp'] = (string)time();
         $inputObj->values = $data;
-        $data['sign'] = $inputObj->SetSign($config);
+        $data['sign'] = $inputObj->MakeSign($config, false);
         unset($data['package']);
         $data['packageValue'] = "Sign=WXPay";
         return $data;

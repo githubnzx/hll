@@ -160,7 +160,7 @@ class Login extends Base
         $openid = $wx_token['openid'];
         $unionid = isset($wx_token['unionid']) ? $wx_token['unionid'] : '';
         //验证openid是否已存在
-        $user = UsersModel::getInstance()->userFind(["openid"=>$openid], "id, phone");
+        $user = UsersModel::getInstance()->userFind(["openid"=>$openid], "id, phone, is_del");
         if ($user) { //已存在
             if ($user['is_del'] != UsersModel::STATUS_DEL) return error_out('', UserLogic::USER_STATUS);
             $user_token = UserLogic::getInstance()->getToken($user['id']);
