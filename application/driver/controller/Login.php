@@ -177,7 +177,7 @@ class Login extends Base
         if ($user) { //已存在
             if ($user['is_del'] != DriverModel::STATUS_DEL) return error_out('', DriverLogic::USER_STATUS);
             $user_token = DriverLogic::getInstance()->getToken($user['id']);
-            $result['user_token'] = $user_token;
+            $result['token'] = $user_token;
             $result['phone'] = $user['phone'];
             $result['wechat_id'] = 0;
             $result['status'] = $user['phone'] ? 1 : 0;  // 是否绑定手机号 1 已绑定  0 未绑定
