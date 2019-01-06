@@ -33,6 +33,7 @@ class DriverModel extends BaseModel
 
     const STATUS_DEL = 0;
     const USER_TYPE_USER    = 2;
+
     const INTEGRAL_REGISTER = 10;
     const TYPE_IN  = 1;
     const TYPE_OUT = 2;
@@ -71,7 +72,7 @@ class DriverModel extends BaseModel
         if (isset($access_result['unionid']) && $access_result['unionid']){
             $param['unionid'] = $update['unionid'] = $access_result['unionid'];
         }
-        $wechat_info = $this->wechatFind(["openid"=>$access_result['openid'], "type"=>self::USER_TYPE_USER], "id, openid");
+        $wechat_info = $this->wechatFind(["openid"=>$access_result['openid'], "third_party_type"=>DriverModel::WX_THIRD_PARTY_TYPE,  "type"=>self::USER_TYPE_USER], "id, openid");
         if ($wechat_info){
             try{
                 $this->wechatUpdate(["id"=>$wechat_info['id']],$param);
@@ -84,6 +85,44 @@ class DriverModel extends BaseModel
         }else{
             try{
                 $param['user_id'] = $user_id;
+                $param['third_party_type'] = DriverModel::WX_THIRD_PARTY_TYPE;
+                $this->userEdit(["id"=>$user_id], $update);
+                $this->wxInsert($param);
+                Db::commit();
+            }catch (Exception $e){
+                Db::rollback();
+                return error_out('',$e->getMessage());
+            }
+        }
+        return true;
+    }
+
+    //提现绑定支付宝
+    public function zfbAuth($user_id, $access_result)
+    {
+//        $param['access_token'] = $access_result['access_token'];
+//        $param['refresh_token']= $access_result['refresh_token'];
+        $param["nickname"] = $access_result["nick_name"];
+        $param["headimgurl"] = $access_result["avatar"];
+        if ($access_result["is_certified"] === "T"){
+            $param["sex"] = $access_result["gender"] === "F" ? 2 : 1;
+        }
+        $param["unionid"] = "";
+        $param['openid'] = $update['zfb_unique_id'] = $access_result['user_id'];
+        $wechat_info = $this->wechatFind(["openid"=>$access_result['user_id'], "third_party_type"=>DriverModel::ZFB_THIRD_PARTY_TYPE, "type"=>self::USER_TYPE_USER], "id, openid");
+        if ($wechat_info){
+            try{
+                $this->wechatUpdate(["id"=>$wechat_info['id']], $param);
+                $this->userEdit(["id"=>$user_id], $update);
+                Db::commit();
+            }catch (Exception $e){
+                Db::rollback();
+                return error_out('',$e->getMessage());
+            }
+        }else{
+            try{
+                $param['user_id'] = $user_id;
+                $param['third_party_type'] = DriverModel::ZFB_THIRD_PARTY_TYPE;
                 $this->userEdit(["id"=>$user_id], $update);
                 $this->wxInsert($param);
                 Db::commit();
@@ -186,6 +225,7 @@ class DriverModel extends BaseModel
     }
 
     public function wxInsert($data){
+        $data['type'] = DriverModel::USER_TYPE_USER;
         $data['type'] = DriverModel::USER_TYPE_USER;
         $data['create_time'] = CURR_TIME;
         $data['update_time'] = CURR_TIME;

@@ -349,24 +349,27 @@ class Login extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $code = $this->request->post('code/s', "");
         if (!$code) return error_out('', DriverLogic::ZFB_AUTH_CODE);
-
         $access_token = ZfbLogic::getInstance()->alipayToken($code);
         if ($access_token === false) return error_out("", "获取token失败");
         $userInfo = ZfbLogic::getInstance()->alipayUserInfo($access_token);
         if ($userInfo === false) return error_out("", "授权失败");
-        $userInfo["user_id"] = "2088102104794936";
-        $userInfo["avatar"] = "http://tfsimg.alipay.com/images/partner/T1uIxXXbpXXXXXXXX";
-        $userInfo["province"] = "安徽省";
-        $userInfo["city"] = "安庆";
-        $userInfo["nick_name"] = "支付宝小二";
-        $userInfo["is_student_certified"] = "T";
-        $userInfo["user_type"] = "1";
-        $userInfo["user_status"] = "T";
-        $userInfo["is_certified"] = "T";
-        $userInfo["gender"] = "F";
+//        $userInfo["user_id"] = "2088102104794936";
+//        $userInfo["avatar"] = "http://tfsimg.alipay.com/images/partner/T1uIxXXbpXXXXXXXX";
+//        $userInfo["province"] = "安徽省";
+//        $userInfo["city"] = "安庆";
+//        $userInfo["nick_name"] = "支付宝小二";
+//        $userInfo["is_student_certified"] = "T";
+//        $userInfo["user_type"] = "1";
+//        $userInfo["user_status"] = "T";
+//        $userInfo["is_certified"] = "T";
+//        $userInfo["gender"] = "F";
         // 存入微信表和绑定用户表数据
-
-        var_dump($access_token);die;
+        $result = DriverModel::getInstance()->zfbAuth($user_id, $userInfo);
+        if ($result === true){
+            return success_out('','绑定支付宝成功');
+        }else{
+            return error_out('','绑定支付宝失败');
+        }
     }
 
 }
