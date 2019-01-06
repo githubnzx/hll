@@ -314,7 +314,7 @@ class Login extends Base
         }
     }
 
-    // 支付宝授权
+/*    // 支付宝授权
     public function zfbAuth()
     {
         $user_id = DriverLogic::getInstance()->checkToken();
@@ -342,10 +342,10 @@ class Login extends Base
         }else{
             return error_out('','绑定微信失败');
         }
-    }
+    }*/
 
     // 获取支付宝用户信息
-    public function authUserInfo(){
+    public function zfbAuth(){
         $user_id = DriverLogic::getInstance()->checkToken();
         $code = $this->request->post('code/s', "");
         if (!$code) return error_out('', DriverLogic::ZFB_AUTH_CODE);
