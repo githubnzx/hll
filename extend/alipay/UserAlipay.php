@@ -73,10 +73,122 @@ class UserAlipay
         if (!empty($resultCode) && $resultCode == 10000) {
             return true;
         } else {
-            echo $resultCode;die;
             return $resultCode;
         }
     }
+
+    // 提现
+    public function transfer($code, $price, $desc = '支付宝提现')
+    {
+        $aop = new AopClient;
+        $aop->appId = $this->appId;
+        $aop->rsaPrivateKey = $this->appPrivateKey ;
+        $aop->signType = "RSA2";
+        $aop->alipayrsaPublicKey = $this->appPublicKey;
+        $request = new AlipayFundTransToaccountTransferRequest(); //
+        $bizcontent = json_encode([
+            'out_trade_no' => $code,
+            'refund_amount' => bcadd($price, 0, 2),
+            'refund_reason' => $desc,
+        ]);
+        $request->setBizContent($bizcontent);
+        $result = $aop->execute($request);
+        $responseNode = str_replace(".", "_", $request->getApiMethodName()) . "_response";
+        $resultCode = $result->$responseNode->code;
+        if (!empty($resultCode) && $resultCode == 10000) {
+            return true;
+        } else {
+            return $resultCode;
+        }
+    }
+
+    // 获取token
+    public function token($auth_code)
+    {
+        if (!$auth_code) return false;
+        $aop = new AopClient;
+        $aop->appId = $this->appId;
+        $aop->rsaPrivateKey = $this->appPrivateKey ;
+        $aop->signType = "RSA2";
+        $aop->alipayrsaPublicKey = $this->appPublicKey;
+
+        //获取access_token
+        $request = new AlipaySystemOauthTokenRequest();
+        $request->setGrantType("authorization_code");
+        $request->setCode($auth_code);
+        //$request->setRefreshToken("201208134b203fe6c11548bcabd8da5bb087a83b");
+        $result = $aop->execute($request);
+        if(isset($result->error_response)){
+            return $result->error_response->sub_msg;
+        }
+        $responseNode = str_replace(".", "_", $request->getApiMethodName()) . "_response";
+        return $result->$responseNode->access_token;
+    }
+
+    // 获取用户信息
+    public function authUserInfo($access_token) {
+        if(empty($access_token)) return false;
+        $aop = new \AopClient();
+        //初始化
+        $aop->appId = $this->appId;
+        $aop->rsaPrivateKey = $this->appPrivateKey ;
+        $aop->signType = "RSA2";
+        $aop->alipayrsaPublicKey = $this->appPublicKey;
+        //获取用户信息
+        $request = new AlipayUserInfoShareRequest();
+        $result = $aop->execute($request, $access_token); //这里传入获取的access_token
+        if(isset($result->error_response)){
+            return $result->error_response->sub_msg;
+        }
+        $responseNode = str_replace(".", "_", $request->getApiMethodName()) . "_response";
+        $alipayUser =array();
+        if ($result->$responseNode->code == "10000" && $result->$responseNode->msg == "Success"){
+            $alipayUser['nick_name'] = isset($result->$responseNode->nick_name) ? $result->$responseNode->nick_name : "";
+            $alipayUser['user_id'] = $result->$responseNode->user_id;                   // 用户唯一id
+            $alipayUser['province'] = $result->$responseNode->province;                 // 省份
+            $alipayUser['avatar'] = $result->$responseNode->avatar;                     // 头像
+            $alipayUser['city'] = $result->$responseNode->city;                         // 城市
+            $alipayUser['user_type'] = $result->$responseNode->user_type;               // 用户类型（1/2）1代表公司账户2代表个人账户
+            $alipayUser['user_status'] = $result->$responseNode->user_status;           // 用户状态（Q/T/B/W）。Q代表快速注册用户T代表已认证用户B代表被冻结账户W代表已注册，未激活的账户
+            $alipayUser['is_certified'] = $result->$responseNode->is_certified;         // 是否通过实名认证。T是通过 F是没有实名认证。
+            $alipayUser['gender'] = $result->$responseNode->gender;                     // 是否通过实名认证。T是通过 F是没有实名认证。
+        } else {
+            return $result->$responseNode->msg;
+        }
+        return $alipayUser;
+    }
+
+    /*
+    * 供 app 使用
+    * 通过参数调用登录授权接口。
+    * infoStr：根据商户的授权请求信息生成。详见授权请求参数。
+    * https://docs.open.alipay.com/218/105325/
+    * apiname=com.alipay.account.auth&app_id=xxxxx&app_name=mc&auth_type=AUTHACCOUNT&biz_type=openservice&method=alipay.open.auth.sdk.code.get&pid=xxxxx&product_id=APP_FAST_LOGIN&scope=kuaijie&sign_type=RSA2&target_id=20141225xxxx&sign=fMcp4GtiM6rxSIeFnJCVePJKV43eXrUP86CQgiLhDHH2u%2FdN75eEvmywc2ulkm7qKRetkU9fbVZtJIqFdMJcJ9Yp%2BJI%2FF%2FpESafFR6rB2fRjiQQLGXvxmDGVMjPSxHxVtIqpZy5FDoKUSjQ2%2FILDKpu3%2F%2BtAtm2jRw1rUoMhgt0%3D
+    * */
+    public function loginAuth(){
+        $aop = new \AopClient(); //实例化支付宝sdk里面的AopClient类,下单时需要的操作,都在这个类里面
+        $param = [
+            "apiname"   => 'com.alipay.account.auth',
+            "method"    => "alipay.open.auth.sdk.code.get",
+            "app_id"    => $this->appId,
+            "app_name"  => "mc",
+            "biz_type"  => "openservice",
+            "pid"       => $this->appPid,
+            "product_id"=> "APP_FAST_LOGIN",
+            "scope"     => "kuaijie",
+            "target_id" => md5(time() . mt_rand(0,1000)),
+            "auth_type" => "AUTHACCOUNT",
+            "sign_type" => "RSA2"
+        ];
+        //生成签名
+        $paramStr = $aop->getSignContent($param);
+        $sign = $aop->alonersaSign($paramStr, $this->appPrivateKey, 'RSA2');
+        $param['sign'] = $sign;
+        $str = $aop->getSignContentUrlencode($param);
+        return $str;
+    }
+
+
 
 
 

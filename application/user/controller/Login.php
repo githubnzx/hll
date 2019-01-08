@@ -2,6 +2,7 @@
 namespace app\user\controller;
 
 use app\user\logic\QqLogic;
+use app\user\logic\ZfbLogic;
 use app\user\logic\UserLogic;
 use app\user\model\UsersModel;
 use app\user\logic\WechatLogic;
@@ -13,6 +14,7 @@ use think\Cache;
 use think\Db;
 use think\Exception;
 use think\exception\HttpException;
+
 class Login extends Base
 {
 
@@ -359,6 +361,24 @@ class Login extends Base
             return success_out('','绑定微信成功');
         }else{
             return error_out('','绑定微信失败');
+        }
+    }
+
+    // 获取支付宝用户信息
+    public function zfbAuth(){
+        $user_id = UserLogic::getInstance()->checkToken();
+        $code = $this->request->post('code/s', "");
+        if (!$code) return error_out('',  UserLogic::ZFB_AUTH_CODE);
+        $access_token = ZfbLogic::getInstance()->alipayToken($code);
+        if ($access_token === false) return error_out("", "获取token失败");
+        $userInfo = ZfbLogic::getInstance()->alipayUserInfo($access_token);
+        if ($userInfo === false) return error_out("", "授权失败");
+        // 存入微信表和绑定用户表数据
+        $result = UsersModel::getInstance()->zfbAuth($user_id, $userInfo);
+        if ($result === true){
+            return success_out('','绑定支付宝成功');
+        }else{
+            return error_out('','绑定支付宝失败');
         }
     }
 

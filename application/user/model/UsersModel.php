@@ -81,6 +81,44 @@ class UsersModel extends BaseModel
         return true;
     }
 
+    //提现绑定支付宝
+    public function zfbAuth($user_id, $access_result)
+    {
+//        $param['access_token'] = $access_result['access_token'];
+//        $param['refresh_token']= $access_result['refresh_token'];
+        $param["nickname"] = $access_result["nick_name"];
+        $param["headimgurl"] = $access_result["avatar"];
+        if ($access_result["is_certified"] === "T"){
+            $param["sex"] = $access_result["gender"] === "F" ? 2 : 1;
+        }
+        $param["unionid"] = "";
+        $param['openid'] = $update['zfb_unique_id'] = $access_result['user_id'];
+        $wechat_info = $this->wechatFind(["openid"=>$access_result['user_id'], "third_party_type"=>DriverModel::ZFB_THIRD_PARTY_TYPE, "type"=>self::USER_TYPE_USER], "id, openid");
+        if ($wechat_info){
+            try{
+                $this->wechatUpdate(["id"=>$wechat_info['id']], $param);
+                $this->userEdit(["id"=>$user_id], $update);
+                Db::commit();
+            }catch (Exception $e){
+                Db::rollback();
+                return error_out('',$e->getMessage());
+            }
+        }else{
+            try{
+                $param['user_id'] = $user_id;
+                $param['third_party_type'] = DriverModel::ZFB_THIRD_PARTY_TYPE;
+                $this->userEdit(["id"=>$user_id], $update);
+                $this->wxInsert($param);
+                Db::commit();
+            }catch (Exception $e){
+                Db::rollback();
+                return error_out('',$e->getMessage());
+            }
+        }
+        return true;
+    }
+
+
     public function userBindAll($where, $fields = '*'){
         return Db::table($this->tableUser)->field($fields)->where($where)->select();
     }

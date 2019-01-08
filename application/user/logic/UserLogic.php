@@ -31,6 +31,7 @@ class UserLogic extends BaseLogic
     const USER_NOT_EXISTS= "用户不存在";
 
     const QQ_CODE        = "QQ凭证不能为空";
+    const ZFB_AUTH_CODE  = "支付宝凭证不能为空";
 
 
 
