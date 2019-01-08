@@ -1,6 +1,8 @@
 <?php
 namespace app\user\controller;
+
 use app\admin\model\UserModel;
+use app\user\logic\ZfbLogic;
 use app\common\logic\MsgLogic;
 use app\user\model\IntegralModel;
 use app\user\model\UsersModel;
