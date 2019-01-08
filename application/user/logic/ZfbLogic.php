@@ -18,7 +18,7 @@ class ZfbLogic extends BaseLogic
         if (!$code) return false;
         try {
             Loader::import('alipay.UserAlipay');
-            $alipay = new \DriverAlipay();
+            $alipay = new \UserAlipay();
             return $alipay->authUserInfo($code);
         } catch (\Exception $e) {
             Log::error('支付宝获取用户信息失败: =>' . $e->getMessage());
@@ -32,7 +32,7 @@ class ZfbLogic extends BaseLogic
         if (!$code) return false;
         try {
             Loader::import('alipay.UserAlipay');
-            $alipay = new \DriverAlipay();
+            $alipay = new \UserAlipay();
             return $alipay->token($code);
         } catch (\Exception $e) {
             Log::error('支付宝获取token失败: =>' . $e->getMessage());
@@ -50,7 +50,7 @@ class ZfbLogic extends BaseLogic
     public function loginAuth(){
         try {
             Loader::import('alipay.UserAlipay');
-            $alipay = new \DriverAlipay();
+            $alipay = new \UserAlipay();
             return $alipay->loginAuth();
         } catch (\Exception $e) {
             Log::error('支付宝授权失败: =>' . $e->getMessage());
