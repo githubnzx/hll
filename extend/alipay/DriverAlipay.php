@@ -144,13 +144,20 @@ class DriverAlipay
         }
         $responseNode = str_replace(".", "_", $request->getApiMethodName()) . "_response";
         $alipayUser =array();
-        $alipayUser['alipay_user_id'] = $result->$responseNode->user_id;            // 用户唯一id
-        $alipayUser['alipay_province'] = $result->$responseNode->province;          // 省份
-        $alipayUser['alipay_city'] = $result->$responseNode->city;                  // 城市
-        $alipayUser['alipay_user_type'] = $result->$responseNode->user_type;        // 用户类型（1/2）1代表公司账户2代表个人账户
-        $alipayUser['alipay_user_status'] = $result->$responseNode->user_status;    // 用户状态（Q/T/B/W）。Q代表快速注册用户T代表已认证用户B代表被冻结账户W代表已注册，未激活的账户
-        $alipayUser['alipay_is_certified'] = $result->$responseNode->is_certified;  // 是否通过实名认证。T是通过 F是没有实名认证。
-        return $alipayUser;
+        if ($result->$responseNode->code == "10000" && $result->$responseNode->msg == "Success"){
+            $alipayUser['nick_name'] = isset($result->$responseNode->nick_name) ? $result->$responseNode->nick_name : "";
+            $alipayUser['user_id'] = $result->$responseNode->user_id;                   // 用户唯一id
+            $alipayUser['province'] = $result->$responseNode->province;                 // 省份
+            $alipayUser['avatar'] = $result->$responseNode->avatar;                     // 头像
+            $alipayUser['city'] = $result->$responseNode->city;                         // 城市
+            $alipayUser['user_type'] = $result->$responseNode->user_type;               // 用户类型（1/2）1代表公司账户2代表个人账户
+            $alipayUser['user_status'] = $result->$responseNode->user_status;           // 用户状态（Q/T/B/W）。Q代表快速注册用户T代表已认证用户B代表被冻结账户W代表已注册，未激活的账户
+            $alipayUser['is_certified'] = $result->$responseNode->is_certified;         // 是否通过实名认证。T是通过 F是没有实名认证。
+            $alipayUser['gender'] = $result->$responseNode->gender;                     // 是否通过实名认证。T是通过 F是没有实名认证。
+        } else {
+            return $result->$responseNode->msg;
+        }
+        return $responseNode;
     }
 
     /*
