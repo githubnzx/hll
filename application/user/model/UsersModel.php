@@ -11,6 +11,7 @@
 namespace app\user\model;
 
 use app\admin\model\UserModel;
+use app\common\sms\UserSms;
 use app\user\logic\UserLogic;
 use app\user\logic\OrderLogic;
 use im\Easemob;
@@ -93,7 +94,7 @@ class UsersModel extends BaseModel
         }
         $param["unionid"] = "";
         $param['openid'] = $update['zfb_unique_id'] = $access_result['user_id'];
-        $wechat_info = $this->wechatFind(["openid"=>$access_result['user_id'], "third_party_type"=>DriverModel::ZFB_THIRD_PARTY_TYPE, "type"=>self::USER_TYPE_USER], "id, openid");
+        $wechat_info = $this->wechatFind(["openid"=>$access_result['user_id'], "third_party_type"=>UsersModel::ZFB_THIRD_PARTY_TYPE, "type"=>self::USER_TYPE_USER], "id, openid");
         if ($wechat_info){
             try{
                 $this->wechatUpdate(["id"=>$wechat_info['id']], $param);
@@ -106,7 +107,7 @@ class UsersModel extends BaseModel
         }else{
             try{
                 $param['user_id'] = $user_id;
-                $param['third_party_type'] = DriverModel::ZFB_THIRD_PARTY_TYPE;
+                $param['third_party_type'] = UsersModel::ZFB_THIRD_PARTY_TYPE;
                 $this->userEdit(["id"=>$user_id], $update);
                 $this->wxInsert($param);
                 Db::commit();
