@@ -21,7 +21,6 @@ class ZfbLogic extends BaseLogic
             $alipay = new \DriverAlipay();
             return $alipay->authUserInfo($code);
         } catch (\Exception $e) {
-            var_dump($e->getMessage());die;
             Log::error('支付宝获取用户信息失败: =>' . $e->getMessage());
             return false;
         }

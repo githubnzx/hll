@@ -144,7 +144,6 @@ class DriverAlipay
         }
         $responseNode = str_replace(".", "_", $request->getApiMethodName()) . "_response";
         $alipayUser =array();
-        var_dump($result->$responseNode);die;
         $alipayUser['alipay_user_id'] = $result->$responseNode->user_id;            // 用户唯一id
         $alipayUser['alipay_province'] = $result->$responseNode->province;          // 省份
         $alipayUser['alipay_city'] = $result->$responseNode->city;                  // 城市
