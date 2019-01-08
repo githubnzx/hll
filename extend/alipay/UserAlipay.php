@@ -8,6 +8,8 @@
 require_once 'aop/AopClient.php';
 require_once 'aop/request/AlipayTradeAppPayRequest.php';
 require_once 'aop/request/AlipayTradeRefundRequest.php';
+require_once 'aop/request/AlipaySystemOauthTokenRequest.php';           // token
+require_once 'aop/request/AlipayUserInfoShareRequest.php';              // 获取会员用户信息
 class UserAlipay
 {
     private $appId = '2018101461696215';
