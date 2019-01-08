@@ -157,7 +157,7 @@ class DriverAlipay
         } else {
             return $result->$responseNode->msg;
         }
-        return $responseNode;
+        return $alipayUser;
     }
 
     /*
