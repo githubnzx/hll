@@ -226,7 +226,6 @@ class DriverModel extends BaseModel
 
     public function wxInsert($data){
         $data['type'] = DriverModel::USER_TYPE_USER;
-        $data['type'] = DriverModel::USER_TYPE_USER;
         $data['create_time'] = CURR_TIME;
         $data['update_time'] = CURR_TIME;
         return Db::table($this->wechatTable)->insertGetId($data);
