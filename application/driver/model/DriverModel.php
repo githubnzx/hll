@@ -427,12 +427,13 @@ class DriverModel extends BaseModel
 //    }
 
     // 添加账单
-    public function billAdd($user_id, $order_id, $type, $pay_type, $price, $tag = "充值"){
+    public function billAdd($user_id, $order_id, $type, $pay_type, $price, $type_status = 1, $tag = "充值"){
         //$bill["user_id"]  = $user_id;
         $bill["driver_id"]= $user_id;
         $bill["order_id"] = $order_id;
         $bill["type"]     = $type;
-        $bill["pay_type"] = $pay_type;  // 1微信 2支付宝 3余额
+        $bill["pay_type"] = $type_status;  // 1微信 2支付宝 3余额
+        $bill["type_status"] = $pay_type;  // 支出类型 1 体现 2 充值
         $bill["user_type"]= self::USER_TYPE_USER;
         $bill["tag"]    = $tag;
         $bill["price"]  = $price;
@@ -460,7 +461,7 @@ class DriverModel extends BaseModel
                 Db::table($this->balance)->insert($data);
             }
             // 添加账单
-            $this->billAdd($order["user_id"], $order["id"], 1, $pay_type, $order["price"]);
+            $this->billAdd($order["user_id"], $order["id"], 1, $pay_type, $order["price"], 2);
 
             $this->rechargeOrdeEdit(["id"=>$order["id"]], ["status"=>2]);
             Db::commit();
