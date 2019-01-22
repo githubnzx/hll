@@ -16,7 +16,7 @@ use think\Config;
 class my extends Base
 {
     private $type        = [1=>'转入', 2=>'转出'];
-    private $title       = [1=>'提现'];
+    private $title       = [1=>'提现', 2=>"充值"];
     //private $pay_type   = [0=>"", 1=>'支付宝支付', 2=>'微信支付', 3=>'会员卡支付', 4=>'余额支付'];
     private $type_symbol = [1=>'+', 2=>'-'];
     // 账户余额
