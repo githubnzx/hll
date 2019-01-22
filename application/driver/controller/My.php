@@ -52,7 +52,7 @@ class my extends Base
         $balance = DriverModel::getInstance()->balanceFind(["user_id"=>$user_id, "user_type"=>DriverModel::USER_TYPE_USER], "balance");
         $data['balance'] = $balance['balance'] ?: '0.00';
         $fields = 'id, user_id, driver_id, balance, type, pay_type, type_status, status, tag, price, date, update_time';
-        $bill = DriverModel::getInstance()->billList(['driver_id'=>$user_id, 'user_type'=>DriverModel::USER_TYPE_USER], "create_time desc", $fields);
+        $bill = DriverModel::getInstance()->billList(['driver_id'=>$user_id, 'user_type'=>DriverModel::USER_TYPE_USER], "", $fields);
         $dataAll = [];
         foreach ($bill as $key => $val){
             if (!isset($dataAll[$val["date"]])) {
