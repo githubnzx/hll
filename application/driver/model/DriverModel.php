@@ -327,7 +327,7 @@ class DriverModel extends BaseModel
 
     // 获取账单
     public function billList($where, $pages, $fields = '*'){
-        $where['is_del'] = self::STATUS_DEL;
+        $where['is_del'] = self::STATUS_DEL; 
         return Db::table($this->bill_table)->field($fields)->where($where)->page($pages)->order('date desc')->select();
     }
 
