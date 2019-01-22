@@ -80,7 +80,7 @@ if (!function_exists('handleImgPath')) {
      */
     function handleImgPath($image)
     {
-        if (!$image) return "";
+        if (empty($image)) return "";
         if (strpos($image , '/') !== 0){
             $image = '/'.$image;
         }
