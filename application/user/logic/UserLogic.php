@@ -115,7 +115,7 @@ class UserLogic extends BaseLogic
     // 姓名 只包含中英文
     public function check_name($name){
         //$preg_name='/^[\x{4e00}-\x{9fa5}]{1,10}$|^[a-zA-Z\s]*[a-zA-Z\s]{1,20}$/isu';
-        $preg_name='/^[\x{4e00}-\x{9fa5}a-zA-Z]{1,10}$/isu';
+        $preg_name='/^[\x{4e00}-\x{9fa5}]{2,10}$|^[a-zA-Z\s]*[a-zA-Z\s]{2,20}$/isu';
         if(preg_match($preg_name, $name)){
             return true;
         } else {
