@@ -428,7 +428,8 @@ class DriverModel extends BaseModel
 
     // 添加账单
     public function billAdd($user_id, $order_id, $type, $pay_type, $price, $tag = "充值"){
-        $bill["user_id"]  = $user_id;
+        //$bill["user_id"]  = $user_id;
+        $bill["driver_id"]= $user_id;
         $bill["order_id"] = $order_id;
         $bill["type"]     = $type;
         $bill["pay_type"] = $pay_type;  // 1微信 2支付宝 3余额
