@@ -80,7 +80,7 @@ class Member extends Base
         if ($pay_type === 1) { // 微信支付
             $data["wxData"] = OrderLogic::getInstance()->payWx($order['code'], $order['present_price'], url('driver/pay/notifyWxMemberPay', '', true, true), "亟亟城运司机端购买会员卡");//亟亟城运会员购买
         } else {  // 支付宝支付
-            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $order['price'], url('driver/pay/notifyZfbMemberPay', '', true, true), "亟亟城运司机端购买会员卡");
+            $data['zfbData'] = OrderLogic::getInstance()->payZfb($order['code'], $order['present_price'], url('driver/pay/notifyZfbMemberPay', '', true, true), "亟亟城运司机端购买会员卡");
         }
         return success_out($data);
     }
