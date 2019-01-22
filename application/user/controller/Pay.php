@@ -7,6 +7,7 @@ use app\user\logic\OrderLogic;
 use app\user\model\OrderModel;
 use app\user\model\MemberModel;
 use app\user\model\DepositModel;
+use app\common\config\WxPayUserConfig;
 use think\Loader;
 
 
@@ -94,6 +95,7 @@ class Pay extends Base
         $notifyReply = new \WxPayNotifyReply();
         $msg = "OK";
         //验证签名
+        $config = new WxPayUserConfig();
         $result = \WxpayApi::notify(function ($data) use ($callback) {
             if ($data['result_code'] == 'SUCCESS' && $data['return_code'] == 'SUCCESS') {
                 return call_user_func($callback, $data['out_trade_no']);
