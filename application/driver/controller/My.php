@@ -54,6 +54,7 @@ class my extends Base
         $fields = 'id, user_id, driver_id, balance, type, pay_type, type_status, status, tag, price, date, update_time';
         $bill = DriverModel::getInstance()->billList(['driver_id'=>$user_id, 'user_type'=>DriverModel::USER_TYPE_USER], "", $fields);
         $dataAll = [];
+
         foreach ($bill as $key => $val){
             if (!isset($dataAll[$val["date"]])) {
                 if (date("m") === date("m", $val["date"])) {
