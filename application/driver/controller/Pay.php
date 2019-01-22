@@ -6,6 +6,7 @@ use app\driver\model\DriverModel;
 use app\user\logic\OrderLogic;
 use app\driver\model\OrderModel;
 use app\driver\model\MemberModel;
+use app\common\config\WxPayDriverConfig;
 use think\Loader;
 use think\Log;
 
@@ -29,7 +30,8 @@ class Pay extends Base
         $notifyReply = new \WxPayNotifyReply();
         $msg = "OK";
         //验证签名
-        $result = \WxpayApi::notify(function ($data) use ($callback) {
+        $config = new WxPayDriverConfig();
+        $result = \WxpayApi::notify($config, function ($data) use ($callback) {
             Log::write('微信回调:data =>' . json_encode($data));
             if ($data['result_code'] == 'SUCCESS' && $data['return_code'] == 'SUCCESS') {
                 return call_user_func($callback, $data['out_trade_no']);
