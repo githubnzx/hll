@@ -78,8 +78,9 @@ class Sms
         $request->setTemplateCode($templateCode);
 
         // 可选，设置模板参数, 假如模板中存在变量需要替换则为必填项
-        $request->setTemplateParam(json_encode($message, JSON_UNESCAPED_UNICODE));
-
+        if ($message) {
+            $request->setTemplateParam(json_encode($message, JSON_UNESCAPED_UNICODE));
+        }
         // 可选，设置流水号
         // $request->setOutId("yourOutId");
 
