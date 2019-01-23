@@ -62,7 +62,7 @@ class Pay extends Base
     private function zfbNotifyHandel($callback)
     {
         Loader::import('alipay.DriverAlipay');
-        $alipay = new \Alipay();
+        $alipay = new \DriverAlipay();
         $data = input('post.');
         $is_true = $alipay->checkSign($data);
         if (!$is_true) {

@@ -96,7 +96,7 @@ class Pay extends Base
         $msg = "OK";
         //验证签名
         $config = new WxPayUserConfig();
-        $result = \WxpayApi::notify(function ($data) use ($callback) {
+        $result = \WxpayApi::notify($config, function ($data) use ($callback) {
             if ($data['result_code'] == 'SUCCESS' && $data['return_code'] == 'SUCCESS') {
                 return call_user_func($callback, $data['out_trade_no']);
             } else {
@@ -139,7 +139,7 @@ class Pay extends Base
     private function zfbNotifyHandel($callback)
     {
         Loader::import('alipay.UserAlipay');
-        $alipay = new \Alipay();
+        $alipay = new \UserAlipay();
         $data = input('post.');
         $is_true = $alipay->checkSign($data);
         if (!$is_true) {
