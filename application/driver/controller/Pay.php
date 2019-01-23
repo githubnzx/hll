@@ -32,20 +32,18 @@ class Pay extends Base
         //验证签名
         $config = new WxPayDriverConfig();
         $result = \WxpayApi::notify($config, function ($data) use ($callback) {
-            Log::write('微信回调:data =>' . json_encode($data));
-            if ($data['result_code'] == 'SUCCESS' && $data['return_code'] == 'SUCCESS') {
-                return call_user_func($callback, $data['out_trade_no']);
+            $dataValues = (array) $data->values;
+            if ($dataValues['result_code'] == 'SUCCESS' && $dataValues['return_code'] == 'SUCCESS') {
+                return call_user_func($callback, $dataValues['out_trade_no']);
             } else {
                 return false;
             }
         }, $msg);
-        Log::write('微信回调:result =>' . $result);
         if ($result == false) {
             $notifyReply->SetReturn_code("FAIL");
         } else {
             $notifyReply->SetReturn_code("SUCCESS");
         }
-        Log::write('微信回调:msg =>' . $msg);
         $notifyReply->SetReturn_msg($msg);
         return $notifyReply->ToXml();
     }
