@@ -151,8 +151,8 @@ class DriverModel extends BaseModel
 
     // 添加充值订单
     public function rechargeOrderInsert($data){
-        $user['create_time'] = CURR_TIME;
-        $user['update_time'] = CURR_TIME;
+        $data['create_time'] = CURR_TIME;
+        $data['update_time'] = CURR_TIME;
         return Db::table($this->rechargeOrder)->insertGetId($data);
     }
 
