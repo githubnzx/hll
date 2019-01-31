@@ -32,7 +32,7 @@ class Driver extends Base
         } else {
             $where["audit_status"] = 1;
         }
-        $list = DriverModel::getInstance()->driverList($where, "id, name, phone, car_type, car_color, car_number, addr_info, audit_status, create_time") ?: [];
+        $list = DriverModel::getInstance()->driverList($where, "id, name, phone, car_type, car_color, car_number, addr_info, audit_status, create_time", $pages) ?: [];
         foreach ($list as $key => &$value){
             $value["car_color"] = DriverConfig::getInstance()->getCarID($value["car_color"]);
             $value["car_type"] = DriverConfig::getInstance()->truckTypeNameId($value["car_type"]);
