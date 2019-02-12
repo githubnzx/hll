@@ -32,6 +32,53 @@ class Order extends Base
     public function robLst(){
         $user_id = DriverLogic::getInstance()->checkToken();
         $orderIds = $data = [];
+        // redis
+        $redis = new Redis(\config("cache.driver"));
+        // redis中取订单数据
+        $orderList = $redis->mget($redis->keys("RobOrderData:*")) ?: [];
+        foreach ($orderList as $key => $value) {
+            $orderInfo = json_decode($value, true);
+            // 货车信息
+            $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
+            $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
+            $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
+            // 用户信息
+            $userInfo = UsersModel::getInstance()->userFind(["id"=>$orderInfo["user_id"]], "name, phone, icon, sex");
+            if ($userInfo) { // 处理名称
+                $userName = handleUserName($userInfo["name"]);
+                $nameType = DriverConfig::getInstance()->userNameTypeId($userInfo["sex"]);
+                $order["user_name"]  = $nameType ? $userName.$nameType : $nameType;
+                $order["user_phone"] = $userInfo["phone"];
+                $order["user_icon"]  = $userInfo["icon"];
+            } else {
+                $order["user_name"]  = "未知";
+                $order["user_phone"] = "";
+                $order["user_icon"]  = "";
+            }
+            // 订单信息
+            $order["order_id"] = $orderInfo["id"];
+            $order["truck_id"] = $orderInfo["truck_id"];
+            $order["order_time"] = $orderInfo["order_time"];
+            $order["send_good_lon"] = $orderInfo["send_good_lon"];
+            $order["send_good_lat"] = $orderInfo["send_good_lat"];
+            $order["collect_good_lon"] = $orderInfo["collect_good_lon"];
+            $order["collect_good_lat"] = $orderInfo["collect_good_lat"];
+            $order["send_good_addr"] = $orderInfo["send_good_addr"];
+            $order["collect_good_addr"] = $orderInfo["collect_good_addr"];
+            $order["is_receivables"] = $orderInfo["is_receivables"];
+            $order["remarks"] = $orderInfo["remarks"];
+            $order["status"] = isset($orderInfo["status"]) ? $orderInfo["status"] : 0;
+            $order["price"] = $orderInfo["price"];
+            $order["truck_name"] = $orderInfo["truck_name"];
+            $data[] = $order;
+        }
+        return success_out($data, MsgLogic::SUCCESS);
+    }
+
+    // 抢单列表
+    public function robLst_old(){
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $orderIds = $data = [];
         $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone, is_register");
         //if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
         // redis
