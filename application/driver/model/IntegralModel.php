@@ -27,7 +27,7 @@ class IntegralModel extends BaseModel
     protected $userIntegralGood   = 'user_integral_goods';
 
     const STATUS_DEL = 0;
-    const CERT_TYPE  = 4;
+    const CERT_TYPE  = 9;//4
 
     public function integralList($where = [], $fields = '*'){
         $where["is_del"] = IntegralModel::STATUS_DEL;

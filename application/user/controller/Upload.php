@@ -17,6 +17,7 @@ class Upload extends Base
             $msg = $upload['message'];
             $code = 0;
         }
+        ob_clean();
         return api_out($code, $data, $msg);
     }
     public function excel()

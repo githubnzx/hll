@@ -129,6 +129,17 @@ class UsersModel extends BaseModel
         return Db::table($this->tableUser)->where($where)->update($param);
     }
 
+    /**
+     * 根据搜索条件获取用户总数据量
+     * @param $where
+     * @param $offset
+     * @param $limit
+     */
+    public function getUsersCount($where)
+    {
+        return Db::table($this->tableUser)->where($where)->count();
+    }
+
     // 提现
     public function addBillAndTxBalance($driver_id, $balance_id, $balance_total, $price, $type, $pay_type, $tag, $status = 2)
     {

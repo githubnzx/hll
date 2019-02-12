@@ -6,6 +6,7 @@ use app\admin\model\TruckModel;
 use app\admin\model\IntegralModel;
 use think\Cache;
 use think\Config;
+ob_clean();
 
 
 class Integral extends Base
@@ -67,7 +68,8 @@ class Integral extends Base
     public function add(){
         $data["title"]   = $this->request->post('title/s', "");
         $data["number"]  = $this->request->post('number/d', 0);
-        $data["integral"] = $this->request->post('integral/s', "");
+        $data["integral"]= $this->request->post('integral/s', "");
+        $data["content"] = $this->request->post('content/s', "");
         $image = $this->request->post('image/a', []);
         if(!$data["title"] || !$data["number"] || !$data["integral"]) return error_out("", MsgLogic::PARAM_MSG);
         $data["surplus_number"]  = $data["number"];

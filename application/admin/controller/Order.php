@@ -1,5 +1,6 @@
 <?php
 namespace app\admin\controller;
+
 use app\admin\model\OrderModel;
 use app\admin\model\TransferModel;
 use app\common\config\DriverConfig;
@@ -12,6 +13,8 @@ use think\Cache;
 use think\Config;
 use think\Session;
 
+
+ob_clean();
 
 class Order extends Base
 {

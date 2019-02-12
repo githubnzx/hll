@@ -13,8 +13,11 @@ namespace app\admin\controller;
 
 use app\admin\model\RoleModel;
 use app\admin\model\UserModel;
+use app\user\model\UsersModel;
 use app\admin\model\OrderModel;
 use app\admin\model\DriverModel;
+
+ob_clean();
 
 class User extends Base
 {
@@ -176,7 +179,7 @@ class User extends Base
         if ($date_start && $date_end) {
             $where["create_time"] = ["between", [$date_start, $date_end]]; // 用户条件
         }
-        $userNumber = $user->getUsersCount($where);  // 用户总数量
+        $userNumber = UsersModel::getInstance()->getUsersCount($where);  // 用户总数量
         $orderNumber= OrderModel::getInstance()->orderCount($where); // 订单总数量
         $orderCompletedNumber= OrderModel::getInstance()->orderCount($where+["status"=>2]); // 已完成订单总数量
         $orderPriceNumber= OrderModel::getInstance()->orderTotalPrice($where+["status"=>2]); // 订单总金额

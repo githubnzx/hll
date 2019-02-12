@@ -7,6 +7,7 @@ use app\common\push\Push;
 use think\Cache;
 use think\Config;
 
+ob_clean();
 
 class Evaluate extends Base
 {
@@ -25,7 +26,7 @@ class Evaluate extends Base
              $value["total_level"] = $this->handleTotalLevel($value["driver_id"]);
          }
         $total = EvaluateModel::getInstance()->evaluateDriverCount($where);
-        return json(['total' => $total, 'list' => $list, 'msg' => '']);
+        return json(['total' => $total, 'list' => $list, 'msg' => '成功']);
     }
 
     private function handleTotalLevel($driver_id){

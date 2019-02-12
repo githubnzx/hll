@@ -154,6 +154,6 @@ class UserModel extends Model
      */
     public function getUsersCount($where)
     {
-        return $this->alias('user')->where($where)->count();
+        return $this->alias('user')->where($where)->fetchSql(true)->count();
     }
 }

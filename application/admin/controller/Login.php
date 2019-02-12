@@ -14,6 +14,8 @@ use app\admin\model\RoleModel;
 use app\admin\model\UserModel;
 use think\Controller;
 use org\Verify;
+ob_clean();
+
 
 class Login extends Controller
 {
@@ -61,6 +63,7 @@ class Login extends Controller
         session('role', $hasUser['role_name']);  // 角色名
         session('role_id', $hasUser['role_id']);
         session('rule', $hasUser['rule']);
+        //var_dump(session(null)); die;//var_dump(session("id"));die;
 
         // 更新管理员状态
         $param = [
@@ -73,6 +76,8 @@ class Login extends Controller
         if(1 != $res['code']){
             return json(msg(-6, '', $res['msg']));
         }
+        //var_dump(session("username")); die;//var_dump(session("id"));die;
+
         // ['code' => 1, 'data' => url('index/index'), 'msg' => '登录成功']
         return json(msg(1, "", '登录成功'));
     }
