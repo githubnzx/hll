@@ -57,7 +57,7 @@ class DriverModel extends BaseModel
     public function userFind($where, $fields = '*'){
         $where["is_del"] = self::STATUS_DEL;
         $result = Db::table($this->tableUser)->field($fields)->where($where)->find();
-        $result["icon"] = isset($result["icon"]) ? handleImgPath($result["icon"]) : "";
+        if(isset($result["icon"])) $result["icon"] = handleImgPath($result["icon"]);
         return $result;
     }
 

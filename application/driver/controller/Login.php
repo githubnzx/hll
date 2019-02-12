@@ -123,6 +123,7 @@ class Login extends Base
             $user["password"] = md5(config("user_login_prefix").$newPwd);
             $user["id_number"] = "";
             $user["contacts_phone"] = "";
+            $user["audit_status"] = 1;
             $user["car_number"] = "";
             $user["province"] = "";
             $user["city_code"]= "";

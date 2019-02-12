@@ -136,7 +136,7 @@ class driver extends Base
         if(!$cityCode || !$name || !$id_card || !$contactsName || !$contactsPhone || !$carColor || !$carNumber || !$carType || empty($photo)) return error_out('', '参数错误');
         if(!UserLogic::getInstance()->check_name($name)) return error_out("", DriverLogic::USER_NAME);          // 用户名验证
         if(!UserLogic::getInstance()->check_id_card($id_card)) return error_out("", DriverLogic::USER_NAME);    // 省份证正则验证
-        if(!UserLogic::getInstance()->check_name($contactsName)) return error_out("", DriverLogic::USER_NAME);  // 紧急联系人姓名验证
+        if(!UserLogic::getInstance()->check_name($contactsName)) return error_out("", "紧急联系人姓名输入有误");  // 紧急联系人姓名验证
         if(!UserLogic::getInstance()->check_mobile($contactsPhone)) return error_out('', UserLogic::USER_SMS_SEND);// 紧急联系人电话验证
         if(!DriverLogic::getInstance()->check_vehicle_number($carNumber)) return error_out('', DriverLogic::USER_CAR_NUM);// 车牌号验证
         if (!isset($photo["id_card"]["just"]) || empty($photo["id_card"]["just"])) { // 身份证 正面照验证

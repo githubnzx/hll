@@ -10,6 +10,7 @@ use app\driver\logic\DriverLogic;
 use think\Cache;
 use think\Config;
 
+ob_clean();
 
 class Driver extends Base
 {
@@ -20,6 +21,8 @@ class Driver extends Base
     {
         $name = request()->post("name/s", "");
         $phone = request()->post("phone/s", "");
+        $id_number = request()->post("id_number/s", "");
+        $car_type = request()->post("car_type/d", 0);
         $audit_status = request()->post("audit_status/d", 0);
         $pageNumber = request()->post('pageNumber', '1');
         $pageSize = request()->post('pageSize', '10');
@@ -27,6 +30,8 @@ class Driver extends Base
         $where = [];
         if ($name) $where["name"] = $name;
         if ($phone) $where["phone"] = $phone;
+        if ($id_number) $where["id_number"] = $id_number;
+        if ($car_type) $where["scar_type"] = $car_type;
         if ($audit_status) {
             $where["audit_status"] = $audit_status;
         } else {
@@ -38,7 +43,7 @@ class Driver extends Base
             $value["car_type"] = DriverConfig::getInstance()->truckTypeNameId($value["car_type"]);
          }
         $total = DriverModel::getInstance()->driverCount($where);
-        return json(['total' => $total, 'list' => $list, 'msg' => '']);
+        return json(['total' => $total, 'list' => $list, 'msg' => '成功']);
     }
 
     private function handleTotalLevel($driver_id){
