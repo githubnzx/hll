@@ -40,13 +40,26 @@ class OrderModel extends BaseModel
             ->where($where);
     }
 
+    // 表
+    private function ordersTable(){
+        $where["o.is_del"] = self::STATUS_DEL;
+        $where["t.is_del"] = self::STATUS_DEL;
+        $where["u.is_del"] = self::STATUS_DEL;
+        //$where["d.is_del"] = self::STATUS_DEL;
+        return Db::table($this->order)->alias('o')
+            ->join($this->users  . ' u', 'u.id = o.user_id',   'left')
+            //->join($this->driver . ' d', 'd.id = o.driver_id', 'left')
+            ->join($this->truck  . ' t', 't.id = o.truck_id',  'left')
+            ->where($where);
+    }
+
     // 订单列表和相关数据
     public function ordersList($data){
         $where = isset($data["where"]) && !empty($data["where"]) ? $data["where"] : [];
         $field = isset($data["field"]) && !empty($data["field"]) ? $data["field"] : "*";
         $pages = isset($data["page"])  && !empty($data["page"])  ? $data["page"] : "";
         $order = isset($data["order"]) && !empty($data["order"]) ? $data["order"] : "";
-        return $this->orderTable()->where($where)->field($field)->order($order)->page($pages)->select();
+        return $this->ordersTable()->where($where)->field($field)->order($order)->page($pages)->select();
     }
     // 订单列表和相关数据 详情
     public function ordersInfo($data){
