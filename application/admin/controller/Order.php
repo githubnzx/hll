@@ -23,7 +23,7 @@ class Order extends Base
         $code  = request()->post('code/s', '');
         $status= request()->post('status/d', 0);
         $phone = request()->post('phone/d', 0);
-        $truck_type = request()->post('truck_type/s', "");
+        $truck_type = request()->post('truck_type/d', 0);
         $pageNumber= request()->post('pageNumber/d', 1);
         $pageSize  = request()->post('pageSize/d', 10);
         $pages = $pageNumber . ', ' . $pageSize;
@@ -31,7 +31,8 @@ class Order extends Base
         if ($code)   $where["o.code"]   = $code;
         if ($status) $where["o.status"] = $status;
         if ($phone)  $where["u.phone"]  = $phone;
-//        $field = "o.id, o.order_time, o.status, o.send_good_addr, o.collect_good_addr, o.total_price, o.contacts, o.phone contact_number, o.remarks, u.name user_name, u.phone user_phone, u.addr_info user_addr_info, d.name driver_name, d.phone driver_phone, t.type";
+        if ($truck_type)  $where["t.type"]  = $truck_type;
+//        $field = "o.id, o.order_time, o.status, o.send_good_addr, o.collect;_good_addr, o.total_price, o.contacts, o.phone contact_number, o.remarks, u.name user_name, u.phone user_phone, u.addr_info user_addr_info, d.name driver_name, d.phone driver_phone, t.type";
         $field = "o.id, o.order_time, o.status, o.send_good_addr, o.collect_good_addr, o.total_price, o.contacts, o.phone contact_number, o.remarks, u.name user_name, u.phone user_phone, u.addr_info user_addr_info, o.contacts driver_name, o.phone driver_phone, t.type";
         $data["where"] = $where;
         $data["field"] = $field;
