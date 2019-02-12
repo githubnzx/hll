@@ -36,7 +36,7 @@ class Order extends Base
         $data["where"] = $where;
         $data["field"] = $field;
         $data["page"]  = $pages;
-        //$data["order"] = "";
+        $data["order"] = "o.order_time desc";
         $list = OrderModel::getInstance()->ordersList($data) ?: [];
         foreach ($list as $key => &$value) {
             $value["total_price"] = handlePrice($value["total_price"]);
