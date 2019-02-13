@@ -280,6 +280,16 @@ class Order extends Base
         return success_out($orderInfo ?: []);
     }*/
 
+    // 到達目的地
+    public function arrive(){
+        $user_id = DriverLogic::getInstance()->checkToken();
+        $order_id= $this->request->post('order_id/d', 0);
+        if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        // 修改订单 状态
+        $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>1]);
+        if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
+        return success_out("", MsgLogic::SUCCESS);
+    }
 
 
 
