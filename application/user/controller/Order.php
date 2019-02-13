@@ -36,7 +36,7 @@ class Order extends Base
         $isPlaceOrder= $this->request->post('is_place_order/d', 0); // 是否代收款
         $isReceivables= $this->request->post('is_receivables/d', 0); // 是否预约
         $order_time  = strtotime($this->request->post('order_time/s', ""));  // 预约时间
-        $fee_price   = strtotime($this->request->post('fee_price/s', ""));   // 小费
+        $fee_price   = $this->request->post('fee_price/s', "");   // 小费
         $consignee_phone = $this->request->post('consignee_phone/s', "");
         $consignee_name  = $this->request->post('consignee_name/s', "");
         //$kilometers  = $this->request->post('kilometers/d', 0);    // 公里数
