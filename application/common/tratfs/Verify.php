@@ -11,6 +11,8 @@ namespace app\common\tratfs;
 
 use app\coach\logic\CoachAuthLogic;
 use app\coach\logic\ScheduleLogic;
+use app\coach\model\CoachModel;
+use app\coach\model\CourseModel;
 use think\exception\HttpException;
 use think\Validate;
 
@@ -65,5 +67,32 @@ trait Verify
         foreach ($timeNodeGroup as $value) {
             if (count($value) < 2) throw new HttpException(200, $this->notRightTimeNode);
         }
+    }
+
+    /**
+     * 验证用户的日期以及排期有效性
+     * @param string $date      日期
+     * @param string $timeNode  选择的时间节点
+     * @param int $currZeroTime 当天零点[目的: 简化重复调用零点函数]
+     */
+    public function teachingTheme($coach_id, $authInfo)
+    {
+        // 获取教练服务类型
+        $coachInfo = CoachModel::getInstance()->getCoachInfo($this->uid, "service_type, resume, sports_ids");
+        if (!$coachInfo || $coachInfo["resume"] != 1) return error_out("", $this->authErrorMsg);
+        if (isset($authInfo["pd"]) && $authInfo["pd"] == $coachInfo["service_type"]) {
+            CourseModel::getInstance()->courseJoinCourseCoachSelect(["cc.coach_id" => $coach_id, "c.professional_type_id" => $coachInfo["sports_ids"]], "");
+        }
+
+
+
+//        $coachInfo = CoachModel::getInstance()->getCoachInfo($this->uid, "service_type, resume, sports_ids");
+//        if (!$coachInfo || $coachInfo["resume"] != 1) return error_out("", $this->authErrorMsg);
+//        $where["coach_id"] = $this->uid;
+//        $where["type_id"]  = $this->serviceType[$coachInfo["service_type"]];
+//        $where["sport_id"] = $coachInfo["sports_ids"];
+//        $authRight = CoachAuthLogic::getInstance()->getAuthFind($where, "type_id, level_id, sport_id");
+//        if (!$authRight) return error_out("", $this->authErrorMsg);
+//        $data['serviceType'] = $coachInfo["service_type"] === 1 ? 2 : 1; // 服务状态
     }
 }
