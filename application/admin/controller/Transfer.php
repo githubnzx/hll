@@ -1,5 +1,6 @@
 <?php
 namespace app\admin\controller;
+
 use app\admin\model\TransferModel;
 use app\admin\logic\TransferLogic;
 use app\common\logic\MsgLogic;
@@ -9,9 +10,9 @@ use app\admin\model\IntegralModel;
 use think\Cache;
 use think\Config;
 use think\Session;
+ob_clean();
 
-
-class Transfer //extends Base
+class Transfer extends Base
 {
     // 列表
     public function lst(){
