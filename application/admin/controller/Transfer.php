@@ -59,7 +59,7 @@ class Transfer extends Base
         $bill = TransferModel::getInstance()->showBillWFind(['b.id'=>$id], 'b.id, b.driver_id, b.price, w.code, w.type');
         if(!$bill || !$bill['driver_id'] || !$bill['price'] || !$bill['code'] || !$bill["type"]) return error_out([], '提现失败');
         $driver = TransferModel::getInstance()->showDriverFind($bill['driver_id'], 'name, openid');
-        if(!$driver || !$driver['name'] || !$driver['openid']) return error_out([], '提现失败');
+        if(!$driver || !$driver['openid']) return error_out([], '提现失败');
         //$result = WithdrawalModel::transferWx($id, $bill['code'], $coach['openid'], $bill['price']);
         if ($bill["type"] === 1) {  // 微信
             $order = TransferLogic::getInstance()->transferWx($bill['code'], $driver['openid'], $bill['price'], $bill["type"]);
