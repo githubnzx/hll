@@ -177,6 +177,8 @@ class User extends Base
         // 用户统计
         $user = new UserModel();
         if ($date_start && $date_end) {
+            $dateStart = strtotime($date_start);
+            $dateEnd = strtotime($date_end);
             $where["create_time"] = ["between", [$date_start, $date_end]]; // 用户条件
         }
         $userNumber = UsersModel::getInstance()->getUsersCount($where);  // 用户总数量
