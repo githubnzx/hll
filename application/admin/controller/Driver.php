@@ -20,18 +20,18 @@ class Driver extends Base
     public function lst()
     {
         $name = request()->post("name/s", "");
-        $phone = request()->post("phone/s", "");
+        $phone = request()->post("phone/d", "");
         $id_number = request()->post("id_number/s", "");
-        $car_type = request()->post("car_type/d", 0);
+        //$car_type = request()->post("car_type/d", 0);
         $audit_status = request()->post("audit_status/d", 0);
         $pageNumber = request()->post('pageNumber', '1');
         $pageSize = request()->post('pageSize', '10');
         $pages = $pageNumber . ', ' . $pageSize;
         $where = [];
-        if ($name) $where["name"] = $name;
-        if ($phone) $where["phone"] = $phone;
-        if ($id_number) $where["id_number"] = $id_number;
-        if ($car_type) $where["scar_type"] = $car_type;
+        if ($name) $where["name"] = ["like", "%". $name ."%"];
+        if ($phone) $where["phone"] = ["like", $phone ."%"];;
+        if ($id_number) $where["id_number"] = ["like", "%". $id_number ."%"];
+        //if ($car_type) $where["car_type"] = $car_type;
         if ($audit_status) {
             $where["audit_status"] = $audit_status;
         } else {

@@ -23,14 +23,16 @@ class Transfer //extends Base
         $pageSize  = request()->post('pageSize/d', 10);
         $pages = $pageNumber . ', ' . $pageSize;
         $where = [];
-        if ($name)       $where["d.name"]        = ["like", "%". $name ."%"];;
+        if ($name)       $where["d.name"]        = ["like", "%". $name ."%"];
         if ($status)     $where["b.status"]    = $status;
         // 时间范围
-        if ($start_time && $start_end) {
-            $where["b.create_time"] = ["between", [$start_time, $start_end]];
+        $startTime = strtotime($start_time);
+        $startEnd  = strtotime($start_end);
+        if ($startTime && $startEnd) {
+            $where["b.create_time"] = ["between", [$startTime, $startEnd]];
         } else {
-            if ($start_time) $where["b.create_time"] = ["EGT", $start_time];
-            if ($start_end) $where["b.create_time"] = ["ELT", $start_end];
+            if ($start_time) $where["b.create_time"] = ["EGT", $startTime];
+            if ($start_end) $where["b.create_time"] = ["ELT", $startEnd];
         }
         //$list = IntegralModel::getInstance()->integralList($where, "id, title, integral", $pages) ?: [];
         $field = "b.id, d.name, b.status, b.price";

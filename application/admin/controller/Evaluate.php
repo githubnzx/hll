@@ -20,7 +20,7 @@ class Evaluate extends Base
         $pageSize = request()->post('pageSize', '10');
         $pages = $pageNumber . ', ' . $pageSize;
         $where = [];
-        if ($name) $where["d.name"] = $name;
+        if ($name) $where["d.name"] = ["like", "%". $name ."%"];
         $list = EvaluateModel::getInstance()->evaluateDriverList($where, "e.id, d.id driver_id, d.name, e.star_level, e.content", $pages) ?: [];
         foreach ($list as $key => &$value){
              $value["total_level"] = $this->handleTotalLevel($value["driver_id"]);
