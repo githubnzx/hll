@@ -171,11 +171,11 @@ class User extends Base
 
     // 用户统计
     public function counts(){
-        $date_start= request()->post('date_start/d', '');
-        $date_end  = request()->post('date_end/d', '');
+        $date_start= request()->post('date_start/s', '');
+        $date_end  = request()->post('date_end/s', '');
         $where = [];
         // 用户统计
-        $user = new UserModel();
+        //$user = new UserModel();
         if ($date_start && $date_end) {
             $dateStart = strtotime($date_start);
             $dateEnd = strtotime($date_end);
