@@ -42,4 +42,18 @@ class TransferLogic extends BaseLogic
         //return true;
         return $order;
     }
+
+    // 支付宝退款
+    public function refundZfb($code, $price, $desc)
+    {
+        $price = 0.01;
+        try {
+            Loader::import('alipay.DriverAlipay');
+            $alipay = new \DriverAlipay();
+            return $alipay->refund($code, $price, $desc);
+        } catch (\Exception $e) {
+            Log::error('支付宝退款失败:' . $code . '=>' . $e->getMessage());
+            return false;
+        }
+    }
 }
