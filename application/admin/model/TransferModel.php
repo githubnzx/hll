@@ -106,8 +106,10 @@ class TransferModel extends BaseModel
     public function editBillWithdraw($bill, $withdraw){
         Db::startTrans();
         try {
-            $this->billEdit($bill);
-            $this->editWithdraw(['bill_id'=>$bill['id']], $withdraw);
+            $billId = $bill['id'];
+            unset($bill['id']);
+            $this->billEdit(['id'=>$billId], $bill);
+            $this->editWithdraw(['bill_id'=>$billId], $withdraw);
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();
