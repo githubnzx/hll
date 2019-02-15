@@ -30,7 +30,7 @@ class Order extends Base
         $where = [];
         if ($code)   $where["o.code"]   = ["like", "%" . $code . "%"];
         if ($status) $where["o.status"] = $status;
-        if ($phone)  $where["u.phone"]  = ["like", $phone. "%"];
+        if ($phone)  $where["o.phone"]  = ["like", $phone. "%"];
         if ($truck_type)  $where["t.type"]  = $truck_type;
 //        $field = "o.id, o.order_time, o.status, o.send_good_addr, o.collect;_good_addr, o.total_price, o.contacts, o.phone contact_number, o.remarks, u.name user_name, u.phone user_phone, u.addr_info user_addr_info, d.name driver_name, d.phone driver_phone, t.type";
         $field = "o.id, o.order_time, o.status, o.send_good_addr, o.collect_good_addr, o.total_price, o.contacts, o.phone contact_number, o.remarks, u.name user_name, u.phone user_phone, u.addr_info user_addr_info, o.contacts driver_name, o.phone driver_phone, t.type";
