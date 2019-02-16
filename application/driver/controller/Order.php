@@ -79,8 +79,9 @@ class Order extends Base
     public function robLst(){
         $user_id = DriverLogic::getInstance()->checkToken();
         $orderIds = $data = [];
-        $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone, is_register");
-        //if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
+        $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone, is_register, audit_status");
+        if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
+        if ($driverInfo["audit_status"] !== 2) return error_out("", "资料审核中，不可抢单");
         // redis
         $redis = new Redis(\config("cache.driver"));
         if ($driverInfo["phone"]) { // reids 判断当前司机是否是用户选的熟人订单
@@ -143,10 +144,12 @@ class Order extends Base
                 $order["status"] = isset($orderInfo["status"]) ? $orderInfo["status"] : 0;
                 $order["price"] = $orderInfo["price"];
                 $order["truck_name"] = $orderInfo["truck_name"];
-                $data[] = $order;
+                $data[$orderTime] = $order;
             }
         }
-        return success_out($data, MsgLogic::SUCCESS);
+        krsort($data);
+        $dataAr = array_values($data);
+        return success_out($dataAr, MsgLogic::SUCCESS);
     }
 
     // 抢单
