@@ -54,6 +54,7 @@ class OrderModel extends BaseModel
             if (Cache::store('driver')->has("RobOrderData:" . $where["id"])) {
                 Cache::store('driver')->rm("RobOrderData:" . $where["id"]);
             }
+            Db::table($this->orderTable)->where($where)->setInc("deposit_number");
             $this->orderEdit($where, $param);
             Db::commit();
             return true;
