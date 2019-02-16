@@ -32,7 +32,7 @@ class MemberModel extends BaseModel
     const MEMBER_RECOMMEND  = 1;
 
     const MEMBER_DEFAULT_TIME = 30;
-    const MEMBER_DEFAULT_NUMBER = 2;
+    const MEMBER_DEFAULT_NUMBER = 3;
 
 
 

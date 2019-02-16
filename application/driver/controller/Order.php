@@ -162,7 +162,7 @@ class Order extends Base
         if (!$deposit) return error_out("", "抢单失败");
         if ($deposit["is_register"] === 0) return error_out("", "尽快上传资料");
         if ($deposit["audit_status"] !== 2) return error_out("", "资料审核中，不可抢单");
-        if ($deposit["deposit_number"] >= 3) return error_out("", OrderMsgLogic::DEPOSIT_STATUS_NOT);
+        if ($deposit["deposit_number"] >= MemberModel::MEMBER_DEFAULT_NUMBER) return error_out("", OrderMsgLogic::DEPOSIT_STATUS_NOT);
         // 查询是否是会员
         $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
         $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
