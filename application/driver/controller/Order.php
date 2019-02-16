@@ -80,8 +80,8 @@ class Order extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $orderIds = $data = [];
         $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone, is_register, audit_status");
-        if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
-        if ($driverInfo["audit_status"] !== 2) return error_out("", "资料审核中，不可抢单");
+//        if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
+//        if ($driverInfo["audit_status"] !== 2) return error_out("", "资料审核中，不可抢单");
         // redis
         $redis = new Redis(\config("cache.driver"));
         if ($driverInfo["phone"]) { // reids 判断当前司机是否是用户选的熟人订单
@@ -158,9 +158,10 @@ class Order extends Base
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
         // 判断是否完善信息和缴纳押金
-        $deposit = DriverModel::getInstance()->userFind(["id"=>$user_id], "is_register, deposit_status, deposit_number");
-        if (!$deposit) return error_out("", "失败");
+        $deposit = DriverModel::getInstance()->userFind(["id"=>$user_id], "is_register, deposit_status, deposit_number, audit_status");
+        if (!$deposit) return error_out("", "抢单失败");
         if ($deposit["is_register"] === 0) return error_out("", "尽快上传资料");
+        if ($deposit["audit_status"] !== 2) return error_out("", "资料审核中，不可抢单");
         if ($deposit["deposit_number"] >= 3) return error_out("", OrderMsgLogic::DEPOSIT_STATUS_NOT);
         // 查询是否是会员
         $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
