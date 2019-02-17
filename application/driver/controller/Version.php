@@ -10,6 +10,8 @@ namespace app\driver\controller;
 
 use app\driver\model\VersionModel;
 
+ob_clean();
+
 class Version extends Base
 {
     // 版本
