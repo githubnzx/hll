@@ -198,6 +198,7 @@ class Order extends Base
         if(!$orderInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
         // driver_id 不存在说明是未抢订单 存在如果和当前司机不一致 说明已被其他司机预约
         if($orderInfo["driver_id"] && $orderInfo["driver_id"] !== $user_id) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+        $orderInfo["current_order_status"] = in_array($orderInfo["status"], [0, 1]) ? 1 : 0;
         // 获取用户信息
         $userInfo = UsersModel::getInstance()->userFind(["id"=>$orderInfo["user_id"]], "name, phone, icon, sex");
         if(!$userInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
