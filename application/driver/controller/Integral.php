@@ -72,6 +72,8 @@ class Integral extends Base
         $data["user_type"]= DriverModel::USER_TYPE_USER;
         $data["date"]     = currZeroDateToTime();
         $data["status"]   = 1;
+        $data["express_code"]= "";
+        $data["express_num"] = "";
         $order = IntegralModel::getInstance()->integralOrderAdd($data);
         if($order === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::INTEGRAL_DH_SUCCESS);
