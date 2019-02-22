@@ -1,7 +1,7 @@
 <?php
 namespace app\admin\controller;
 use app\admin\model\DriverModel;
-use app\coach\model\CertModel;
+use app\admin\model\TruckModel;
 use app\common\config\DriverConfig;
 use app\common\logic\MsgLogic;
 use app\admin\model\EvaluateModel;
@@ -88,9 +88,7 @@ class Driver extends Base
     public function photo(){
         $driver_id= request()->post('driver_id/d', 0);
         if (!$driver_id) return error_out("", MsgLogic::PARAM_MSG);
-        $option["field"] = "type, img";
-        $option["where"] = ["main_id" => $driver_id];
-        $certList = CertModel::getInstance()->getList($option);
+        $certList = TruckModel::getInstance()->certList(["main_id" => $driver_id, "type, img"]);
         $data = [];
         foreach ($certList as $key => $value){
             if(isset($this->cerType[$value["type"]])) {
