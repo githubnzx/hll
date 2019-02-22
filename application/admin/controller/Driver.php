@@ -1,6 +1,7 @@
 <?php
 namespace app\admin\controller;
 use app\admin\model\DriverModel;
+use app\coach\model\CertModel;
 use app\common\config\DriverConfig;
 use app\common\logic\MsgLogic;
 use app\admin\model\EvaluateModel;
@@ -15,7 +16,9 @@ ob_clean();
 class Driver extends Base
 {
     private $statusType = ["show"=>0, "hide"=>1];
-        private $auditStatus = ["adopt"=>2, "nopass"=>3];
+    private $auditStatus = ["adopt"=>2, "nopass"=>3];
+    private $cerType = [3 => "info", 4 => "id_number", 5 => "id_number", 6 => "travel", 7 => "car"];
+
     // 列表
     public function lst()
     {
@@ -69,15 +72,32 @@ class Driver extends Base
         return success_out("", MsgLogic::SUCCESS);
     }
 
+    // 审核状态
     public function examine(){
         $driver_id= request()->post('driver_id/d', 0);
-        $status   = request()->post('status/s', "");
+        $status   = request()->post('status/s', ""); // 状态 adopt 通过 nopass 不通过
         if (!$driver_id || !$status) return error_out("", MsgLogic::PARAM_MSG);
         $driverInfo = DriverModel::getInstance()->driverFind(["id"=>$driver_id], "id, phone");
         if (!$driverInfo) return error_out("", DriverLogic::DRIVER_NOT_EXISTS);
         $result = DriverModel::getInstance()->driverAuditEdit($driver_id, $this->auditStatus[$status], $driverInfo["phone"]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
+    }
+
+    // 照片
+    public function photo(){
+        $driver_id= request()->post('driver_id/d', 0);
+        if (!$driver_id) return error_out("", MsgLogic::PARAM_MSG);
+        $option["field"] = "type, img";
+        $option["where"] = ["main_id" => $driver_id];
+        $certList = CertModel::getInstance()->getList($option);
+        $data = [];
+        foreach ($certList as $key => $value){
+            if(isset($this->cerType[$value["type"]])) {
+                $data[$this->cerType[$value["type"]]] = handleImgPath($value["img"]);
+            }
+        }
+        return success_out($data, MsgLogic::SUCCESS);
     }
 
 

@@ -49,6 +49,9 @@ class DriverModel extends BaseModel
         Db::startTrans();
         try {
             $user_id = $this->driverEdit(["id"=>$driver_id], ["audit_status"=>$audit_status]);
+            // 推送
+
+
             // 发短信
             if ($phone) {
                 $response = DriverSms::auditPass($phone);
