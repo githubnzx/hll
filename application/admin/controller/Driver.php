@@ -88,7 +88,7 @@ class Driver extends Base
     public function photo(){
         $driver_id= request()->post('driver_id/d', 0);
         if (!$driver_id) return error_out("", MsgLogic::PARAM_MSG);
-        $certList = TruckModel::getInstance()->certList(["main_id" => $driver_id, "type, img"]);
+        $certList = TruckModel::getInstance()->certList(["main_id" => $driver_id], "type, img");
         $data = [];
         foreach ($certList as $key => $value){
             if(isset($this->cerType[$value["type"]])) {
