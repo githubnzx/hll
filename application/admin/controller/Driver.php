@@ -92,7 +92,7 @@ class Driver extends Base
         $data = [];
         foreach ($certList as $key => $value){
             if(isset($this->cerType[$value["type"]])) {
-                $data[$this->cerType[$value["type"]]] = handleImgPath($value["img"]);
+                $data[$this->cerType[$value["type"]]][] = handleImgPath($value["img"]);
             }
         }
         return success_out($data, MsgLogic::SUCCESS);
