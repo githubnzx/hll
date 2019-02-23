@@ -111,7 +111,7 @@ class Order extends Base
             $orderInfo = json_decode($value, true);
             $orderTime = $orderInfo["order_time"];
             $day_order_time = (int) bcadd($orderTime, $order_time);
-            if (CURR_TIME >= $day_order_time) {
+            if (CURR_TIME >= $day_order_time && $value["status"] == 2) {
                 // 货车信息
                 $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
                 $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
@@ -179,7 +179,7 @@ class Order extends Base
         // 删除redis订单数据
         //Cache::store('driver')->rm("RobOrderData:" . $order_id);
         // 查询订单是否真实存在
-        $orderDataId = OrderModel::getInstance()->orderFind(["id"=>$orderInfo["id"], "driver_id"=>0, "status"=>0], "id")["id"] ?: 0;
+        $orderDataId = OrderModel::getInstance()->orderFind(["id"=>$orderInfo["id"], "driver_id"=>0, "status"=>2], "id")["id"] ?: 0;
         if (!$orderDataId) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
         // 修改订单
         $result = OrderModel::getInstance()->robbing(["id"=>$orderDataId], ["driver_id"=>$user_id]);
@@ -198,7 +198,8 @@ class Order extends Base
         if(!$orderInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
         // driver_id 不存在说明是未抢订单 存在如果和当前司机不一致 说明已被其他司机预约
         if($orderInfo["driver_id"] && $orderInfo["driver_id"] !== $user_id) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
-        $orderInfo["current_order_status"] = in_array($orderInfo["status"], [0, 1]) ? 1 : 0;
+        //$orderInfo["current_order_status"] = in_array($orderInfo["status"], [0, 1]) ? 1 : 0;
+        $orderInfo["current_order_status"] = $orderInfo["status"] == 2 ? 1 : 0;
         // 获取用户信息
         $userInfo = UsersModel::getInstance()->userFind(["id"=>$orderInfo["user_id"]], "name, phone, icon, sex");
         if(!$userInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
@@ -221,7 +222,7 @@ class Order extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $orderInfo = $orderList = $list = [];
         $field = "id, truck_id, status, order_time, send_good_addr, collect_good_addr";
-        $orderInfo = OrderModel::getInstance()->orderFind(["driver_id"=>$user_id,"status"=>["in", [0,1]]], $field) ?: [];
+        $orderInfo = OrderModel::getInstance()->orderFind(["driver_id"=>$user_id,"status"=>2], $field) ?: [];
         if ($orderInfo) { // 当前订单
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
             $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
@@ -291,7 +292,7 @@ class Order extends Base
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
         // 修改订单 状态
-        $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>1]);
+        $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>4]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }

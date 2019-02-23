@@ -70,14 +70,14 @@ class OrderModel extends BaseModel
         Db::startTrans();
         try {
             $order_id = Db::table($this->orderTable)->insertGetId($order);             // 添加订单
-            // 存入redis 判断熟人抢单
-            $friend = explode(",", $order["driver_ids"]);
-            foreach ($friend as $key => $value){
-                Cache::store('driver')->set("RobOrder:" . $value . $order_id, $order_id, 60);
-            }
-            // 订单存入redis
-            $order["id"] = $order_id;
-            Cache::store('driver')->set("RobOrderData:" . $order_id, json_encode($order));
+//            // 存入redis 判断熟人抢单
+//            $friend = explode(",", $order["driver_ids"]);
+//            foreach ($friend as $key => $value){
+//                Cache::store('driver')->set("RobOrder:" . $value . $order_id, $order_id, 60);
+//            }
+//            // 订单存入redis
+//            $order["id"] = $order_id;
+//            Cache::store('driver')->set("RobOrderData:" . $order_id, json_encode($order));
             Db::commit();
             return $order_id;
         } catch (\Exception $e) {
@@ -108,6 +108,13 @@ class OrderModel extends BaseModel
         Db::startTrans();
         try {
             $this->orderEdit(["id"=>$order["id"]], ["status"=>2]);
+            // 存入redis 判断熟人抢单
+            $friend = explode(",", $order["driver_ids"]);
+            foreach ($friend as $key => $value){
+                Cache::store('driver')->set("RobOrder:" . $value . $order["id"], $order["id"], 60);
+            }
+            // 订单存入redis
+            Cache::store('driver')->set("RobOrderData:" . $order["id"], json_encode($order));
             Db::commit();
             return true;
         } catch (\Exception $e) {

@@ -11,7 +11,7 @@ namespace app\common\sms;
 
 class UserSms
 {
-    static private $sign = '河北泰乐网络科技有限公司';
+    static private $sign = '亟亟城运';
 
     /**
      *  注册 - 验证码短信

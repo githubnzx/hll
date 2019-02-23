@@ -78,7 +78,7 @@ class Order extends Base
             "phone"   => $phone,
             "consignee_phone" => $consignee_phone,
             "consignee_name"  => $consignee_name,
-            "status"  => 0,
+            "status"  => 1,
             "remarks" => $remarks,
             "date"    => strtotime(CURR_DATE),
             "is_place_order" => $order_time ? 1 : 0,
@@ -188,9 +188,11 @@ class Order extends Base
         $orderInfo["driver_car_number"]= $driverInfo["car_number"];
         $orderInfo["total_score"] = $totalScore;
         $orderInfo["truck_type"]  = DriverConfig::getInstance()->truckTypeNameId($truckType);
-        $orderInfo["current_order_status"] = in_array($orderInfo["status"], [0,1]) ? 1 : 0;
+        //$orderInfo["current_order_status"] = in_array($orderInfo["status"], [0,1]) ? 1 : 0;
+        $orderInfo["current_order_status"] = $orderInfo["status"] == 2 ? 1 : 0;
         return success_out($orderInfo ?: []);
     }
+
 
     // 取消订单
     public function cancel(){
@@ -215,19 +217,39 @@ class Order extends Base
 
 
     }
-    
+
+//
+//    // 取消订单
+//    public function cancel(){
+//        $user_id = UserLogic::getInstance()->checkToken();
+//        $order_id= $this->request->post('order_id/d', 0);
+//        if (!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+//        $order_Info = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, truck_id, driver_id, is_confirm_cancel, price, fee, total_price");
+//        if (!$order_Info) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
+//        $lossPrice = "0";
+//        if ($order_Info["is_confirm_cancel"] === 1) { // 需要支付损失费用（司机到达发货地后）
+//            // 计算损失费用
+//            $lossPrice = bcdiv($order_Info["price"], 10, 1);
+//            //$result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["loss_price"=>$lossPrice]);
+//        } else { // 零费用取消订单
+//            $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>3]);
+//            if($result === false) return error_out("", MsgLogic::PARAM_MSG);
+//        }
+//        $data["status"]    = $order_Info["is_confirm_cancel"];
+//        $data["loss_price"]= $lossPrice;
+//        $data["order_id"]  = $order_id;
+//        return success_out($data, MsgLogic::SUCCESS);
+//
+//
+//    }
+
     // 支付
     public function pay(){
         $user_id = UserLogic::getInstance()->checkToken();
         $order_id = $this->request->post('order_id/d', 0);
         $status = $this->request->post('status/d', 0); // 是否取消支付 0否 1是
         $pay_type = $this->request->post('pay_type/d', 0); // 1 微信 2支付宝
-        var_dump($order_id);
-        var_dump($pay_type);
-
-        var_dump($status);die;
         if (!$order_id || !$pay_type) return error_out("", MsgLogic::PARAM_MSG);
-            echo 1111;die;
         $order = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, code, truck_id, driver_id, is_confirm_cancel, price, fee, total_price, status");
         if (!$order) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
         if ($order["status"] != 1) return error_out("", OrderMsgLogic::ORDER_NOT_PAY);

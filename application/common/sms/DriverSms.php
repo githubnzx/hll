@@ -24,7 +24,7 @@ namespace app\common\sms;
 
 class DriverSms
 {
-    static private $sign = '河北泰乐网络科技有限公司';
+    static private $sign = '亟亟城运';
 
     /**
      *  注册 - 验证码短信
@@ -46,7 +46,7 @@ class DriverSms
      */
     static public function auditNotice($phone, $message = [])
     {
-        return Sms::sendSms($phone, self::$sign, 'SMS_152288082', $message);
+        return Sms::sendSms($phone, self::$sign, 'SMS_158545026', $message);
     }
 
     /**
