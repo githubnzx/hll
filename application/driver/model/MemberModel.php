@@ -33,6 +33,7 @@ class MemberModel extends BaseModel
 
     const MEMBER_DEFAULT_TIME = 30;
     const MEMBER_DEFAULT_NUMBER = 3;
+    const NOT_MEMBER_DEFAULT_NUMBER = 2; // 非会员用户每天抢单上限次数
 
 
 

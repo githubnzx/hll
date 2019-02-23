@@ -222,7 +222,12 @@ class Order extends Base
         $order_id = $this->request->post('order_id/d', 0);
         $status = $this->request->post('status/d', 0); // 是否取消支付 0否 1是
         $pay_type = $this->request->post('pay_type/d', 0); // 1 微信 2支付宝
+        var_dump($order_id);
+        var_dump($pay_type);
+
+        var_dump($status);die;
         if (!$order_id || !$pay_type) return error_out("", MsgLogic::PARAM_MSG);
+            echo 1111;die;
         $order = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, code, truck_id, driver_id, is_confirm_cancel, price, fee, total_price, status");
         if (!$order) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
         if ($order["status"] != 1) return error_out("", OrderMsgLogic::ORDER_NOT_PAY);

@@ -165,13 +165,13 @@ class Order extends Base
         if ($deposit["deposit_number"] >= MemberModel::MEMBER_DEFAULT_NUMBER) return error_out("", OrderMsgLogic::DEPOSIT_STATUS_NOT);
         // 查询是否是会员
         $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
-        $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
+        $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id, "date"=>CURR_DATE], "id"); // 获取当前司机当天抢单次数
         if ($memberInfo) { // 有会员卡
             if(in_array($memberInfo["type"], [1,2])) { // 会员权限
                 if ($orderCount >= $memberInfo["up_limit_number"]) return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
             }
         } else {
-            if ($orderCount >= MemberModel::MEMBER_DEFAULT_NUMBER) return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
+            if ($orderCount >= MemberModel::NOT_MEMBER_DEFAULT_NUMBER) return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
         }
         // redis 中取订单数据
         $orderInfo = Cache::store('driver')->get("RobOrderData:" . $order_id);

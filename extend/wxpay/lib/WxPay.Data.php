@@ -32,7 +32,7 @@ class WxPayDataBase
 	**/
 	public function SetSign($config)
 	{
-		$sign = $this->MakeSign($config);
+		$sign = $this->MakeSign($config, false);
 		$this->values['sign'] = $sign;
 		return $sign;
 	}
