@@ -63,9 +63,9 @@ class OrderLogic extends BaseLogic
         $inputObj->SetTotal_fee(intval($price * 100));
         $inputObj->SetRefund_fee(intval($price * 100));
         $order = \WxPayApi::refund($inputObj);
-        if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
-            Log::error('微信退款失败:' . $code . '=>' . $order['err_code_des']);
-        }
+//        if ($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS') {
+//            Log::error('微信退款失败:' . $code . '=>' . $order['err_code_des']);
+//        }
         return $order;
     }
 
