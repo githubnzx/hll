@@ -2,6 +2,7 @@
 namespace app\user\controller;
 use app\common\config\DriverConfig;
 use app\driver\model\DriverModel;
+use app\admin\logic\TransferLogic;
 use app\common\logic\MsgLogic;
 use app\user\logic\OrderLogic;
 use app\user\logic\MsgLogic as OrderMsgLogic;
@@ -199,23 +200,39 @@ class Order extends Base
         $user_id = UserLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
         if (!$order_id) return error_out("", MsgLogic::PARAM_MSG);
-        $order_Info = OrderModel::getInstance()->orderFind(["id"=>$order_id], "user_id, truck_id, driver_id, is_confirm_cancel, price, fee, total_price");
+        $order_Info = OrderModel::getInstance()->orderFind(["id"=>$order_id], "code, user_id, truck_id, driver_id, is_confirm_cancel, price, fee, total_price, status, pay_type, order_time");
         if (!$order_Info) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
-        $lossPrice = "0";
-        if ($order_Info["is_confirm_cancel"] === 1) { // 需要支付损失费用（司机到达发货地后）
-            // 计算损失费用
-            $lossPrice = bcdiv($order_Info["price"], 10, 1);
-            //$result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["loss_price"=>$lossPrice]);
-        } else { // 零费用取消订单
+        // 判断取消订单是否已支付
+        if ($order_Info["status"] === 2) {
+            // 过支付时间3分钟
+            if ($order_Info["order_time"] && (bcsub(CURR_TIME, $order_Info["order_time"]) > 180)) {
+                if ($order_Info["total_price"] && bccomp($order_Info["total_price"], 5) === 1) {
+                    $totalPrice = bcsub($order_Info["total_price"], 5);
+                } else {
+                    // 金额不够5元
+                    return error_out("", "订单不可取消");
+                }
+            } else {
+                $totalPrice = $order_Info["total_price"];
+            }
+            // 退款操作
+            if ($order_Info["pay_type"] === 1) {  // 微信
+                $order = OrderLogic::getInstance()->refundWx($order_Info['code'], $totalPrice);
+                if($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS'){
+                    Log::error('微信提现失败:' . $order_Info['code'] . '=>' . $order['err_code_des']);
+                    return error_out('', $order['err_code_des']);
+                }
+            } else {  // 支付宝
+                $order = TransferLogic::getInstance()->refundZfb($order_Info['code'], $totalPrice, "支付宝提现支付");
+                if($order === false) {
+                    return error_out('', "支付宝提现支付失败");
+                }
+            }
+        } else {
             $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>3]);
             if($result === false) return error_out("", MsgLogic::PARAM_MSG);
         }
-        $data["status"]    = $order_Info["is_confirm_cancel"];
-        $data["loss_price"]= $lossPrice;
-        $data["order_id"]  = $order_id;
-        return success_out($data, MsgLogic::SUCCESS);
-
-
+        return success_out("", MsgLogic::SUCCESS);
     }
 
 //
