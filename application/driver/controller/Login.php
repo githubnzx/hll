@@ -382,7 +382,7 @@ class Login extends Base
         $service_type = request()->post('service_type/d' , 1);    // 服务器 0测试 1正式 【默认 0】 Android 必传1
         if(!$device_number) return error_out('', '参数错误');
         $where['user_id']   = $driver_id;
-        $where['user_type'] = UsersModel::USER_TPYE_USER;
+        $where['user_type'] = DriverModel::PUTH_DRIVER_TPYE;
         $data['device_type']  = $device_type;
         $data['device_number']= $device_number;
         $data['service_type'] = $service_type;
