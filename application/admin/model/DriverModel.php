@@ -12,6 +12,8 @@ namespace app\admin\model;
 
 use app\common\sms\DriverSms;
 use app\admin\model\UserModel;
+use app\common\model\ServiceReceiveModel;
+use app\common\push\Push;
 use im\Easemob;
 use think\Db;
 use think\Log;
@@ -50,8 +52,15 @@ class DriverModel extends BaseModel
         try {
             $user_id = $this->driverEdit(["id"=>$driver_id], ["audit_status"=>$audit_status]);
             // 推送
-
-
+            if ($audit_status === 2) { //通过 推送
+                $msg_title = "";
+                $msg_content = '';
+            } elseif ($audit_status === 3) { // 拒绝 推送
+                $msg_title = "";
+                $msg_content = '';
+            }
+            //$ext = CommonConfig::getPushExt(CommonConfig::getRouteById(cServiceReceiveModel::ROUTE_ORDER_MANAGE));
+            Push::getInstance()->pushMsgAll($driver_id, ServiceReceiveModel::USER_TYPE_DRIVER, $msg_title, $msg_content);
             // 发短信
             if ($phone) {
                 $response = DriverSms::auditPass($phone);

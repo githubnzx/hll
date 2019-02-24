@@ -29,10 +29,14 @@ class DriverModel extends BaseModel
     protected $billWithdraw= 'bill_withdraw';
     protected $balance  = 'balance';
     protected $rechargeOrder  = 'recharge_order';
+    protected $client_push  = 'client_push';
 
 
     const STATUS_DEL = 0;
     const USER_TYPE_USER    = 2;
+
+    const PUTH_USER_TPYE   = 1;
+    const PUTH_DRIVER_TPYE = 2;
 
     const INTEGRAL_REGISTER = 10;
     const TYPE_IN  = 1;
@@ -53,6 +57,27 @@ class DriverModel extends BaseModel
     const ZFB_THIRD_PARTY_TYPE= 2;
     const QQ_THIRD_PARTY_TYPE = 3;
 
+
+    public function clientPushFind($where, $field = "*"){
+        return Db::table($this->client_push)->field($field)->where($where)->find();
+    }
+
+    public function clientPushInsert($param){
+        if (!isset($param['create_time'])) {
+            $param['create_time'] = CURR_TIME;
+        }
+        if (!isset($param['update_time'])) {
+            $param['update_time'] = CURR_TIME;
+        }
+        return Db::table($this->client_push)->insert($param);
+    }
+
+    public function clientPushUpdate($where, $param){
+        if (!isset($param['update_time'])) {
+            $param['update_time'] = CURR_TIME;
+        }
+        return Db::table($this->client_push)->where($where)->update($param);
+    }
 
     public function userFind($where, $fields = '*'){
         $where["is_del"] = self::STATUS_DEL;

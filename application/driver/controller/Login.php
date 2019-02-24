@@ -373,4 +373,31 @@ class Login extends Base
         }
     }
 
+
+    // 保存push 数据
+    public function clientPushAccount(){
+        $driver_id = DriverLogic::getInstance()->checkToken();
+        $device_type = request()->post('device_type/d' , 0);      // 设备类型 1 ios 2 android
+        $device_number = request()->post('device_number/s' , ""); // 设备号
+        $service_type = request()->post('service_type/d' , 1);    // 服务器 0测试 1正式 【默认 0】 Android 必传1
+        if(!$device_number) return error_out('', '参数错误');
+        $where['user_id']   = $driver_id;
+        $where['user_type'] = UsersModel::USER_TPYE_USER;
+        $data['device_type']  = $device_type;
+        $data['device_number']= $device_number;
+        $data['service_type'] = $service_type;
+        $user_push = DriverModel::getInstance()->clientPushFind(['user_id'=>$driver_id, 'user_type'=>DriverModel::PUTH_DRIVER_TPYE], 'device_type, device_number');
+        if(!$user_push){
+            $data['user_id']   = $driver_id;
+            $data['user_type'] = DriverModel::PUTH_DRIVER_TPYE;
+            $request = DriverModel::getInstance()->clientPushInsert($data);
+            if($request === false)  return error_out('', "服务器异常");
+        }
+        if($user_push['device_type'] != $device_type || $user_push['device_number'] != $device_number){
+            $request = DriverModel::getInstance()->clientPushUpdate(['user_id'=>$driver_id, 'user_type'=>DriverModel::PUTH_DRIVER_TPYE], $data);
+            if($request === false)  return error_out('', "服务器异常");
+        }
+        return success_out("", "添加成功");
+    }
+
 }

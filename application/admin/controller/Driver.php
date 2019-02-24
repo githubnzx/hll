@@ -77,7 +77,7 @@ class Driver extends Base
         $driver_id= request()->post('driver_id/d', 0);
         $status   = request()->post('status/s', ""); // 状态 adopt 通过 nopass 不通过
         if (!$driver_id || !$status) return error_out("", MsgLogic::PARAM_MSG);
-        $driverInfo = DriverModel::getInstance()->driverFind(["id"=>$driver_id], "id, phone");
+        $driverInfo = DriverModel::getInstance()->driverFind(["id"=>$driver_id], "id, name, phone");
         if (!$driverInfo) return error_out("", DriverLogic::DRIVER_NOT_EXISTS);
         $result = DriverModel::getInstance()->driverAuditEdit($driver_id, $this->auditStatus[$status], $driverInfo["phone"]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
