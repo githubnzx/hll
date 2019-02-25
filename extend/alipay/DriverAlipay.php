@@ -11,6 +11,7 @@ require_once 'aop/request/AlipayFundTransToaccountTransferRequest.php'; // 转�
 require_once 'aop/request/AlipaySystemOauthTokenRequest.php';           // token
 require_once 'aop/request/AlipayUserInfoShareRequest.php';              // 获取会员用户信息
 require_once 'aop/request/AlipayTradeRefundRequest.php';                // 退款
+require_once 'aop/request/AlipayFundTransToaccountTransferRequest.php'; // 提现
 class DriverAlipay
 {
     private $appId = '2018101461697234';

@@ -84,4 +84,18 @@ class TransferLogic extends BaseLogic
             return false;
         }
     }
+
+    // 单笔转账到支付宝账户接口
+    public function transferZfb($code, $price, $desc)
+    {
+        $price = 0.01;
+        try {
+            Loader::import('alipay.DriverAlipay');
+            $alipay = new \DriverAlipay();
+            return $alipay->transfer($code, $price, $desc);
+        } catch (\Exception $e) {
+            Log::error('支付宝退款失败:' . $code . '=>' . $e->getMessage());
+            return false;
+        }
+    }
 }
