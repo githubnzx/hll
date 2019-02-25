@@ -402,6 +402,7 @@ class DriverModel extends BaseModel
             $bill['type'] = $type;
             $bill['tag']  = $tag;
             $bill['price'] = $price;
+            $bill['pay_type'] = $pay_type;
             $bill['status']= $status;
             $bill['type_status']= 1; // 提现
             $bill['balance'] = $balance_total;
