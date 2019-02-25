@@ -17,7 +17,7 @@ class Push extends BaseLogic
 {
     private $client_service_type= [0 => 'test', 1=> 'service'];
     private $client_device_type = [1 => 'ios',  2=> 'android'];
-    private $client_user_type   = [1 => 'user', 2=> 'coach'];
+    private $client_user_type   = [1 => 'user', 2=> 'driver'];
 
     /**
      * @param string $TargetValue  设备id

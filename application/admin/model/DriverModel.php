@@ -53,11 +53,11 @@ class DriverModel extends BaseModel
             $user_id = $this->driverEdit(["id"=>$driver_id], ["audit_status"=>$audit_status]);
             // 推送
             if ($audit_status === 2) { //通过 推送
-                $msg_title = "";
-                $msg_content = '';
+                $msg_title = "亟亟城运审核通知";
+                $msg_content = '感谢您对亟亟城运的支持，您的申请已通过，接单赚钱吧。';
             } elseif ($audit_status === 3) { // 拒绝 推送
-                $msg_title = "";
-                $msg_content = '';
+                $msg_title = '亟亟城运审核通知';
+                $msg_content = '感谢您对亟亟城运的支持，您的提交的证件信息有误请登陆APP重新提交。';
             }
             //$ext = CommonConfig::getPushExt(CommonConfig::getRouteById(cServiceReceiveModel::ROUTE_ORDER_MANAGE));
             Push::getInstance()->pushMsgAll($driver_id, ServiceReceiveModel::USER_TYPE_DRIVER, $msg_title, $msg_content);
