@@ -56,12 +56,12 @@ class Transfer extends Base
         $id = request()->post('id/d', 0);
         //$pay_type = request()->post('pay_type/d', 0); // 1 微信 2 支付宝
         if(!$id) return error_out([], MsgLogic::PARAM_MSG);
-        $bill = TransferModel::getInstance()->showBillWFind(['b.id'=>$id], 'b.id, b.driver_id, b.price, w.code, w.type');
+        $bill = TransferModel::getInstance()->showBillWFind(['b.id'=>$id], 'b.id, b.driver_id, b.price, w.code, w.type， w.pay_type');
         if(!$bill || !$bill['driver_id'] || !$bill['price'] || !$bill['code'] || !$bill["type"]) return error_out([], '提现失败');
         $driver = TransferModel::getInstance()->showDriverFind($bill['driver_id'], 'name, openid');
         if(!$driver || !$driver['openid']) return error_out([], '提现失败');
         //$result = WithdrawalModel::transferWx($id, $bill['code'], $coach['openid'], $bill['price']);
-        if ($bill["type"] === 1) {  // 微信
+        if ($bill["pay_type"] === 1) {  // 微信
             $order = TransferLogic::getInstance()->transferWx($bill['code'], $driver['openid'], $bill['price'], $bill["type"]);
             if($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS'){
                 Log::error('微信提现失败:' . $bill['code'] . '=>' . $order['err_code_des']);
