@@ -50,7 +50,7 @@ class TransferLogic extends BaseLogic
     
     public function transferWx($code, $openid, $price, $user_name = '', $check_name = 'NO_CHECK')
     {
-        $price = 1;//PayLogic::getInstance()->handlePayPrice($price);
+        $price = PayLogic::getInstance()->handleTransferWxPayPrice($price);
         Loader::import('wxpay.lib.WxPay#Api');
         $inputObj = new \WxTransOrder();
         $inputObj->SetPartner_trade_no($code);
@@ -88,7 +88,7 @@ class TransferLogic extends BaseLogic
     // 单笔转账到支付宝账户接口
     public function transferZfb($code, $openid, $price, $desc)
     {
-        $price = 0.01;
+        $price = PayLogic::getInstance()->handleTransferZfbPayPrice($price);
         try {
             Loader::import('alipay.DriverAlipay');
             $alipay = new \DriverAlipay();
