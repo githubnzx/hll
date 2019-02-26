@@ -1,6 +1,8 @@
 <?php
 
 namespace app\driver\logic;
+
+use app\driver\model\DriverModel;
 use think\exception\HttpException;
 use think\Cache;
 use think\Request;
@@ -73,15 +75,25 @@ class DriverLogic extends BaseLogic
     public function getToken($user_id, $is_refresh = false)
     {
         $user_token = getCache()->get('user_id:' . $user_id);
-        $expire = 60*60*24*10;
-        if (!$is_refresh) {
-            //$this->delDeviceId($user_id);
+        if ($user_token) {
             getCache()->rm('user_token:' . $user_token);
-            $user_token = str_shuffle(md5(str_shuffle(microtime(true))));
         }
-        getCache()->set('user_token:' . $user_token, $user_id, $expire);
-        getCache()->set('user_id:' . $user_id, $user_token, $expire);
+        DriverModel::getInstance()->delDeviceId($user_id);
+        $user_token = str_shuffle(md5(str_shuffle(microtime(true))));
+        getCache()->set('user_token:' . $user_token, $user_id);
+        getCache()->set('user_id:' . $user_id, $user_token);
         return $user_token;
+
+
+        //$expire = 60*60*24*10;
+//        if (!$is_refresh) {
+//            $this->delDeviceId($user_id);
+//            getCache()->rm('user_token:' . $user_token);
+//            $user_token = str_shuffle(md5(str_shuffle(microtime(true))));
+//        }
+//        getCache()->set('user_token:' . $user_token, $user_id, $expire);
+//        getCache()->set('user_id:' . $user_id, $user_token, $expire);
+
         /*if (!$user_token || $is_refresh) {
             $expire = 60*60*24*10;
             if (!$user_token) {

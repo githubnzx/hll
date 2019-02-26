@@ -58,6 +58,13 @@ class DriverModel extends BaseModel
     const QQ_THIRD_PARTY_TYPE = 3;
 
 
+    public function delDeviceId($user_id){
+        $where['user_id'] = $user_id;
+        $where['user_type'] = self::USER_TYPE_USER;
+        return Db::table($this->client_push)->where($where)->delete();
+    }
+
+
     public function clientPushFind($where, $field = "*"){
         return Db::table($this->client_push)->field($field)->where($where)->find();
     }

@@ -1,6 +1,7 @@
 <?php
 namespace app\common\push;
 
+use app\driver\model\DriverModel;
 use think\Loader;
 use think\Config;
 use app\user\model\UsersModel;
@@ -43,7 +44,8 @@ class Push extends BaseLogic
     }
     private function getConfigPush($user_id, $user_type, $TargetValue){
         if(!$user_id || !$user_type) return false;
-        $client_push_info = UsersModel::clientPushFind(['user_id'=>$user_id, 'user_type'=>$user_type]);
+//        $client_push_info = UsersModel::clientPushFind(['user_id'=>$user_id, 'user_type'=>$user_type]);
+        $client_push_info = DriverModel::getInstance()->clientPushFind(['user_id'=>$user_id, 'user_type'=>$user_type]);
         if(!$client_push_info) return [];
         $service_type= $this->client_service_type[$client_push_info['service_type']];
         $device_type = $this->client_device_type[$client_push_info['device_type']];

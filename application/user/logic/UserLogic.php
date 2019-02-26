@@ -65,15 +65,22 @@ class UserLogic extends BaseLogic
     public function getToken($user_id, $is_refresh = false)
     {
         $user_token = Cache::store('user')->get('user_id:' . $user_id);
-        $expire = 60*60*24*10;
-        if (!$is_refresh) {
-            //$this->delDeviceId($user_id);
+        if ($user_token) {
             Cache::store('user')->rm('user_token:' . $user_token);
-            $user_token = str_shuffle(md5(str_shuffle(microtime(true))));
         }
-        Cache::store('user')->set('user_token:' . $user_token, $user_id, $expire);
-        Cache::store('user')->set('user_id:' . $user_id, $user_token, $expire);
+        $user_token = str_shuffle(md5(str_shuffle(microtime(true))));
+        Cache::store('user')->set('user_token:' . $user_token, $user_id);
+        Cache::store('user')->set('user_id:' . $user_id, $user_token);
         return $user_token;
+//        $expire = 60*60*24*10;
+//        if (!$is_refresh) {
+//            //$this->delDeviceId($user_id);
+//            Cache::store('user')->rm('user_token:' . $user_token);
+//            $user_token = str_shuffle(md5(str_shuffle(microtime(true))));
+//        }
+//        Cache::store('user')->set('user_token:' . $user_token, $user_id, $expire);
+//        Cache::store('user')->set('user_id:' . $user_id, $user_token, $expire);
+//        return $user_token;
         /*if (!$user_token || $is_refresh) {
             $expire = 60*60*24*10;
             if (!$user_token) {
