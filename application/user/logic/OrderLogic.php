@@ -172,7 +172,7 @@ class OrderLogic extends BaseLogic
         $kilometers = ceil($kilometers);
         $actualKilometer = bcsub($kilometers, 5);  // 总共里数减去5公里（起步价包含5公里）
         // 起步价 + 超出公里数总价格 = 总费用
-        $actualKilometerPrice = bcadd($truckPrice["starting_price"], bcsub($actualKilometer, $truckPrice["excess_fee"]));
+        $actualKilometerPrice = bcadd($truckPrice["starting_price"], bcmul($actualKilometer, $truckPrice["excess_fee"]));
         $price = bcadd($actualKilometerPrice, $fee_price); // 总公里价 + 小费
         return $price;
     }
