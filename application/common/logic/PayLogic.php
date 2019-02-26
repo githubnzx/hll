@@ -15,6 +15,8 @@ class PayLogic extends BaseLogic
 {
 
     private $defaultPayPrice = 0.01;
+    private $defaultTransferZfbPrice = 0.1;
+    private $defaultTransferWxPrice = 1;
 
     // 处理支付价格
     public function handlePayPrice($price)
@@ -40,7 +42,7 @@ class PayLogic extends BaseLogic
             }
             return $price;
         } else {
-            return $this->defaultPayPrice;
+            return $this->defaultTransferWxPrice;
         }
     }
     // 支付宝提现 最低0.1元
@@ -53,7 +55,7 @@ class PayLogic extends BaseLogic
             }
             return $price;
         } else {
-            return $this->defaultPayPrice;
+            return $this->defaultTransferZfbPrice;
         }
     }
 
