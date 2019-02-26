@@ -69,6 +69,8 @@ class OrderModel extends BaseModel
     public function orderInsert($order){
         Db::startTrans();
         try {
+            $order["create_time"] = CURR_TIME;
+            $order["update_time"] = CURR_TIME;
             $order_id = Db::table($this->orderTable)->insertGetId($order);             // 添加订单
 //            // 存入redis 判断熟人抢单
 //            $friend = explode(",", $order["driver_ids"]);
