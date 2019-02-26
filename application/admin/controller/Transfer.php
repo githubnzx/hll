@@ -58,17 +58,19 @@ class Transfer extends Base
         if(!$id) return error_out([], MsgLogic::PARAM_MSG);
         $bill = TransferModel::getInstance()->showBillWFind(['b.id'=>$id], 'b.id, b.driver_id, b.price, w.code, w.type');
         if(!$bill || !$bill['driver_id'] || !$bill['price'] || !$bill['code'] || !$bill["type"]) return error_out([], '提现失败');
-        $driver = TransferModel::getInstance()->showDriverFind($bill['driver_id'], 'name, openid');
-        if(!$driver || !$driver['openid']) return error_out([], '提现失败');
+        $driver = TransferModel::getInstance()->showDriverFind($bill['driver_id'], 'name, openid, zfb_unique_id');
+        if(!$driver) return error_out([], '提现失败');
         //$result = WithdrawalModel::transferWx($id, $bill['code'], $coach['openid'], $bill['price']);
         if ($bill["type"] === 1) {  // 微信
+            if(!$driver['openid'])  return error_out([], '提现失败');
             $order = TransferLogic::getInstance()->transferWx($bill['code'], $driver['openid'], $bill['price'], $bill["type"]);
             if($order['return_code'] != 'SUCCESS' || $order['result_code'] != 'SUCCESS'){
                 Log::error('微信提现失败:' . $bill['code'] . '=>' . $order['err_code_des']);
                 return error_out('', $order['err_code_des']);
             }
         } else {  // 支付宝
-            $order = TransferLogic::getInstance()->transferZfb($bill['code'], $driver['openid'], $bill['price'], "支付宝提现支付");
+            if(!$driver['zfb_unique_id'])  return error_out([], '提现失败');
+            $order = TransferLogic::getInstance()->transferZfb($bill['code'], $driver['zfb_unique_id'], $bill['price'], "支付宝提现支付");
             if($order === false) {
                 return error_out('', "支付宝提现支付失败");
             }
@@ -80,6 +82,7 @@ class Transfer extends Base
         $withdraw['title'] = Session::get('username');
         $withdraw['audit_time'] = CURR_TIME;
         $result = TransferModel::getInstance()->editBillWithdraw($bill, $withdraw);
+
         if(!$result) return error_out('', MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
