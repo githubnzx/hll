@@ -68,7 +68,7 @@ class Transfer extends Base
                 return error_out('', $order['err_code_des']);
             }
         } else {  // 支付宝
-            $order = TransferLogic::getInstance()->transferZfb($bill['code'], $bill['price'], "支付宝提现支付");
+            $order = TransferLogic::getInstance()->transferZfb($bill['code'], $driver['openid'], $bill['price'], "支付宝提现支付");
             if($order === false) {
                 return error_out('', "支付宝提现支付失败");
             }

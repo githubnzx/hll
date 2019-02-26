@@ -82,7 +82,7 @@ class DriverAlipay
     }
 
     // 提现
-    public function transfer($code, $price, $desc = '支付宝提现')
+    public function transfer($code,$openid, $price, $desc = '支付宝提现')
     {
         $aop = new AopClient;
         $aop->appId = $this->appId;
@@ -91,9 +91,11 @@ class DriverAlipay
         $aop->alipayrsaPublicKey = $this->appPublicKey;
         $request = new AlipayFundTransToaccountTransferRequest(); //
         $bizcontent = json_encode([
-            'out_trade_no' => $code,
-            'refund_amount' => bcadd($price, 0, 2),
-            'refund_reason' => $desc,
+            'out_biz_no' => $code,
+            'payee_type' => "ALIPAY_USERID",
+            'payee_account' => $openid,
+            'amount' => bcadd($price, 0, 2),
+            'remark' => $desc,
         ]);
         $request->setBizContent($bizcontent);
         $result = $aop->execute($request);
