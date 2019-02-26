@@ -111,7 +111,7 @@ class Order extends Base
             $orderInfo = json_decode($value, true);
             $orderTime = $orderInfo["order_time"];
             $day_order_time = (int) bcadd($orderTime, $order_time);
-            if (CURR_TIME >= $day_order_time && $value["status"] == 2) {
+            if (CURR_TIME >= $day_order_time && $orderInfo["status"] == 2) {
                 // 货车信息
                 $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
                 $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
