@@ -286,13 +286,15 @@ class Order extends Base
         return success_out($orderInfo ?: []);
     }*/
 
-    // 到達目的地
+    // 到达目的地
     public function arrive(){
         $user_id = DriverLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
-        if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        $arrive_lon = $this->request->post('arrive_lon/s', "");
+        $arrive_lat = $this->request->post('arrive_lat/s', "");
+        if(!$order_id || !$arrive_lon || !$arrive_lat) return error_out("", MsgLogic::PARAM_MSG);
         // 修改订单 状态
-        $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>4]);
+        $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>4, "arrive_lon"=>$arrive_lon, "arrive_lat"=>$arrive_lat]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
@@ -334,6 +336,18 @@ class Order extends Base
             $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>3]);
             if($result === false) return error_out("", MsgLogic::PARAM_MSG);
         }
+        return success_out("", MsgLogic::SUCCESS);
+    }
+
+    // 上传司机实时经纬度
+    public function RealTimeLonAndLat(){
+        $user_id  = DriverLogic::getInstance()->checkToken();
+        $order_id = $this->request->post('order_id/d', 0);
+        $real_lon = $this->request->post('real_lon/s', "");
+        $real_lat = $this->request->post('real_lat/s', "");
+        if(!$order_id || !$real_lon || !$real_lat) return error_out("", MsgLogic::PARAM_MSG);
+        // 存储实时司机经纬度
+        getCache()->set('realtime_lon_lat:' . $user_id . "-" . $order_id, $real_lon . "," . $real_lat);
         return success_out("", MsgLogic::SUCCESS);
     }
 

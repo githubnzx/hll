@@ -119,7 +119,7 @@ class Order extends Base
         $user_id = UserLogic::getInstance()->checkToken();
         $orderInfo = $orderList = $list = [];
         $field = "id, driver_id, truck_id, status, order_time, send_good_addr, collect_good_addr";
-        $orderInfo = OrderModel::getInstance()->orderFind(["user_id"=>$user_id,"status"=>["in", [0,1]]], $field) ?: [];
+        $orderInfo = OrderModel::getInstance()->orderFind(["user_id"=>$user_id,"status"=>["<>", 1], "driver_id"=>["<>", ""]], $field) ?: [];
         $is_booked = 1;
         if ($orderInfo) { // 当前订单
             if ($orderInfo["driver_id"] === 0) {
@@ -190,6 +190,14 @@ class Order extends Base
         $orderInfo["total_score"] = $totalScore;
         $orderInfo["truck_type"]  = DriverConfig::getInstance()->truckTypeNameId($truckType);
         //$orderInfo["current_order_status"] = in_array($orderInfo["status"], [0,1]) ? 1 : 0;
+        if($orderInfo["status"] == 2) {
+            $results = getCache()->get('realtime_lon_lat:' . $orderInfo["driver_id"] . "-" . $orderInfo["id"]);
+            $resultAr = explode(",", $results);
+            $orderInfo["real"] = [
+                "lon" => reset($resultAr),
+                "lat" => end($resultAr)
+            ];
+        }
         $orderInfo["current_order_status"] = $orderInfo["status"] == 2 ? 1 : 0;
         return success_out($orderInfo ?: []);
     }
