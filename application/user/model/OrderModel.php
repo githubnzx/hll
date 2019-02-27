@@ -44,7 +44,7 @@ class OrderModel extends BaseModel
         return Db::table($this->orderTable)->where($where)->update($param);
     }
 
-    public function cancel($where, $param){
+    public function orderCancel($where, $param){
         Db::startTrans();
         try {
             // 删除redis订单数据
@@ -116,6 +116,8 @@ class OrderModel extends BaseModel
                 Cache::store('driver')->set("RobOrder:" . $value . $order["id"], $order["id"], 60);
             }
             // 订单存入redis
+            $order["status"] = 2;
+            $order["pay_type"] = $pay_type;
             Cache::store('driver')->set("RobOrderData:" . $order["id"], json_encode($order));
             Db::commit();
             return true;

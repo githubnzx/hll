@@ -236,10 +236,9 @@ class Order extends Base
                     return error_out('', "支付宝提现支付失败");
                 }
             }
-        } else {
-            $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>3]);
-            if($result === false) return error_out("", MsgLogic::PARAM_MSG);
         }
+        $result = OrderModel::getInstance()->orderCancel(["id"=>$order_id], ["status"=>3]);
+        if($result === false) return error_out("", MsgLogic::PARAM_MSG);
         return success_out("", MsgLogic::SUCCESS);
     }
 

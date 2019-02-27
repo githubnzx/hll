@@ -47,6 +47,23 @@ class OrderModel extends BaseModel
         return Db::table($this->orderTable)->where($where)->update($param);
     }
 
+    // 取消订单
+    public function orderCancel($where, $param){
+        Db::startTrans();
+        try {
+            $this->orderEdit($where, $param); // 修改订单
+            // 删除redis订单数据
+            if (Cache::store('driver')->has("RobOrderData:" . $where["id"])) {
+                Cache::store('driver')->rm("RobOrderData:" . $where["id"]);
+            }
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
+
     public function robbing($where, $param){
         Db::startTrans();
         try {

@@ -100,6 +100,7 @@ class MemberModel extends BaseModel
     // 添加订单返回order_id
     public function memberUserFind($where, $fields = "*"){
         $where["is_del"] = self::STATUS_DEL;
+        $where["status"] = 1;  //使用状态 0禁用 1使用
         return Db::table($this->memberDriver)->field($fields)->where($where)->find();
     }
 
