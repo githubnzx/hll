@@ -78,40 +78,16 @@ class Order extends Base
     // 抢单列表
     public function robLst(){
         $user_id = DriverLogic::getInstance()->checkToken();
-        $orderIds = $data = [];
+        $orderIds = $data = $dataAr = [];
         $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone, is_register, audit_status");
-//        if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
-//        if ($driverInfo["audit_status"] !== 2) return error_out("", "资料审核中，不可抢单");
         // redis
         $redis = new Redis(\config("cache.driver"));
-        if ($driverInfo["phone"]) { // reids 判断当前司机是否是用户选的熟人订单
-            $orderIds = $redis->mget($redis->keys("RobOrder:".$driverInfo["phone"]."*"));
-        }
-        $order_time = 0;
-        if (!$orderIds) { // 去掉选择熟人的订单
-            // 查询是否是会员
-            $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
-            if ($memberInfo) { // 有会员卡
-                $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
-                // 会员类型
-                if ($memberInfo["type"] === 1) { // 有限制
-                    $order_time = $orderCount ? $memberInfo["limit_second"] : $order_time;
-                }
-            } else {
-                $order_time = MemberModel::MEMBER_DEFAULT_TIME;
-            }
-        }
-        //$orderWhere["driver_id"] = 0;
-        //$orderWhere["status"]    = 0;
-        //$field = "id order_id, truck_id, order_time, driver_ids, send_good_addr, collect_good_addr, is_receivables, remarks";
-        //$orderInfo = OrderModel::getInstance()->orderList($orderWhere, $field);
         // redis中取订单数据
         $orderList = $redis->mget($redis->keys("RobOrderData:*")) ?: [];
         foreach ($orderList as $key => $value) {
             $orderInfo = json_decode($value, true);
             $orderTime = $orderInfo["order_time"];
-            $day_order_time = (int) bcadd($orderTime, $order_time);
-            if (CURR_TIME >= $day_order_time && $orderInfo["status"] == 2) {
+            if ($orderInfo["status"] == 2) {
                 // 货车信息
                 $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
                 $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
@@ -147,10 +123,89 @@ class Order extends Base
                 $data[$orderTime] = $order;
             }
         }
-        krsort($data);
-        $dataAr = array_values($data);
+        if ($data) {
+            krsort($data);
+            $dataAr = array_values($data);
+        }
         return success_out($dataAr, MsgLogic::SUCCESS);
     }
+
+//    // 抢单列表
+//    public function robLst(){
+//        $user_id = DriverLogic::getInstance()->checkToken();
+//        $orderIds = $data = [];
+//        $driverInfo = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone, is_register, audit_status");
+////        if (!$driverInfo || $driverInfo["is_register"] === 0) return error_out("", "尽快上传资料");
+////        if ($driverInfo["audit_status"] !== 2) return error_out("", "资料审核中，不可抢单");
+//        // redis
+//        $redis = new Redis(\config("cache.driver"));
+//        if ($driverInfo["phone"]) { // reids 判断当前司机是否是用户选的熟人订单
+//            $orderIds = $redis->mget($redis->keys("RobOrder:".$driverInfo["phone"]."*"));
+//        }
+//        $order_time = 0;
+//        if (!$orderIds) { // 去掉选择熟人的订单
+//            // 查询是否是会员
+//            $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id, "end_time"=>["EGT", CURR_TIME]], "id, type, limit_second, up_limit_number");
+//            if ($memberInfo) { // 有会员卡
+//                $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id], "id"); // 获取当前司机当天抢单次数
+//                // 会员类型
+//                if ($memberInfo["type"] === 1) { // 有限制
+//                    $order_time = $orderCount ? $memberInfo["limit_second"] : $order_time;
+//                }
+//            } else {
+//                $order_time = MemberModel::MEMBER_DEFAULT_TIME;
+//            }
+//        }
+//        //$orderWhere["driver_id"] = 0;
+//        //$orderWhere["status"]    = 0;
+//        //$field = "id order_id, truck_id, order_time, driver_ids, send_good_addr, collect_good_addr, is_receivables, remarks";
+//        //$orderInfo = OrderModel::getInstance()->orderList($orderWhere, $field);
+//        // redis中取订单数据
+//        $orderList = $redis->mget($redis->keys("RobOrderData:*")) ?: [];
+//        foreach ($orderList as $key => $value) {
+//            $orderInfo = json_decode($value, true);
+//            $orderTime = $orderInfo["order_time"];
+//            $day_order_time = (int) bcadd($orderTime, $order_time);
+//            if (CURR_TIME >= $day_order_time && $orderInfo["status"] == 2) {
+//                // 货车信息
+//                $truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type");//["type"] ?: 0;
+//                $orderInfo["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
+//                $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);//$this->week[$value["type"]];
+//                // 用户信息
+//                $userInfo = UsersModel::getInstance()->userFind(["id"=>$orderInfo["user_id"]], "name, phone, icon, sex");
+//                if ($userInfo) { // 处理名称
+//                    $userName = handleUserName($userInfo["name"]);
+//                    $nameType = DriverConfig::getInstance()->userNameTypeId($userInfo["sex"]);
+//                    $order["user_name"]  = $nameType ? $userName.$nameType : $nameType;
+//                    $order["user_phone"] = $userInfo["phone"];
+//                    $order["user_icon"]  = $userInfo["icon"];
+//                } else {
+//                    $order["user_name"]  = "未知";
+//                    $order["user_phone"] = "";
+//                    $order["user_icon"]  = "";
+//                }
+//                // 订单信息
+//                $order["order_id"] = $orderInfo["id"];
+//                $order["truck_id"] = $orderInfo["truck_id"];
+//                $order["order_time"] = $orderInfo["order_time"];
+//                $order["send_good_lon"] = $orderInfo["send_good_lon"];
+//                $order["send_good_lat"] = $orderInfo["send_good_lat"];
+//                $order["collect_good_lon"] = $orderInfo["collect_good_lon"];
+//                $order["collect_good_lat"] = $orderInfo["collect_good_lat"];
+//                $order["send_good_addr"] = $orderInfo["send_good_addr"];
+//                $order["collect_good_addr"] = $orderInfo["collect_good_addr"];
+//                $order["is_receivables"] = $orderInfo["is_receivables"];
+//                $order["remarks"] = $orderInfo["remarks"];
+//                $order["status"] = isset($orderInfo["status"]) ? $orderInfo["status"] : 0;
+//                $order["price"] = $orderInfo["price"];
+//                $order["truck_name"] = $orderInfo["truck_name"];
+//                $data[$orderTime] = $order;
+//            }
+//        }
+//        krsort($data);
+//        $dataAr = array_values($data);
+//        return success_out($dataAr, MsgLogic::SUCCESS);
+//    }
 
     // 抢单
     public function robbing(){
