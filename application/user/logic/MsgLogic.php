@@ -36,7 +36,7 @@ class MsgLogic extends BaseLogic
     const ORDER_IS_RECEIVABLE= "预约必填";
     const ORDER_NOT_EXISTS   = "订单有误";
     const ORDER_BERESERVED_EXISTS   = "订单已被预约";
-    const ORDER_UPPER_LIMIT  = "抢单已达上限";
+    const ORDER_UPPER_LIMIT  = "您当日抢单数量已上限";
     const ORDER_NOT_PAY      = "订单不可支付";
 
     const DEPOSIT_STATUS_NOT = "请缴纳押金";

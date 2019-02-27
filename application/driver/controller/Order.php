@@ -227,8 +227,9 @@ class Order extends Base
             $orderIds = $redis->mget($redis->keys("RobOrder:".$phone."*"));
         }
         $order_time = 0;
+        $limit_second_msg = "";
         // 查询是否是会员
-        $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id], "id, type, limit_second, up_limit_number, end_time, days");
+        $memberInfo = MemberModel::getInstance()->memberUserFind(["driver_id"=>$user_id], "id, title, type, limit_second, up_limit_number, end_time, days");
         $orderCount = OrderModel::getInstance()->orderCount(["driver_id"=>$user_id, "date"=>CURR_DATE], "id"); // 获取当前司机当天抢单次数
         if ($memberInfo && in_array($memberInfo["type"], [1,2,3])) { // 有会员卡
             if ($memberInfo["days"] === 0) { // 永久有效
@@ -237,7 +238,10 @@ class Order extends Base
                     return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
                 }
                 // 限制秒数 0无限制
-                $order_time = $memberInfo["limit_second"] !== 0 ? $memberInfo["limit_second"] : $order_time;
+                if ($memberInfo["limit_second"] !== 0) {
+                    $limit_second_msg = $memberInfo["title"] . "用户需等待". $memberInfo["limit_second"] ."秒才可抢单";
+                    $order_time = $memberInfo["limit_second"];
+                }
             } else {
                 if ($memberInfo["end_time"] >= CURR_TIME) { // 有效期范围
                     // 上限次数 0无上限
@@ -245,19 +249,27 @@ class Order extends Base
                         return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
                     }
                     // 限制秒数 0无限制
-                    $order_time = $memberInfo["limit_second"] !== 0 ? $memberInfo["limit_second"] : $order_time;
+                    if ($memberInfo["limit_second"] !== 0) {
+                        $limit_second_msg = $memberInfo["title"] . "用户需等待". $memberInfo["limit_second"] ."秒才可抢单";
+                        $order_time = $memberInfo["limit_second"];
+                    }
                 } else {
                     if ($orderCount >= $memberInfo["up_limit_number"]) return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
                     $order_time = MemberModel::MEMBER_DEFAULT_TIME;
                 }
             }
         } else { // 没有员卡
+            $limit_second_msg = "非会员用户需等待". MemberModel::MEMBER_DEFAULT_TIME ."秒才可抢单";
             if ($orderCount >= MemberModel::NOT_MEMBER_DEFAULT_NUMBER) return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
             $order_time = MemberModel::MEMBER_DEFAULT_TIME;
         }
         // redis 中取订单数据
         $orderInfo = Cache::store('driver')->get("RobOrderData:" . $order_id);
         if ($orderInfo === false) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+        $day_order_time = (int) bcadd($orderInfo["order_time"], $order_time);
+        if (CURR_TIME < $day_order_time) {
+            return error_out("", $limit_second_msg);
+        }
         // 查询订单是否真实存在
         $orderDataId = OrderModel::getInstance()->orderFind(["id"=>$orderInfo["id"], "driver_id"=>0, "status"=>2], "id")["id"] ?: 0;
         if (!$orderDataId) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
