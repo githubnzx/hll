@@ -44,6 +44,9 @@ class Order extends Base
         if (!$truck_id || !$send_lon || !$send_lat || !$collect_lon || !$collect_lat || !$send_addr || !$collect_addr || !$phone || !$contacts) {
             return error_out("", MsgLogic::PARAM_MSG);
         }
+        // 检测是否未完成订单
+        $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>2], "id")["id"] ?: 0;
+        if($isExistsOrder) return error_out("", OrderMsgLogic::ORDER_IS_EXISTS);
         // 查询货车是否存在
         $trucInfo = TruckModel::getInstance()->truckFind(["id"=>$truck_id], "id, type");
         if(!$trucInfo) return error_out("", OrderMsgLogic::TRUCK_IS_EXISTS);
@@ -60,9 +63,7 @@ class Order extends Base
             if(!UserLogic::getInstance()->check_mobile($consignee_phone)) return error_out("", UserLogic::USER_PHONE_MSG);
         }
 
-        // 检测是否未完成订单
-        $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
-        if($isExistsOrder) return error_out("", OrderMsgLogic::ORDER_IS_EXISTS);
+
         // 费用计算
         $result = OrderLogic::getInstance()->obtainKilometre($send_lon, $send_lat, $collect_lon, $collect_lat);
         if (!$result) return error_out("", MsgLogic::PARAM_MSG);

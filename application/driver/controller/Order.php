@@ -213,6 +213,10 @@ class Order extends Base
         $user_id = DriverLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        // 检测是否未完成订单
+        $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>2], "id")["id"] ?: 0;
+        if($isExistsOrder) return error_out("", OrderMsgLogic::ORDER_NO_ROBBING);
+
         // 判断是否完善信息和缴纳押金
         $deposit = DriverModel::getInstance()->userFind(["id"=>$user_id], "is_register, deposit_status, deposit_number, audit_status");
         if (!$deposit) return error_out("", "抢单失败");
