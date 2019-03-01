@@ -41,7 +41,7 @@ class Order extends Base
         $consignee_phone = $this->request->post('consignee_phone/s', "");
         $consignee_name  = $this->request->post('consignee_name/s', "");
         //$kilometers  = $this->request->post('kilometers/d', 0);    // 公里数
-        if (!$truck_id || !$send_lon || !$send_lat || !$collect_lon || !$collect_lat || !$send_addr || !$collect_addr || !$consignee_phone || !$consignee_name) {
+        if (!$truck_id || !$send_lon || !$send_lat || !$collect_lon || !$collect_lat || !$send_addr || !$collect_addr || !$phone || !$contacts) {
             return error_out("", MsgLogic::PARAM_MSG);
         }
         // 查询货车是否存在
@@ -52,6 +52,14 @@ class Order extends Base
         }
         if(!UserLogic::getInstance()->check_name($contacts)) return error_out("", OrderMsgLogic::ORDER_USER_NAME);
         if(!UserLogic::getInstance()->check_mobile($phone)) return error_out("", UserLogic::USER_PHONE_MSG);
+
+        if($consignee_name) {
+            if(!UserLogic::getInstance()->check_name($consignee_name)) return error_out("", OrderMsgLogic::ORDER_USER_NAME);
+        }
+        if($consignee_phone) {
+            if(!UserLogic::getInstance()->check_mobile($consignee_phone)) return error_out("", UserLogic::USER_PHONE_MSG);
+        }
+
         // 检测是否未完成订单
         $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
         if($isExistsOrder) return error_out("", OrderMsgLogic::ORDER_IS_EXISTS);

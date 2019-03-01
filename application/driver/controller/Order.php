@@ -175,11 +175,11 @@ class Order extends Base
                 if ($userInfo) { // 处理名称
                     $userName = handleUserName($userInfo["name"]);
                     $nameType = DriverConfig::getInstance()->userNameTypeId($userInfo["sex"]);
-                    $order["user_name"]  = $nameType ? $userName.$nameType : $nameType;
+                    $order["user_name"]  = $userName ? $userName.$nameType : $userInfo["phone"];
                     $order["user_phone"] = $userInfo["phone"];
                     $order["user_icon"]  = $userInfo["icon"];
                 } else {
-                    $order["user_name"]  = "未知";
+                    $order["user_name"]  = "";
                     $order["user_phone"] = "";
                     $order["user_icon"]  = "";
                 }
@@ -336,7 +336,7 @@ class Order extends Base
         // 处理名称
         $userName = handleUserName($userInfo["name"]);
         $nameType = DriverConfig::getInstance()->userNameTypeId($userInfo["sex"]);
-        $orderInfo["user_name"] = $nameType ? $userName.$nameType : $nameType;
+        $orderInfo["user_name"] = $userName ? $userName.$nameType : $userInfo["phone"];
         $orderInfo["user_phone"] = $userInfo["phone"];
         $orderInfo["user_icon"] = $userInfo["icon"];
         $orderInfo["order_time"] = $this->handl_order_date($orderInfo["order_time"]);
