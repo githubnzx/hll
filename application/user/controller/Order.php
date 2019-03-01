@@ -301,7 +301,7 @@ class Order extends Base
     // 检测订单
     public function isExistOrder(){
         $user_id = UserLogic::getInstance()->checkToken();
-        $order = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>["in", [0,1]]], "id, driver_id");
+        $order = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=> 2], "id, driver_id");
         $order_id = $status = 0;
         if ($order) {
             $order_id = $order["id"];

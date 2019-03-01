@@ -372,7 +372,7 @@ class Order extends Base
     // 检测订单
     public function isExistOrder(){
         $user_id = DriverLogic::getInstance()->checkToken();
-        $isExistsOrder = OrderModel::getInstance()->orderFind(["driver_id"=>$user_id, "status"=>["in", [0,1]]], "id")["id"] ?: 0;
+        $isExistsOrder = OrderModel::getInstance()->orderFind(["driver_id"=>$user_id, "status"=> 2], "id")["id"] ?: 0;
         $status = $isExistsOrder ? 1 : 0;
         $data["order_id"] = $isExistsOrder;
         $data["status"]   = $status;
