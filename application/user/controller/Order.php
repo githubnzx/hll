@@ -199,7 +199,7 @@ class Order extends Base
         $orderInfo["truck_type"]  = DriverConfig::getInstance()->truckTypeNameId($truckType);
         //$orderInfo["current_order_status"] = in_array($orderInfo["status"], [0,1]) ? 1 : 0;
         if($orderInfo["status"] == 2) {
-            $results = getCache()->get('realtime_lon_lat:' . $orderInfo["driver_id"] . "-" . $orderInfo["id"]);
+            $results = Cache::store('driver')->get('realtime_lon_lat:' . $orderInfo["driver_id"] . "-" . $orderInfo["id"]);
             $resultAr = explode(",", $results);
             $orderInfo["real"] = [
                 "lon" => reset($resultAr),
