@@ -214,7 +214,7 @@ class Order extends Base
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
         // 检测是否未完成订单
-        $isExistsOrder = OrderModel::getInstance()->orderFind(["user_id"=>$user_id, "status"=>2], "id")["id"] ?: 0;
+        $isExistsOrder = OrderModel::getInstance()->orderFind(["driver_id"=>$user_id, "status"=>2], "id")["id"] ?: 0;
         if($isExistsOrder) return error_out("", OrderMsgLogic::ORDER_NO_ROBBING);
 
         // 判断是否完善信息和缴纳押金
@@ -258,6 +258,7 @@ class Order extends Base
                         $order_time = $memberInfo["limit_second"];
                     }
                 } else {
+                    $limit_second_msg = "非会员用户需等待". MemberModel::MEMBER_DEFAULT_TIME ."秒才可抢单";
                     if ($orderCount >= $memberInfo["up_limit_number"]) return error_out("", OrderMsgLogic::ORDER_UPPER_LIMIT);
                     $order_time = MemberModel::MEMBER_DEFAULT_TIME;
                 }
