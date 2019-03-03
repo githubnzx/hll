@@ -167,7 +167,7 @@ class Order extends Base
         $user_id = UserLogic::getInstance()->checkToken();
         $order_id= $this->request->post('order_id/d', 0);
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
-        $field = "id, truck_id, driver_id, status, price, is_evaluates";
+        $field = "id, truck_id, driver_id, status, price, is_evaluates, send_good_lon, send_good_lat, collect_good_lon, collect_good_lon";
         $orderInfo = OrderModel::getInstance()->orderFind(["id"=>$order_id], $field);
         //$truckType = TruckModel::getInstance()->truckFind(["id"=>$orderInfo["truck_id"]], "type")["type"] ?: 0;
 
