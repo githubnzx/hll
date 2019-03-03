@@ -175,7 +175,7 @@ class Order extends Base
         $driverInfo = DriverModel::getInstance()->userFind(["id"=>$orderInfo["driver_id"]], "id, name, phone, car_number, car_color");
         if(!$driverInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
         // 司机车辆照片
-        $truck_img = TruckModel::getInstance()->certFind(["main_id"=>$driverInfo["id"], "type"=>8], "img")["img"] ?: "";
+        $truck_img = TruckModel::getInstance()->certFind(["main_id"=>$driverInfo["id"], "type"=>1], "img")["img"] ?: "";
         $evaluateContent = "";
         if($orderInfo["is_evaluates"]){
             $evaluateContent = OrderModel::getInstance()->evaluateInfo(["user_id"=>$user_id, "driver_id"=>$orderInfo["driver_id"], "order_id"=>$orderInfo["id"]], "content")["content"] ?: "";
