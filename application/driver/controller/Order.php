@@ -364,7 +364,7 @@ class Order extends Base
             array_push($list, $orderInfo);
         }
         $whereAll["driver_id"] = $user_id;
-        $orderList = OrderModel::getInstance()->orderList($whereAll, $field, "`status` ASC, order_time DESC");
+        $orderList = OrderModel::getInstance()->orderList($whereAll, $field, "order_time DESC"); //`status` ASC, 
         foreach ($orderList as $key => &$value) {
             $truckType = TruckModel::getInstance()->truckFind(["id"=>$value["truck_id"]], "type")["type"] ?: 0;
             $value["truck_name"] = DriverConfig::getInstance()->truckTypeNameId($truckType);
