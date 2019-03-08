@@ -218,17 +218,17 @@ class Order extends Base
         if($isExistsOrder) return error_out("", OrderMsgLogic::ORDER_NO_ROBBING);
 
         // 判断是否完善信息和缴纳押金
-        $deposit = DriverModel::getInstance()->userFind(["id"=>$user_id], "is_register, deposit_status, deposit_number, audit_status");
-        if (!$deposit) return error_out("", "抢单失败");
+        $deposit = DriverModel::getInstance()->userFind(["id"=>$user_id], "is_register, deposit_status, deposit_number, audit_status, phone");
+        if (!$deposit) return error_out("", "请重新登录");
         if ($deposit["is_register"] === 0) return error_out("", "尽快上传资料");
         if ($deposit["audit_status"] !== 2) return error_out("", "资料审核中，不可抢单");
         if ($deposit["deposit_number"] >= MemberModel::MEMBER_DEFAULT_NUMBER) return error_out("", OrderMsgLogic::DEPOSIT_STATUS_NOT);
         // 获取手机号
-        $phone = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: "";
+        //$phone = DriverModel::getInstance()->userFind(["id"=>$user_id], "phone")["phone"] ?: "";
         // redis
         $redis = new Redis(\config("cache.driver"));
-        if ($phone) { // reids 判断当前司机是否是用户选的熟人订单
-            $orderIds = $redis->mget($redis->keys("RobOrder:".$phone."*"));
+        if ($deposit["phone"]) { // reids 判断当前司机是否是用户选的熟人订单
+            $orderIds = $redis->mget($redis->keys("RobOrder:".$deposit["phone"]."*"));
         }
         $order_time = 0;
         $limit_second_msg = "";
@@ -270,16 +270,18 @@ class Order extends Base
         }
         // redis 中取订单数据
         $orderInfo = Cache::store('driver')->get("RobOrderData:" . $order_id);
-        if ($orderInfo === false) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+        if ($orderInfo === false) return error_out("", "该订单已被预约或已失效");
         $day_order_time = (int) bcadd($orderInfo["order_time"], $order_time);
         if (CURR_TIME < $day_order_time) {
             return error_out("", $limit_second_msg);
         }
         // 查询订单是否真实存在
-        $orderDataId = OrderModel::getInstance()->orderFind(["id"=>$orderInfo["id"], "driver_id"=>0, "status"=>2], "id")["id"] ?: 0;
+        $orderDataId = OrderModel::getInstance()->orderFind(["id"=>$orderInfo["id"]], "id, driver_id, status");
         if (!$orderDataId) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+        if($orderDataId["driver_id"] !== $user_id) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+        if($orderDataId["status"] == 3) return error_out("", "订单已取消");
         // 修改订单
-        $result = OrderModel::getInstance()->robbing(["id"=>$orderDataId], ["driver_id"=>$user_id]);
+        $result = OrderModel::getInstance()->robbing(["id"=>$orderDataId["id"]], ["driver_id"=>$user_id]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }
@@ -425,6 +427,10 @@ class Order extends Base
         $arrive_lon = $this->request->post('arrive_lon/s', "");
         $arrive_lat = $this->request->post('arrive_lat/s', "");
         if(!$order_id || !$arrive_lon || !$arrive_lat) return error_out("", MsgLogic::PARAM_MSG);
+        // 删除实时经纬度
+        if (getCache()->has('realtime_lon_lat:' . $user_id . "-" . $order_id)) {
+            getCache()->rm('realtime_lon_lat:' . $user_id . "-" . $order_id);
+        }
         // 修改订单 状态
         $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>4, "arrive_lon"=>$arrive_lon, "arrive_lat"=>$arrive_lat]);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);

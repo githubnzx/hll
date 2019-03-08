@@ -246,7 +246,7 @@ class Order extends Base
                 }
             }
         }
-        $result = OrderModel::getInstance()->orderCancel(["id"=>$order_id], ["status"=>3]);
+        $result = OrderModel::getInstance()->orderCancel($order_id, $user_id);
         if($result === false) return error_out("", MsgLogic::PARAM_MSG);
         return success_out("", MsgLogic::SUCCESS);
     }

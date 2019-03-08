@@ -44,14 +44,18 @@ class OrderModel extends BaseModel
         return Db::table($this->orderTable)->where($where)->update($param);
     }
 
-    public function orderCancel($where, $param){
+    public function orderCancel($order_id, $user_id){
         Db::startTrans();
         try {
             // 删除redis订单数据
-            if (Cache::store('driver')->has("RobOrderData:" . $where["id"])) {
-                Cache::store('driver')->rm("RobOrderData:" . $where["id"]);
+            if (Cache::store('driver')->has("RobOrderData:" . $order_id)) {
+                Cache::store('driver')->rm("RobOrderData:" . $order_id);
             }
-            $this->orderEdit($where, $param);
+            // 实时经纬度
+            if (Cache::store('driver')->has('realtime_lon_lat:' . $user_id . "-" . $order_id)) {
+                Cache::store('driver')->rm('realtime_lon_lat:' . $user_id . "-" . $order_id);
+            }
+            $this->orderEdit(["id"=>$order_id], ["status"=>3]);
             Db::commit();
             return true;
         } catch (\Exception $e) {
