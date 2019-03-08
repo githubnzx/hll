@@ -329,8 +329,20 @@ class Order extends Base
         if(!$order_id) return error_out("", MsgLogic::PARAM_MSG);
         $field = "id order_id, user_id, driver_id, truck_id, status, total_price price, send_good_lon, send_good_lat, collect_good_lon, collect_good_lat, send_good_addr, collect_good_addr, order_time, is_receivables, remarks";
         $orderInfo = OrderModel::getInstance()->orderFind(["id"=>$order_id], $field);
-        if(!$orderInfo) return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
         // driver_id 不存在说明是未抢订单 存在如果和当前司机不一致 说明已被其他司机预约
+        if ($orderInfo) {
+            if ($orderInfo["driver_id"]) {
+                if ($orderInfo["driver_id"] !== $user_id) {
+                    return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+                }
+            } else {
+                if ($orderInfo["status"] == 3){
+                    return error_out("", "订单已取消");
+                }
+            }
+        } else {
+            return error_out("", OrderMsgLogic::ORDER_NOT_EXISTS);
+        }
         if($orderInfo["driver_id"] && $orderInfo["driver_id"] !== $user_id) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
         //$orderInfo["current_order_status"] = in_array($orderInfo["status"], [0, 1]) ? 1 : 0;
         $orderInfo["current_order_status"] = $orderInfo["status"] == 2 ? 1 : 0;
