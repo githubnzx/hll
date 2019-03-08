@@ -278,7 +278,7 @@ class Order extends Base
         // 查询订单是否真实存在
         $orderDataId = OrderModel::getInstance()->orderFind(["id"=>$orderInfo["id"]], "id, driver_id, status");
         if (!$orderDataId) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
-        if($orderDataId["driver_id"] !== $user_id) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
+        if($orderDataId["driver_id"] !== 0 && $orderDataId["driver_id"] !== $user_id) return error_out("", OrderMsgLogic::ORDER_BERESERVED_EXISTS);
         if($orderDataId["status"] == 3) return error_out("", "订单已取消");
         // 修改订单
         $result = OrderModel::getInstance()->robbing(["id"=>$orderDataId["id"]], ["driver_id"=>$user_id]);
