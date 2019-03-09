@@ -444,7 +444,7 @@ class Order extends Base
             getCache()->rm('realtime_lon_lat:' . $user_id . "-" . $order_id);
         }
         // 修改订单 状态
-        $result = OrderModel::getInstance()->orderEdit(["id"=>$order_id], ["status"=>4, "arrive_lon"=>$arrive_lon, "arrive_lat"=>$arrive_lat]);
+        $result = OrderModel::getInstance()->arrive($user_id, $order_id, $arrive_lon, $arrive_lat);
         if ($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }

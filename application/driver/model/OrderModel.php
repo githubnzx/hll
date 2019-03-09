@@ -39,6 +39,24 @@ class OrderModel extends BaseModel
         $where["is_del"] = OrderModel::STATUS_DEL;
         return Db::table($this->orderTable)->field($fields)->where($where)->count();
     }
+    // 司机到达目的地司机金额到账
+    public function arrive($driver_id, $order_id, $arrive_lon, $arrive_lat){
+        Db::startTrans();
+        try {
+            // 修改订单状态
+            $this->orderEdit(["id"=>$order_id], ["status"=>4, "arrive_lon"=>$arrive_lon, "arrive_lat"=>$arrive_lat]); // 修改订单
+            // 增加司机收益
+            $orderInfo = $this->orderFind(["id"=>$order_id], "total_price, pay_type");
+            DriverModel::getInstance()->balanceSetInc(["id"=>$driver_id], $orderInfo["total_price"]);
+            // 记录
+            DriverModel::getInstance()->billAdd($driver_id, $order_id, DriverModel::TYPE_OUT, 3, $orderInfo["total_price"], $orderInfo["pay_type"], $tag = "收益");
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
 
     public function orderEdit($where, $param){
         if(!isset($param["update_time"])){
