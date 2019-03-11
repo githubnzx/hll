@@ -107,9 +107,13 @@ class Integral extends Base
     public function status(){
         $order_id = request()->post('order_id/d', 0);
         $type  = request()->post('type/s', ""); // refuse 拒绝 pass 通过
-        if (!status || !$order_id) return error_out("", MsgLogic::PARAM_MSG);
+        if (!$type || !$order_id) return error_out("", MsgLogic::PARAM_MSG);
         if (!isset($this->statusAr[$type])) return error_out("", MsgLogic::PARAM_MSG);
-        $result = IntegralModel::getInstance()->integralOrderEdit(["id"=>$order_id], ["status"=>$this->statusAr[$type]]);
+        if($type == "pass") {
+            $result = IntegralModel::getInstance()->integralPass($order_id);
+        } else {
+            $result = IntegralModel::getInstance()->integralRefuse($order_id);
+        }
         if($result === false) return error_out("", MsgLogic::SERVER_EXCEPTION);
         return success_out("", MsgLogic::SUCCESS);
     }

@@ -130,13 +130,6 @@ class IntegralModel extends BaseModel
     }
 
 
-
-
-
-
-
-
-
     public function userIntegralRecordInsert($data){
         $data['create_time'] = CURR_TIME;
         $data['update_time'] = CURR_TIME;
@@ -171,6 +164,52 @@ class IntegralModel extends BaseModel
             $param["update_time"] = CURR_TIME;
         }
         return Db::table($this->integralOrderTable)->where($where)->update($param);
+    }
+
+    // 修改
+    public function integralSetDec($where, $integral){
+        return Db::table($this->userIntegral)->where($where)->setDec("integral", $integral);
+    }
+
+    // 同过
+    public function integralPass($order_id){
+        Db::startTrans();
+        try {
+            // select
+            $integralOrder = $this->integralOrderFind(["id"=>$order_id], "user_id, user_type, integral");
+            if(!$integralOrder) return false;
+            $this->integralSetDec(["user_id"=>$integralOrder["user_id"], "user_type"=>$integralOrder["user_type"]], $integralOrder["integral"]);
+            // 修改订单状态
+            $this->integralOrderEdit(["id"=>$order_id], ["status"=>2]);
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
+    }
+
+    // 拒绝
+    public function integralRefuse($order_id){
+        Db::startTrans();
+        try {
+            // select
+            $integralOrder = $this->integralOrderFind(["id"=>$order_id], "user_id, user_type, integral, goods_id");
+            if(!$integralOrder) return false;
+            // del用户和积分商品关联数据
+            Db::table($this->userIntegralGood)->where(["user_id"=>$integralOrder["user_id"],"goods_id"=>$integralOrder["goods_id"], "user_type"=>$integralOrder["user_type"]])->delete();
+            // redis 加一个商品
+            if (Cache::store('integral')->has('goods_id:' . $integralOrder["goods_id"])) Cache::store('integral')->inc('goods_id:' . $integralOrder["goods_id"]);
+            // 加积分商城表中的剩余数量
+            Db::table($this->integralGoodsTable)->where('id', $integralOrder["goods_id"])->setInc("surplus_number", 1);
+            // 修改订单状态
+            $this->integralOrderEdit(["id"=>$order_id], ["status"=>4]);
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            Db::rollback();
+            return false;
+        }
     }
 
 
