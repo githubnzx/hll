@@ -92,7 +92,7 @@ class Order extends Base
             "remarks" => $remarks,
             "date"    => strtotime(CURR_DATE),
             "is_place_order" => $order_time ? 1 : 0,
-            "order_time" => $order_time ?: CURR_TIME
+            //"order_time" => $order_time ?: 0
         ];
         // 下单
         $order_id = OrderModel::getInstance()->orderInsert($order);

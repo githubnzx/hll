@@ -113,7 +113,7 @@ class OrderModel extends BaseModel
     public function orderSuccess($order, $pay_type){
         Db::startTrans();
         try {
-            $this->orderEdit(["id"=>$order["id"]], ["status"=>2, "pay_type"=>$pay_type]);
+            $this->orderEdit(["id"=>$order["id"]], ["status"=>2, "pay_type"=>$pay_type, "order_time"=>CURR_TIME]);
             // 存入redis 判断熟人抢单
             $friend = explode(",", $order["driver_ids"]);
             foreach ($friend as $key => $value){
